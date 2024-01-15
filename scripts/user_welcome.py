@@ -160,7 +160,7 @@ def preprocess_images():
         input_folder = popup_input("\nEnter the path to the folder containing the (multichannel) .tif images: ")
         tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
         # num_tiles = input("\nEnter the number of tiles to sample: ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/random_tile_sampler.py','--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal)# + ' --num_tiles ' + num_tiles)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/random_tile_sampler.py','--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal)# + ' --num_tiles ' + num_tiles)
         restart_program()
     if choice == "7":
         Image_Denoising()
@@ -190,7 +190,7 @@ def Image_Denoising():
     if choice == "2":
         print("\nYou chose to denoise .ser images from TEM. Running Python script...")
         input_folder = popup_input("\nEnter the path to the folder containing the .ser images: ")
-        python_script_environment_setup('em_denoising', '/opt/scripts/denoise_em.py','--input_folder ' + input_folder)
+        python_script_environment_setup('em_denoising', '/opt/Image_Analysis_Suite/scripts/denoise_em.py','--input_folder ' + input_folder)
         print("\nTo see the resolution in Fiji / ImageJ, .tif files must be imported using Files > Import > Bio-Formats.")
     if choice == "r" or choice == "R":
         welcome_message()
@@ -217,7 +217,7 @@ def convert_images():
         # ask for resolution level of the ndpi image
         LEVEL = input("\nEnter the desired resolution level (0 = highest resolution, 1 = second highest resolution): ")
         print("\nConverting .ndpi files to .tif files. Beware: If the image is too large this will raise an exception. In that case, better use ndpi file cropping. ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/ndpi2tif.py','--input ' + input_folder + ' --level ' + LEVEL)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/ndpi2tif.py','--input ' + input_folder + ' --level ' + LEVEL)
         restart_program()
     if choice == "2":
         os.system('clear')
@@ -261,13 +261,13 @@ def crop_images():
         if sub_choice == "1":
             input_folder = popup_input("\nEnter the path to the folder containing ndpi(s) files: ")
             CROPPING_TEMPLATE_CHANNEL_NAME = input("Enter the channel name that represents the cropping template (for example FITC or CY5): ")
-            python_script_environment_setup('napari-assistant', '/opt/scripts/ndpi2croppedtif.py','--input ' + input_folder + ' --cropping_template_channel_name ' + CROPPING_TEMPLATE_CHANNEL_NAME)
+            python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/ndpi2croppedtif.py','--input ' + input_folder + ' --cropping_template_channel_name ' + CROPPING_TEMPLATE_CHANNEL_NAME)
             
         if sub_choice == "2":
             print("\nYou chose to crop .lif files.")
             lif = popup_input("\nEnter the path to the .lif file: ")
             template_channel = input("Enter the channel number that represents the cropping template (single channel: 0): ")
-            python_script_environment_setup('napari-assistant', '/opt/scripts/lif_to_cropped_hearts_tif.py','--lif ' + lif + ' --template_channel ' + template_channel)
+            python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/lif_to_cropped_hearts_tif.py','--lif ' + lif + ' --template_channel ' + template_channel)
         else:
             print("Invalid choice")
             restart_program() 
@@ -304,22 +304,22 @@ def image_segmentation():
         print("\nYou chose to automatically segment bright spots in 2D.")
         input_folder = popup_input("\nEnter the path to the folder containing the intensity images: ")
         bg = input("\nWhat kind of background? (1 = gray, 2 = dark): ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/2D_segmentation_spots.py','--input ' + input_folder + ' --bg ' + bg)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/2D_segmentation_spots.py','--input ' + input_folder + ' --bg ' + bg)
     if choice == "4":
         print("\nYou chose to automatically segment nuclei in 3D.")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         nuclei_channel = input("\nEnter the channel number that represents the nuclei channel: ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/3D_segment_nuclei.py','--image_folder ' + input_folder + ' --nuclei_channel ' + nuclei_channel)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/3D_segment_nuclei.py','--image_folder ' + input_folder + ' --nuclei_channel ' + nuclei_channel)
         sub_choice = input("\nEnter your choice: ")
     if choice == "5":
         print("\nYou chose to automatically segment tissue in 3D.")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         tissue_channel = input("\nEnter the channel number that represents the tissue channel: ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/3D_segment_tissue.py','--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/3D_segment_tissue.py','--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
     if choice == "6":
         print("\nYou chose to automatically segment myocardium in cropped heart slices (2D).")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/get_myocardium_from_slices.py','--input ' + input_folder)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/get_myocardium_from_slices.py','--input ' + input_folder)
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":
@@ -344,16 +344,16 @@ def ROI_analysis():
         print("\nYou chose to create ROIs from masks.")
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/ROI_generation.py','--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/ROI_generation.py','--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
     if choice == "2":
         print("\nYou chose to count spots in 2D ROIs within ventricle slices.")
         input_folder = popup_input("\nEnter the path to the folder containing both intensity and ROI label images: ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/count_instances_per_ROI.py','--input ' + input_folder)    
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/count_instances_per_ROI.py','--input ' + input_folder)    
     if choice == "3":
         print("\nYou chose to count nuclei in tissue (3D).")
         nuclei_folder = popup_input("\nEnter the path to the folder containing nuclei label images: ")
         tissue_folder = popup_input("\nEnter the path to the folder containing tissue label images: ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/3D_count_nuclei_in_tissue.py','--nuclei_folder ' + nuclei_folder + ' --tissue_folder ' + tissue_folder)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/3D_count_nuclei_in_tissue.py','--nuclei_folder ' + nuclei_folder + ' --tissue_folder ' + tissue_folder)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
@@ -379,12 +379,12 @@ def workflows():
         tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
         # num_tiles = input("\nEnter the number of tiles to sample: ")
         channel_names = input("\nEnter the names of the channels in the order they appear in the .tif files. Example: DAPI GFP RFP: ")
-        python_script_environment_setup('workflow_CM_culture', '/opt/scripts/analyze_cm_culture_wells.py','--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + ' --channels ' + channel_names)
+        python_script_environment_setup('workflow_CM_culture', '/opt/Image_Analysis_Suite/scripts/analyze_cm_culture_wells.py','--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + ' --channels ' + channel_names)
         restart_program()
     if choice == "2":
         print("\nYou chose to analyze the output of the previous workflow step.")
         input_folder = popup_input("\nEnter the path to the folder containing the channel folders: ")
-        python_script_environment_setup('napari-assistant', '/opt/scripts/regionprops_CM_culture.py','--input ' + input_folder)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/regionprops_CM_culture.py','--input ' + input_folder)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
