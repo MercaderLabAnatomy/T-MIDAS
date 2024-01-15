@@ -18,7 +18,7 @@ parser.add_argument("--input", type=str, required=True, help="Path to input labe
 parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
 args = parser.parse_args()
 
-EPICARDIUM_DIAMETER_UM = 20.0
+EPICARDIUM_DIAMETER_UM = 15.0
 EPICARDIUM_ADDITIONAL_DIAMETER_UM = 10.0
 PIXEL_RESOLUTION = 0.23 # Slidescanner Hamamatsu S60 at 40x
 EPICARDIUM_DIAMETER_PX = EPICARDIUM_DIAMETER_UM / PIXEL_RESOLUTION
@@ -27,7 +27,7 @@ INTACT_VENTRICLE_REGION_LABEL_ID = 1
 INJURY_LABEL_ID = 2
 BORDER_ZONE_DIAMETER_UM = 100.0
 BORDER_ZONE_DIAMETER_PX = BORDER_ZONE_DIAMETER_UM / PIXEL_RESOLUTION
-SMALL_LABELS_THRESHOLD = 100.0 # square pixels
+SMALL_LABELS_THRESHOLD = 1000.0 # square pixels
 
 # Define utility functions
 
@@ -38,6 +38,8 @@ def get_ventricle(image_path):
         image = imread(image_path)        
         ventricle = cle.merge_touching_labels(image)
         ventricle = nsitk.binary_fill_holes(np.array(ventricle))
+        ventricle = cle.connected_components_labeling_box(ventricle)
+        ventricle = cle.exclude_small_labels(ventricle, None, SMALL_LABELS_THRESHOLD)
         ventricle = np.array(ventricle, dtype=np.uint64)
 
         return ventricle
@@ -67,6 +69,7 @@ def get_ventricle_wo_injury(image_path):
         ventricle_wo_injury = np.copy(image)
         ventricle_wo_injury[ventricle_wo_injury == INJURY_LABEL_ID] = 0
         ventricle_wo_injury = nsitk.binary_fill_holes(ventricle_wo_injury)
+        ventricle_wo_injury = cle.connected_components_labeling_box(ventricle_wo_injury)
         ventricle_wo_injury = cle.exclude_small_labels(ventricle_wo_injury, None, SMALL_LABELS_THRESHOLD)
         ventricle_wo_injury = np.array(ventricle_wo_injury, dtype=np.uint64)
 
@@ -84,6 +87,7 @@ def get_injury(image_path):
         injury = np.copy(image)
         injury[injury == INTACT_VENTRICLE_REGION_LABEL_ID] = 0
         injury = nsitk.binary_fill_holes(injury)
+        injury = cle.connected_components_labeling_box(injury)
         injury = cle.exclude_small_labels(injury, None, SMALL_LABELS_THRESHOLD)
         injury = np.array(injury, dtype=np.uint64)
 
@@ -113,6 +117,8 @@ def get_epicardium(image_path):
         ventricle = cle.binary_subtract(ventricle, epicardium)
         epicardium = nsbatwm.expand_labels(epicardium, EPICARDIUM_ADDITIONAL_DIAMETER_PX)
         epicardium = cle.binary_subtract(epicardium, ventricle)
+        epicardium = cle.connected_components_labeling_box(epicardium)
+        epicardium = cle.exclude_small_labels(epicardium, None, SMALL_LABELS_THRESHOLD)
         #viewer.add_labels(epicardium)
         # convert epicardium to ndarray
         epicardium = np.array(epicardium, dtype=np.uint64)
@@ -143,6 +149,7 @@ def get_border_zone(image_path):
         ventricle_wo_injury = np.copy(image)
         ventricle_wo_injury[ventricle_wo_injury == INJURY_LABEL_ID] = 0
         ventricle_wo_injury = nsitk.binary_fill_holes(ventricle_wo_injury)
+        ventricle_wo_injury = cle.connected_components_labeling_box(ventricle_wo_injury)
         ventricle_wo_injury = cle.exclude_small_labels(ventricle_wo_injury, None, SMALL_LABELS_THRESHOLD)
         border_zone = cle.binary_and(ventricle_wo_injury, injury_expanded)
         border_zone = np.array(border_zone, dtype=np.uint64)
