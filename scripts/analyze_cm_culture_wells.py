@@ -123,6 +123,7 @@ def process_dapi_image(array):
         image_l = cle.connected_components_labeling_box(image_to)
         image_S = nsbatwm.split_touching_objects(image_l, 9.0)
         image_labeled = cle.connected_components_labeling_box(image_S)
+        image_labeled = cle.exclude_labels_outside_size_range(image_labeled, None, 200.0, 1200.0)
         image_labeled = cle.pull(image_labeled)
         return image_labeled
     except Exception as e:
