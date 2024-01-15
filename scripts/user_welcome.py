@@ -11,7 +11,7 @@ def get_model_name():
     return subprocess.check_output("lscpu | grep -E 'Model name'", shell=True).decode('utf-8').strip().replace("Model name:", "").replace(" ", "")
 
 def get_hostname():
-    return subprocess.check_output("hostname", shell=True).decode('utf-8').strip() +" \"Yeti\" workstation"
+    return subprocess.check_output("hostname", shell=True).decode('utf-8').strip() +" workstation"
 
 
 def get_no_cores():
