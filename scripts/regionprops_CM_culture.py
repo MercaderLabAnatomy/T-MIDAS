@@ -51,13 +51,12 @@ for i in range(len(FITC_labels)):
     FITC_filename = os.path.splitext(os.path.basename(FITC_labels[i]))[0]
     # output_csv = os.path.join(output_dir, '{}_output.csv'.format(FITC_filename))
 
- 
-
+ # okay
+  
     # Loop through each region in FITC_props and check for DAPI and TRITC centroids
     for FITC_prop in FITC_props:
         FITC_area = FITC_prop.area
-        FITC_min_intensity = FITC_prop.intensity_min
-        if 100 < FITC_area < 100000 and FITC_min_intensity > 0:
+        if 100 < FITC_area < 100000:
             FITC_bbox = FITC_prop.bbox
             FITC_min_row, FITC_min_col, FITC_max_row, FITC_max_col = FITC_bbox
 
