@@ -56,7 +56,8 @@ for i in range(len(FITC_labels)):
     # Loop through each region in FITC_props and check for DAPI and TRITC centroids
     for FITC_prop in FITC_props:
         FITC_area = FITC_prop.area
-        if 100 < FITC_area < 100000:
+        FITC_min_intensity = FITC_prop.intensity_min
+        if 100 < FITC_area < 100000 and FITC_min_intensity > 0:
             FITC_bbox = FITC_prop.bbox
             FITC_min_row, FITC_min_col, FITC_max_row, FITC_max_col = FITC_bbox
 
