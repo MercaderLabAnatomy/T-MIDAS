@@ -344,7 +344,7 @@ def ROI_analysis():
         print("\nYou chose to create ROIs from masks.")
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
-        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/ROI_generation.py','--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/create_ventricle_ROIs.py','--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
     if choice == "2":
         print("\nYou chose to count spots in 2D ROIs within ventricle slices.")
         input_folder = popup_input("\nEnter the path to the folder containing both intensity and ROI label images: ")
