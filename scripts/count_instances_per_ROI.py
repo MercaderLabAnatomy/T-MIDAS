@@ -44,11 +44,12 @@ def counter(ROI,instances):
 def ROI2CSV(image_path):
 
     # load label images
-    ventricle_wo_injury = imread(image_path.replace(".tif", "_ventricle_wo_injury.tif"))
-    injury = imread(image_path.replace(".tif", "_injury.tif"))
-    epicardium = imread(image_path.replace(".tif", "_epicardium.tif"))
-    border_zone = imread(image_path.replace(".tif", "_border_zone.tif"))
-    instances = imread(image_path.replace(".tif", "_labels.tif").replace("FITC", "CY5"))
+    instances = imread(image_path.replace(".tif", "_labels.tif"))
+    ventricle_wo_injury = imread(image_path.replace(".tif", "_ventricle_wo_injury.tif").replace("CY5", "FITC"))
+    injury = imread(image_path.replace(".tif", "_injury.tif").replace("CY5", "FITC"))
+    epicardium = imread(image_path.replace(".tif", "_epicardium.tif").replace("CY5", "FITC"))
+    border_zone = imread(image_path.replace(".tif", "_border_zone.tif").replace("CY5", "FITC"))
+
 
     # create CSV file
     filename = image_path.replace(".tif", ".csv")
@@ -67,9 +68,9 @@ filenames = os.listdir(args.input)
 # filter out files that don't end with .tif
 
 
-filenames = [s for s in filenames if "CY5" not in s]
+filenames = [s for s in filenames if "FITC" not in s]
 new_filenames = []
-print(filenames)
+
 for filename in filenames:
     if filename.endswith(".tif"):
         match = re.search(r'.+_roi_\d{2,3}', filename)
