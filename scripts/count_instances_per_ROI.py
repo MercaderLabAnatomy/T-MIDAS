@@ -41,19 +41,18 @@ def counter(ROI,instances):
 
 
 # define function that counts instances per ROI
-def ROI2CSV(image_path):
+def ROI2CSV(original_filepath, instance_filepath, ventricle_wo_injury_filepath, injury_filepath, epicardium_filepath, border_zone_filepath):
 
     # load label images
-    instances = imread(image_path.replace(".tif", "_labels.tif"))
-    FITC_image_path = image_path.replace("CY5", "FITC")
-    ventricle_wo_injury = imread(FITC_image_path.replace(".tif", "_ventricle_wo_injury.tif"))
-    injury = imread(FITC_image_path.replace(".tif", "_injury.tif"))
-    epicardium = imread(FITC_image_path.replace(".tif", "_epicardium.tif"))
-    border_zone = imread(FITC_image_path.replace(".tif", "_border_zone.tif"))
+    instances = imread(instance_filepath)
+    ventricle_wo_injury = imread(ventricle_wo_injury_filepath)
+    injury = imread(injury_filepath)
+    epicardium = imread(epicardium_filepath)
+    border_zone = imread(border_zone_filepath)
 
 
     # create CSV file
-    filename = image_path.replace(".tif", ".csv")
+    filename = original_filepath.replace(".tif", ".csv")
     with open(filename, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(["ROI", "instances"])#,"ROI_area (pixels squared)","circularity","aspect_ratio"])
@@ -81,11 +80,34 @@ for filename in filenames:
             new_filenames.append(new_filename)
 
 # remove duplicates
-new_filenames = list(dict.fromkeys(new_filenames))
-new_filenames[0]
-for filename in new_filenames:
+original_filenames = list(set(new_filenames))
 
-    if not filename.endswith(".tif"):
-        continue
-    print(f"Processing image: {filename}")
-    ROI2CSV(os.path.join(args.input, filename))
+
+instance_filenames = [f.replace(".tif", "_labels.tif") for f in original_filenames]
+ventricle_wo_injury_filenames = [f.replace(".tif", "_ventricle_wo_injury.tif").replace("CY5", "FITC") for f in original_filenames]
+injury_filenames = [f.replace(".tif", "_injury.tif").replace("CY5", "FITC") for f in original_filenames]
+epicardium_filenames = [f.replace(".tif", "_epicardium.tif").replace("CY5", "FITC") for f in original_filenames]
+border_zone_filenames = [f.replace(".tif", "_border_zone.tif").replace("CY5", "FITC") for f in original_filenames]
+
+
+original_filepaths = [os.path.join(args.input, filename) for filename in original_filenames]
+instance_filepaths = [os.path.join(args.input, filename) for filename in instance_filenames]
+ventricle_wo_injury_filepaths = [os.path.join(args.input, filename) for filename in ventricle_wo_injury_filenames]
+injury_filepaths = [os.path.join(args.input, filename) for filename in injury_filenames]
+epicardium_filepaths = [os.path.join(args.input, filename) for filename in epicardium_filenames]
+border_zone_filepaths = [os.path.join(args.input, filename) for filename in border_zone_filenames]
+
+
+# iterate over length of list
+for i in range(len(original_filepaths)):
+    print(f"Processing image: {original_filepaths[i]}")
+    ROI2CSV(original_filepaths[i], instance_filepaths[i], ventricle_wo_injury_filepaths[i], injury_filepaths[i], epicardium_filepaths[i], border_zone_filepaths[i])
+
+
+
+# for filename in new_filenames:
+
+#     if not filename.endswith(".tif"):
+#         continue
+#     print(f"Processing image: {filename}")
+#     ROI2CSV(os.path.join(args.input, filename))
