@@ -65,8 +65,6 @@ def ROI2CSV(image_path):
 filenames = os.listdir(args.input)
 # filter out files that don't end with .tif
 
-filenames = os.listdir("/mnt/TEST/")
-
 new_filenames = []
 
 for filename in filenames:
