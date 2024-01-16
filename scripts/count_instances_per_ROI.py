@@ -69,7 +69,7 @@ filenames = os.listdir(args.input)
 
 filenames = [s for s in filenames if "CY5" not in s]
 new_filenames = []
-
+print(filenames)
 for filename in filenames:
     if filename.endswith(".tif"):
         match = re.search(r'.+_roi_\d{2,3}', filename)
