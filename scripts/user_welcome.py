@@ -61,14 +61,14 @@ def welcome_message():
     print(f"Available GPU Memory: {available_RAM_GPU}")
     
     #print("\nMaintenance: marco.meer@unibe.ch\n")
-    print("\n >>> Do you need assistance analyzing images? [Y/n] <<<")
-    choice = input("\nEnter your choice: ")
-    if choice == "Y" or choice == "y":
-        process_image()
-    if choice == "N" or choice == "n":
-        exit_program()
-    else:
-        welcome_message()
+    #print("\n >>> Do you need assistance analyzing images? [Y/n] <<<")
+    #choice = input("\nEnter your choice: ")
+    #if choice == "Y" or choice == "y":
+    process_image() # go straight ahead into the image processing menu
+    # if choice == "N" or choice == "n":
+    #     exit_program()
+    # else:
+    #     welcome_message()
 
 
 def napari_environment_setup(env_name):
@@ -88,12 +88,12 @@ def popup_input(prompt):
 
 def process_image():
 
-    print("\nGreat! Let's get started.")
+    #print("\nGreat! Let's get started.")
     print("\nWhat would you like to do?\n")
-    print("[1] Image Preprocessing")
-    print("[2] Image Segmentation")
-    print("[3] Region of interest (ROI) measurements")
-    print("[4] Workflows")
+    print("[1] Image Conversion")
+    print("[2] Image Segmentation or Spot Detection")
+    print("[3] Regions of Interest Analysis")
+    print("[4] Special Workflows")
     print("[x] Exit \n")
 
     choice = input("\nEnter your choice: ")
@@ -116,7 +116,7 @@ def process_image():
 
 def preprocess_images():
     os.system('clear')
-    print("Image Processing: What would you like to do?\n")
+    print("Image Conversion: What would you like to do?\n")
     print("[1] File Conversion")
     print("[2] Image Cropping")
     print("[3] Split Channels")
@@ -284,7 +284,7 @@ def crop_images():
 
 def image_segmentation():
     os.system('clear')
-    print("\nImage Segmentation: What would you like to do?\n")
+    print("\nImage Segmentation or Spot Detection: What would you like to do?\n")
     print("[1] Manually segment objects (2D) with Napari McLabel plugin")
     print("[2] Train pixel classifier to segment objects (2D or 3D) with Napari APOC plugin")
     print("[3] Automatically segment bright spots (2D)")
@@ -332,10 +332,10 @@ def image_segmentation():
 
 def ROI_analysis():
     os.system('clear')
-    print("\nROI measurements: What would you like to do?\n")
-    print("[1] Generate ROIs from masks (currently only for heart slice [intact+injured] ventricle masks)")
-    print("[2] Count spots in ROIs (2D) within ventricle slices")
-    print("[3] Count spots in ROI (3D): nuclei in tissue")
+    print("\nRegions of Interest (ROI) Analysis: What would you like to do?\n")
+    print("[1] Heart slices: Generate ROIs from [intact+injured] ventricle masks")
+    print("[2] Heart slices: Count spots within ventricle ROIs")
+    print("[3] Heart volume: Count nuclei within ROIs")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -347,7 +347,7 @@ def ROI_analysis():
         python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/create_ventricle_ROIs.py','--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
     if choice == "2":
         print("\nYou chose to count spots in 2D ROIs within ventricle slices.")
-        input_folder = popup_input("\nEnter the path to the folder containing both intensity and ROI label images: ")
+        input_folder = popup_input("\nInput: Folder with all label images (ROIs and instance segmentations).")
         python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/count_instances_per_ROI.py','--input ' + input_folder)    
     if choice == "3":
         print("\nYou chose to count nuclei in tissue (3D).")
@@ -366,8 +366,8 @@ def ROI_analysis():
 
 def workflows():
     os.system('clear')
-    print("\nWorkflows: Choose from one of the available workflows\n")
-    print("[1] Analyze multichannel .tif of CM culture wells")
+    print("\nSpecial Workflows: Choose from one of the available workflows\n")
+    print("[1] Analyze multichannel .tif (ndpi viewer exports) of CM culture wells")
     print("[2] Count proliferating FITC+ cells")
     print("[r] Return to main menu")
     print("[x] Exit \n")

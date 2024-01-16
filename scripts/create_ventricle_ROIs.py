@@ -9,6 +9,7 @@ import tifffile as tf
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 import pyclesperanto_prototype as cle
 import napari_segment_blobs_and_things_with_membranes as nsbatwm
+from skimage.measure import regionprops
 
 
 
@@ -27,7 +28,7 @@ INTACT_VENTRICLE_REGION_LABEL_ID = 1
 INJURY_LABEL_ID = 2
 BORDER_ZONE_DIAMETER_UM = 100.0
 BORDER_ZONE_DIAMETER_PX = BORDER_ZONE_DIAMETER_UM / PIXEL_RESOLUTION
-SMALL_LABELS_THRESHOLD = 1000.0 # square pixels
+SMALL_LABELS_THRESHOLD = 10000.0 # square pixels
 
 # Define utility functions
 
@@ -70,7 +71,9 @@ def get_ventricle_wo_injury(image_path):
         ventricle_wo_injury[ventricle_wo_injury == INJURY_LABEL_ID] = 0
         ventricle_wo_injury = nsitk.binary_fill_holes(ventricle_wo_injury)
         ventricle_wo_injury = cle.connected_components_labeling_box(ventricle_wo_injury)
-        ventricle_wo_injury = cle.exclude_small_labels(ventricle_wo_injury, None, SMALL_LABELS_THRESHOLD)
+        label_props = regionprops(ventricle_wo_injury)
+        largest_label = max(label_props, key=lambda region: region.area)
+        ventricle_wo_injury = np.where(ventricle_wo_injury == largest_label, ventricle_wo_injury, 0)
         ventricle_wo_injury = np.array(ventricle_wo_injury, dtype=np.uint64)
 
         return ventricle_wo_injury
@@ -88,7 +91,9 @@ def get_injury(image_path):
         injury[injury == INTACT_VENTRICLE_REGION_LABEL_ID] = 0
         injury = nsitk.binary_fill_holes(injury)
         injury = cle.connected_components_labeling_box(injury)
-        injury = cle.exclude_small_labels(injury, None, SMALL_LABELS_THRESHOLD)
+        label_props = regionprops(injury)
+        largest_label = max(label_props, key=lambda region: region.area)
+        injury = np.where(injury == largest_label, injury, 0)
         injury = np.array(injury, dtype=np.uint64)
 
         return injury
@@ -118,7 +123,9 @@ def get_epicardium(image_path):
         epicardium = nsbatwm.expand_labels(epicardium, EPICARDIUM_ADDITIONAL_DIAMETER_PX)
         epicardium = cle.binary_subtract(epicardium, ventricle)
         epicardium = cle.connected_components_labeling_box(epicardium)
-        epicardium = cle.exclude_small_labels(epicardium, None, SMALL_LABELS_THRESHOLD)
+        label_props = regionprops(epicardium)
+        largest_label = max(label_props, key=lambda region: region.area)
+        epicardium = np.where(epicardium == largest_label, epicardium, 0)
         #viewer.add_labels(epicardium)
         # convert epicardium to ndarray
         epicardium = np.array(epicardium, dtype=np.uint64)
@@ -152,6 +159,10 @@ def get_border_zone(image_path):
         ventricle_wo_injury = cle.connected_components_labeling_box(ventricle_wo_injury)
         ventricle_wo_injury = cle.exclude_small_labels(ventricle_wo_injury, None, SMALL_LABELS_THRESHOLD)
         border_zone = cle.binary_and(ventricle_wo_injury, injury_expanded)
+        border_zone = cle.connected_components_labeling_box(border_zone)
+        label_props = regionprops(border_zone)
+        largest_label = max(label_props, key=lambda region: region.area)
+        border_zone = np.where(border_zone == largest_label, border_zone, 0)
         border_zone = np.array(border_zone, dtype=np.uint64)
 
         return border_zone
