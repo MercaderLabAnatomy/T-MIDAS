@@ -45,10 +45,11 @@ def ROI2CSV(image_path):
 
     # load label images
     instances = imread(image_path.replace(".tif", "_labels.tif"))
-    ventricle_wo_injury = imread(image_path.replace(".tif", "_ventricle_wo_injury.tif").replace("CY5", "FITC"))
-    injury = imread(image_path.replace(".tif", "_injury.tif").replace("CY5", "FITC"))
-    epicardium = imread(image_path.replace(".tif", "_epicardium.tif").replace("CY5", "FITC"))
-    border_zone = imread(image_path.replace(".tif", "_border_zone.tif").replace("CY5", "FITC"))
+    FITC_image_path = image_path.replace("CY5", "FITC")
+    ventricle_wo_injury = imread(FITC_image_path.replace(".tif", "_ventricle_wo_injury.tif"))
+    injury = imread(FITC_image_path.replace(".tif", "_injury.tif"))
+    epicardium = imread(FITC_image_path.replace(".tif", "_epicardium.tif"))
+    border_zone = imread(FITC_image_path.replace(".tif", "_border_zone.tif"))
 
 
     # create CSV file
