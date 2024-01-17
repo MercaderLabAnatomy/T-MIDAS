@@ -347,8 +347,9 @@ def ROI_analysis():
         python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/create_ventricle_ROIs.py','--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
     if choice == "2":
         print("\nYou chose to count spots in 2D ROIs within ventricle slices.")
+        pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         input_folder = popup_input("\nInput: Folder with all label images (ROIs and instance segmentations).")
-        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/count_instances_per_ROI.py','--input ' + input_folder)    
+        python_script_environment_setup('napari-assistant', '/opt/Image_Analysis_Suite/scripts/count_instances_per_ROI.py','--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution) 
     if choice == "3":
         print("\nYou chose to count nuclei in tissue (3D).")
         nuclei_folder = popup_input("\nEnter the path to the folder containing nuclei label images: ")
