@@ -19,9 +19,9 @@ parser.add_argument("--input", type=str, required=True, help="Path to input labe
 args = parser.parse_args()
 
 
-# def get_area(ROI):
-#     area = cle.sum_of_all_pixels(ROI)
-#     return area
+def get_area(ROI):
+    area = cle.sum_of_all_pixels(ROI)
+    return area
 
 # def get_circularity(ROI):
 #     region = regionprops(ROI)
@@ -55,11 +55,11 @@ def ROI2CSV(original_filepath, instance_filepath, ventricle_wo_injury_filepath, 
     filename = original_filepath.replace(".tif", ".csv")
     with open(filename, 'w') as f:
         writer = csv.writer(f)
-        writer.writerow(["ROI", "instances"])#,"ROI_area (pixels squared)","circularity","aspect_ratio"])
-        writer.writerow(["ventricle_wo_injury", counter(ventricle_wo_injury,instances)])#, get_area(ventricle_wo_injury), get_circularity(ventricle_wo_injury), get_AR(ventricle_wo_injury)])
-        writer.writerow(["injury", counter(injury,instances)])#, get_area(injury), get_circularity(injury), get_AR(injury)])
-        writer.writerow(["epicardium", counter(epicardium,instances)])#, get_area(epicardium), get_circularity(epicardium), get_AR(epicardium)])
-        writer.writerow(["border_zone", counter(border_zone,instances)])#, get_area(border_zone), get_circularity(border_zone), get_AR(border_zone)])
+        writer.writerow(["ROI", "instances","ROI_area (pixels squared)])"#,"circularity","aspect_ratio"])
+        writer.writerow(["ventricle_wo_injury", counter(ventricle_wo_injury,instances), get_area(ventricle_wo_injury)])#, get_circularity(ventricle_wo_injury), get_AR(ventricle_wo_injury)])
+        writer.writerow(["injury", counter(injury,instances), get_area(injury)])#, get_circularity(injury), get_AR(injury)])
+        writer.writerow(["epicardium", counter(epicardium,instances), get_area(epicardium)])#, get_circularity(epicardium), get_AR(epicardium)])
+        writer.writerow(["border_zone", counter(border_zone,instances), get_area(border_zone)])#, get_circularity(border_zone), get_AR(border_zone)])
 
 
 
