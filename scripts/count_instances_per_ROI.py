@@ -22,7 +22,7 @@ args = parser.parse_args()
 
 def get_area(ROI):
     area = cle.sum_of_all_pixels(ROI)
-    area_mm2 = get_area(ROI) * (args.pixel_resolution / 1000)**2
+    area_mm2 = area * (args.pixel_resolution / 1000)**2
     return area_mm2
 
 # def get_circularity(ROI):
