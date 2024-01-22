@@ -1,6 +1,7 @@
-import argparse
 import os
+import argparse
 from aicsimageio import AICSImage
+from aicsimageio.writers import OmeTiffWriter
 
 
 # parse arguments
@@ -10,14 +11,15 @@ args = parser.parse_args()
 
 folder = args.input
 
-
 def czi_scenes_to_tifs(filepath):
     # test using AICSImageIO
     aics_img = AICSImage(filepath, reconstruct_mosaic=True)
     # export each scene as tif
     for i in aics_img.scenes:
-        print(i)
-        aics_img.save(filepath.replace(".czi", f"_scene_{i}.tif"), select_scenes=[i])
+        aics_img.set_scene(i)
+        print("Exporting " + str(i) + " with shape "+ str(aics_img.data.shape)+ " and dim order " + str(aics_img.dims.order) + " to ome.tiff.")
+        OmeTiffWriter.save(aics_img.data, filepath.replace(".czi", f"_{i}.ome.tiff"))
+        # #aics_img.save(filepath.replace(".czi", f"_{i}.ome.tiff"), select_scenes=[i]) # bug with colors?
 
 for file in os.listdir(folder):
     if file.endswith(".czi"):
