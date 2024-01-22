@@ -18,7 +18,11 @@ def czi_scenes_to_tifs(filepath):
     for i in aics_img.scenes:
         aics_img.set_scene(i)
         print("Exporting " + str(i) + " with shape "+ str(aics_img.data.shape)+ " and dim order " + str(aics_img.dims.order) + " to ome.tiff.")
-        OmeTiffWriter.save(aics_img.data, filepath.replace(".czi", f"_{i}.ome.tiff"))
+        OmeTiffWriter.save(aics_img.data, 
+                           filepath.replace(".czi", f"_{i}.ome.tiff"), 
+                           physical_pixel_sizes=aics_img.physical_pixel_sizes, 
+                           dim_order=aics_img.dims.order, 
+                           channel_names=aics_img.channel_names)
         # #aics_img.save(filepath.replace(".czi", f"_{i}.ome.tiff"), select_scenes=[i]) # bug with colors?
 
 for file in os.listdir(folder):
