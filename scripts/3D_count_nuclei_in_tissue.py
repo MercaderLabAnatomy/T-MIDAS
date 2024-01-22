@@ -13,6 +13,11 @@ from skimage.io import imread, imsave
 import pandas as pd
 import apoc
 import napari_segment_blobs_and_things_with_membranes as nsbatwm 
+import SimpleITK as sitk
+from skimage.measure import regionprops
+import pyclesperanto_prototype as cle
+
+
 
 def load_image(image_path):
     try:
@@ -20,13 +25,20 @@ def load_image(image_path):
     except FileNotFoundError as e:
         print(f"Error: {e}")
         return None
-
-
+    
+pixel_width, pixel_height, pixel_depth = 0.2840909, 0.2840909, 1.5001314  
+    
+# get volume in um^3
+def get_volume(ROI):
+    volume = cle.sum_of_all_pixels(ROI)
+    volume_um3 = volume * (pixel_width * pixel_height * pixel_depth)
+    return volume_um3
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Get nuclei inside tissue')
 parser.add_argument('--nuclei_folder', type=str, help='Path to folder containing TIF files with nuclei channel')
 parser.add_argument('--tissue_folder', type=str, help='Path to folder containing TIF files with tissue channel')
+#parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
 args = parser.parse_args()
 
 
@@ -79,11 +91,13 @@ for nuclei_image_filename in os.listdir(nuclei_folder):
         tissue_image_filename = nuclei_image_filename.replace('nuclei_labels', 'tissue_labels')
 
         tissue_labels = load_image(os.path.join(tissue_folder, tissue_image_filename))
+        
+        #image = load_image("/home/marco/Pictures/ImagesMarwa/20230821_ehd2_laser_abl_02_HM_ab_Position005_cropped_tissue_labels.tif")
 
-
+        
         # Remove all nuclei labels outside of tissue
         nuclei_labels_in_tissue = cle.binary_intersection(tissue_labels, nuclei_labels)
-        
+
 
         nuclei_labels_in_tissue = cle.connected_components_labeling_box(nuclei_labels_in_tissue)
         nuclei_labels_in_tissue = cle.exclude_small_labels(nuclei_labels_in_tissue, None, 500)
@@ -98,9 +112,9 @@ for nuclei_image_filename in os.listdir(nuclei_folder):
             nuclei_class = cle.binary_and(cle.push(sub_array), nuclei_labels_in_tissue)
             nuclei_class = cle.connected_components_labeling_box(nuclei_class)
             nuclei_count = cle.maximum_of_all_pixels(nuclei_class)
-            print(f"Sample: {common_part}, Count: {int(nuclei_count)}, Class: {int(value)}")    
+            print(f"Sample: {common_part}, Count: {int(nuclei_count)}, Class: {int(value)}, Volume (um3): {int(get_volume(tissue_labels))}")    
             # Add the result to the DataFrame
-            result = {"Sample": common_part, "Count": int(nuclei_count), "Class": int(value)}    
+            result = {"Sample": common_part, "Count": int(nuclei_count), "Class": int(value), "Volume (um3)": int(get_volume(tissue_labels))}    
             results_list.append(result)
         
         # num_nuclei_labels_in_tissue = cle.maximum_of_all_pixels(nuclei_labels_in_tissue)
