@@ -13,6 +13,8 @@ args = parser.parse_args()
 
 folder = args.input
 
+scale_factor = 0.5
+
 def czi_scenes_to_tifs(filepath):
 
     aics_img = AICSImage(filepath, reconstruct_mosaic=True)    
@@ -21,8 +23,9 @@ def czi_scenes_to_tifs(filepath):
         aics_img.set_scene(i)
         img = aics_img.get_image_data("YXS", Z=0, T=0, C=0)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        Image.fromarray(img).save(filepath.replace(".czi", f"_{i}.tiff"), 
-                                    dpi = (25400.0/aics_img.physical_pixel_sizes[2], 25400.0/aics_img.physical_pixel_sizes[1]),
+        resized_img = cv2.resize(img, (0, 0), fx=scale_factor, fy=scale_factor)
+        Image.fromarray(resized_img).save(filepath.replace(".czi", f"_{i}.tiff"), 
+                                    dpi = (scale_factor*25400.0/aics_img.physical_pixel_sizes[2], scale_factor*25400.0/aics_img.physical_pixel_sizes[1]),
                                     compression="tiff_deflate")
 
 
