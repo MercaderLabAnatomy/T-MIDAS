@@ -22,7 +22,10 @@ def czi_scenes_to_tifs(filepath):
                            filepath.replace(".czi", f"_{i}.ome.tiff"), 
                            physical_pixel_sizes=aics_img.physical_pixel_sizes, 
                            dim_order=aics_img.dims.order, 
-                           channel_names=aics_img.channel_names)
+                           channel_names=aics_img.channel_names,
+                           # list of channel colors RBG hexadecimals
+                           channel_colors=[0xFF0000,0x00FF00,0x0000FF]
+                           )
         # #aics_img.save(filepath.replace(".czi", f"_{i}.ome.tiff"), select_scenes=[i]) # bug with colors?
 
 for file in os.listdir(folder):

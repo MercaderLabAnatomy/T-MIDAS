@@ -61,10 +61,10 @@ os.makedirs(output_folder, exist_ok=True)
 
 
 features = 'area,mean_max_distance_to_centroid_ratio'
-cl_filename = "object_classifier.cl"
-classifier_labels = imread("/opt/models/nuclei_in_tissue/20230821_ehd2_laser_abl_02_HT_ab_Position002_cropped_nuclei_in_tissue_labels.tif")
-# classifier_image = imread("models/nuclei_in_tissue/20230821_ehd2_laser_abl_02_HT_ab_Position002_cropped_nuclei_intensities.tif")
-classifier_annotation = imread("models/nuclei_in_tissue/20230821_ehd2_laser_abl_02_HT_ab_Position002_nuclei_annotations.tif")
+cl_filename = "/mnt/disk2/Marco/nuclei_in_tissue/ObjectClassifier_nuclei.cl"
+# classifier_labels = imread("/opt/models/nuclei_in_tissue/20230821_ehd2_laser_abl_02_HT_ab_Position002_cropped_nuclei_in_tissue_labels.tif")
+# # classifier_image = imread("models/nuclei_in_tissue/20230821_ehd2_laser_abl_02_HT_ab_Position002_cropped_nuclei_intensities.tif")
+# classifier_annotation = imread("models/nuclei_in_tissue/20230821_ehd2_laser_abl_02_HT_ab_Position002_nuclei_annotations.tif")
 
 
 
