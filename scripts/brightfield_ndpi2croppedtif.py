@@ -23,15 +23,8 @@ The user is prompted to select either resolution level.
 
 import openslide
 import os
-
-from PIL import ImageFilter
-from PIL import Image
-
-import numpy as np
+from PIL import Image, ImageOps
 import argparse
-import tifffile as tf
-import pyclesperanto_prototype as cle
-import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 import napari_segment_blobs_and_things_with_membranes as nsbatwm  # version 0.3.7
 from skimage.measure import regionprops
 
@@ -55,15 +48,21 @@ for file in os.listdir(input_folder):
     if file.endswith(".ndpi"):
         ndpi_files.append(file)
 
-def get_rois(template_ndpi_file):
 
-    slide = openslide.OpenSlide(os.path.join(input_folder, template_ndpi_file))
+#ndpi_file = ndpi_files[0]
+
+def get_rois(ndpi_file):
+
+    slide = openslide.OpenSlide(os.path.join(input_folder, ndpi_file))
     scaling_factor = 100
     slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
     thumbnail = slide.get_thumbnail(slide_dims_downscaled)
     thumbnail = thumbnail.convert('L')
-    thumbnail = Image.fromarray(np.invert(np.array(thumbnail))) # invert brightfield image
+    #thumbnail.show()
+    thumbnail = ImageOps.invert(thumbnail) # invert brightfield image
+    #thumbnail.show()
     labeled_thumbnail = nsbatwm.gauss_otsu_labeling(thumbnail, 10.0)
+    #Image.fromarray(labeled_thumbnail).show()
     props = regionprops(labeled_thumbnail)
     rois = []
     for i, prop in enumerate(props):
@@ -78,24 +77,20 @@ def get_rois(template_ndpi_file):
 
 
 for ndpi_file in ndpi_files:
+    if ndpi_file.endswith(".ndpi"):
 
+        rois = get_rois(ndpi_file)
+        number_of_rois = len(rois)
 
-    rois = get_rois(ndpi_file)
-    number_of_rois = len(rois)
-
-    for ndpi_file in ndpi_files:
-        if ndpi_file.endswith(".ndpi"):
-
-            output_filename = os.path.join(output_dir, os.path.splitext(os.path.basename(ndpi_file))[0])
-            slide = openslide.OpenSlide(os.path.join(input_folder, ndpi_file))
-            for i, roi in enumerate(rois):
-                x, y, w, h = roi
-
-                cropped_image = slide.read_region((x, y), 0, (w, h))
-                cropped_image_dimensions = cropped_image.size
-                print("ROI %d of %d with dimensions %s saved as %s" % (i+1, number_of_rois, cropped_image_dimensions, output_filename + "_roi_0" + str(i+1) + ".tif"))
-                cropped_image = cropped_image.convert('L')
-                cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif")
+        output_filename = os.path.join(output_dir, os.path.splitext(os.path.basename(ndpi_file))[0])
+        slide = openslide.OpenSlide(os.path.join(input_folder, ndpi_file))
+        for i, roi in enumerate(rois):
+            x, y, w, h = roi
+            cropped_image = slide.read_region((x, y), 0, (w, h))
+            cropped_image_dimensions = cropped_image.size
+            print("ROI %d of %d with dimensions %s saved as %s" % (i+1, number_of_rois, cropped_image_dimensions, output_filename + "_roi_0" + str(i+1) + ".tif"))
+            cropped_image = cropped_image.convert('L')
+            cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif")
 
 """
 
