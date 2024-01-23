@@ -126,9 +126,9 @@ for nuclei_image_filename in os.listdir(nuclei_folder):
         napari_io.imsave(os.path.join(output_folder, nuclei_classes_filename), nuclei_classes)
         # get common part of filename
 
-        print(f"Sample: {common_part}, Count: {int(nuclei_count)}, Class: {int(value)}")    
+        print(f"Sample: {common_part}, Count: {int(nuclei_count)}, Class: {int(value)}, Volume (um3): {int(volume)}")  
         # Add the result to the DataFrame
-        result = {"Sample": common_part, "Count": int(nuclei_count), "Class": int(value)}    
+        result = {"Sample": common_part, "Count": int(nuclei_count), "Class": int(value), "Volume (um3)": int(volume)}    
         results_list.append(result)
 
 results = pd.DataFrame(results_list)
