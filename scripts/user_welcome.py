@@ -207,6 +207,7 @@ def convert_images():
     print("[1] Convert .ndpi")
     print("[2] Convert .lif")
     print("[3] Convert .czi")
+    print("[4] Convert brightfield .czi")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -228,6 +229,15 @@ def convert_images():
         os.system('clear')
         print("\nFile Conversion (.czi): Opening Fiji macro...")
         subprocess.Popen("/opt/fiji/ImageJ-linux64 -macro /opt/macros/batch_CZI_to_8bitTIF.ijm".split(), stdout=subprocess.PIPE)
+        restart_program()
+    if choice == "4":
+        os.system('clear')
+        print("\nFile Conversion (brightfield .czi):")
+        input_folder = popup_input("\nEnter the path to the folder containing the brightfield .czi(s) files: ")
+        scale_factor = input("\nEnter the scale factor (0.5 = half the size (default)): ")
+        python_script_environment_setup('napari-assistant', 
+                                        '/opt/Image_Analysis_Suite/scripts/brightfield_czi_to_tif.py',
+                                        '--input ' + input_folder + 'scale_factor ' + scale_factor)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()

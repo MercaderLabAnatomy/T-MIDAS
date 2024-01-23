@@ -1,19 +1,17 @@
 import os
 import argparse
 from aicsimageio import AICSImage
-from aicsimageio.writers import OmeTiffWriter
-import numpy as np
 import cv2
 from PIL import Image
 
 # parse arguments
 parser = argparse.ArgumentParser(description='Process czi files.')
 parser.add_argument('--input', type=str, help='path to the czi files')
+parser.add_argument('scale_factor', type=float, help='resize output tiff', default=0.5)
 args = parser.parse_args()
 
 folder = args.input
-
-scale_factor = 0.5
+scale_factor = args.scale_factor
 
 def czi_scenes_to_tifs(filepath):
 
