@@ -24,7 +24,7 @@ def get_no_cores():
 def get_model_name_GPU():
     model_name_GPU = subprocess.check_output("nvidia-smi --query-gpu=gpu_name --format=csv,noheader", 
                                              shell=True).decode('utf-8').strip()
-    return "NVIDIA " + model_name_GPU
+    return model_name_GPU
 
 def get_available_RAM_GPU():
     available_RAM_GPU = subprocess.check_output("nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits", 
@@ -59,7 +59,7 @@ def welcome_message():
     model_name_GPU = get_model_name_GPU()
     available_RAM_GPU = get_available_RAM_GPU()
 
-    print(f"Available Memory: {available_RAM}")
+    print(f"Available RAM: {available_RAM}")
     print(f"CPU Model: {model_name}")
     print(f"CPU cores: {no_cores}")
     print(f"GPU Model: {model_name_GPU}")
