@@ -269,6 +269,7 @@ def crop_images():
     print("\nImage Cropping:\n")
     print("[1] Manually (2D)")
     print("[2] Automatically (currently only for heart slices (.ndpi) and hearts (.lif))")
+    print("[3] Automatically (brightfield .ndpi)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -315,6 +316,13 @@ def crop_images():
         else:
             print("Invalid choice")
             restart_program() 
+    if choice == "3":
+        print("\nYou chose to crop brightfield .ndpi files.")
+        input_folder = popup_input("\nEnter the path to the folder containing the .ndpi files: ")
+        python_script_environment_setup('napari-assistant', 
+                                        '/opt/Image_Analysis_Suite/scripts/brightfield_ndpi2croppedtif.py',
+                                        '--input ' + input_folder)
+        restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":
