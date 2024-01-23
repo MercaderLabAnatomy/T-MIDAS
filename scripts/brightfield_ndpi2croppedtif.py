@@ -86,7 +86,7 @@ for ndpi_file in ndpi_files:
         print("ROI %d of %d with dimensions %s saved as %s" % (i+1, number_of_rois, 
                                                                cropped_image_dimensions, 
                                                                output_filename + "_roi_0" + str(i+1) + ".tif"))
-        #cropped_image = cropped_image.convert('L')
+        cropped_image = cropped_image.convert('RGB')
         cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif")
 
 """
