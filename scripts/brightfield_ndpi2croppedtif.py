@@ -58,7 +58,7 @@ def get_rois(ndpi_file):
     slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
     thumbnail = slide.get_thumbnail(slide_dims_downscaled)
     thumbnail = thumbnail.convert('L')
-    #thumbnail.show()
+    thumbnail.show()
     thumbnail = ImageOps.invert(thumbnail) # invert brightfield image
     #thumbnail.show()
     labeled_thumbnail = nsbatwm.gauss_otsu_labeling(thumbnail, 10.0)
@@ -89,7 +89,7 @@ for ndpi_file in ndpi_files:
             cropped_image = slide.read_region((x, y), 0, (w, h))
             cropped_image_dimensions = cropped_image.size
             print("ROI %d of %d with dimensions %s saved as %s" % (i+1, number_of_rois, cropped_image_dimensions, output_filename + "_roi_0" + str(i+1) + ".tif"))
-            cropped_image = cropped_image.convert('L')
+            #cropped_image = cropped_image.convert('L')
             cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif")
 
 """
