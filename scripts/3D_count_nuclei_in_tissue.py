@@ -91,7 +91,7 @@ for nuclei_image_filename in os.listdir(nuclei_folder):
         tissue_image_filename = nuclei_image_filename.replace('nuclei_labels', 'tissue_labels')
 
         tissue_labels = load_image(os.path.join(tissue_folder, tissue_image_filename))
-        
+        volume = get_volume(tissue_labels)
         #image = load_image("/home/marco/Pictures/ImagesMarwa/20230821_ehd2_laser_abl_02_HM_ab_Position005_cropped_tissue_labels.tif")
 
         
@@ -105,16 +105,16 @@ for nuclei_image_filename in os.listdir(nuclei_folder):
         nuclei_classes = classifier.predict(nuclei_labels_in_tissue)        
         nuclei_labels_in_tissue_filename = nuclei_image_filename.replace('nuclei', 'nuclei_in_tissue')
         common_part = nuclei_labels_in_tissue_filename.split('_nuclei')[0]
-        
+
         for value in np.unique(cle.pull(nuclei_classes)[cle.pull(nuclei_classes) != 0]):
             sub_array = np.zeros_like(cle.pull(nuclei_classes) )
             sub_array[cle.pull(nuclei_classes) == value] = value
             nuclei_class = cle.binary_and(cle.push(sub_array), nuclei_labels_in_tissue)
             nuclei_class = cle.connected_components_labeling_box(nuclei_class)
             nuclei_count = cle.maximum_of_all_pixels(nuclei_class)
-            print(f"Sample: {common_part}, Count: {int(nuclei_count)}, Class: {int(value)}, Volume (um3): {int(get_volume(tissue_labels))}")    
+            print(f"Sample: {common_part}, Count: {int(nuclei_count)}, Class: {int(value)}, Volume (um3): {int(volume)}")    
             # Add the result to the DataFrame
-            result = {"Sample": common_part, "Count": int(nuclei_count), "Class": int(value), "Volume (um3)": int(get_volume(tissue_labels))}    
+            result = {"Sample": common_part, "Count": int(nuclei_count), "Class": int(value), "Volume (um3)": int(volume)}    
             results_list.append(result)
         
         # num_nuclei_labels_in_tissue = cle.maximum_of_all_pixels(nuclei_labels_in_tissue)
