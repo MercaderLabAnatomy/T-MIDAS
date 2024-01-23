@@ -22,7 +22,8 @@ def czi_scenes_to_tifs(filepath):
         img = aics_img.get_image_data("YXS", Z=0, T=0, C=0)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         Image.fromarray(img).save(filepath.replace(".czi", f"_{i}.tiff"), 
-                                    dpi = (25400.0/aics_img.physical_pixel_sizes[2], 25400.0/aics_img.physical_pixel_sizes[1]))
+                                    dpi = (25400.0/aics_img.physical_pixel_sizes[2], 25400.0/aics_img.physical_pixel_sizes[1]),
+                                    compression="tiff_deflate")
 
 
 for file in os.listdir(folder):
