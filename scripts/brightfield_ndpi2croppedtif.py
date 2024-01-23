@@ -68,7 +68,11 @@ def get_rois(slide):
         maxr = min(thumbnail.height, maxr + 10)
         maxc = min(thumbnail.width, maxc + 10)
         rois.append((minc*scaling_factor, minr*scaling_factor, (maxc-minc)*scaling_factor, (maxr-minr)*scaling_factor))
-        
+    
+    # drop rois that are 4x the size of the median roi
+    median_roi_size = sorted([roi[2]*roi[3] for roi in rois])[int(len(rois)/2)]
+    rois = [roi for roi in rois if roi[2]*roi[3] < 5*median_roi_size]    
+      
     return rois
 
 
@@ -87,7 +91,7 @@ for ndpi_file in ndpi_files:
                                                                cropped_image_dimensions, 
                                                                output_filename + "_roi_0" + str(i+1) + ".tif"))
         cropped_image = cropped_image.convert('RGB')
-        cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif")
+        cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif", compression="tiff_deflate")
 
 """
 
