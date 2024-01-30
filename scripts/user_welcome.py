@@ -90,7 +90,8 @@ def process_image():
     print("[1] Image Conversion")
     print("[2] Image Segmentation or Spot Detection")
     print("[3] Regions of Interest Analysis")
-    print("[4] Special Workflows")
+    print("[4] Validation")
+    print("[5] Special Workflows")
     print("[x] Exit \n")
 
     choice = input("\nEnter your choice: ")
@@ -105,6 +106,9 @@ def process_image():
         ROI_analysis()
         restart_program()
     if choice == "4":
+        validation()
+        restart_program()
+    if choice == "5":
         workflows()
         restart_program()
     if choice == "x" or choice == "X":
@@ -427,7 +431,42 @@ def ROI_analysis():
     else:
         print("Invalid choice")
         restart_program()
-   
+
+
+def validation():
+    os.system('clear')
+    print("\nValidation: What would you like to do?\n")
+    print("[1] Validate predicted counts against manual counts (2D label images)")
+    print("[2] Validate predicted segmentation results against manual segmentation results (2D or 3D label images)")
+    print("[r] Return to main menu")
+    print("[x] Exit \n")
+    choice = input("\nEnter your choice: ")
+
+    if choice == "1":
+        print("\nYou chose to validate predicted counts against manual counts.")
+        print("\nNames of your manually annotated label images must end with '_ground_truth.tif'.")
+        input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
+        python_script_environment_setup('napari-assistant', 
+                                        '/opt/Image_Analysis_Suite/scripts/counts_validation.py',
+                                        '--input ' + input_folder)
+        restart_program()
+    if choice == "2":
+        print("\nYou chose to validate segmentation results against manual segmentation results.")
+        print("\nNames of your manually annotated label images must end with '_ground_truth.tif'.")
+        input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
+        segmentation_type = input("\nHow many labels do the label images contain? (s = single, m = multiple) ")
+        python_script_environment_setup('napari-assistant', 
+                                        '/opt/Image_Analysis_Suite/scripts/3D_nuclei_validation.py',
+                                        '--input ' + input_folder + ' --type ' + segmentation_type)
+        restart_program()
+    if choice == "r" or choice == "R":
+        welcome_message()
+    if choice == "x" or choice == "X":
+        exit_program()
+    else:
+        print("Invalid choice")
+        restart_program()
+ 
 
 def workflows():
     os.system('clear')
