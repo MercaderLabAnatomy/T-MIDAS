@@ -1,2 +1,2 @@
-# A Tiny Image Analysis Suite
+# A Tiny Bioimage Analysis Suite
 Collection of scripts for image processing, image segmentation and ROI analysis.
