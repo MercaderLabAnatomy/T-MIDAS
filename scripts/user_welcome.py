@@ -2,7 +2,10 @@ import subprocess
 import os 
 import tkinter as tk
 from tkinter import filedialog
-
+import csv
+import datetime
+now = datetime.datetime.now()
+date = now.strftime("%Y-%m-%d %H:%M:%S")
 
 def get_available_RAM():
     return subprocess.check_output("free -h | grep -E 'Mem:' | awk '{print $2}'", 
@@ -65,6 +68,9 @@ def welcome_message():
     print(f"GPU Model: {model_name_GPU}")
     print(f"Available GPU Memory: {available_RAM_GPU}")
     
+    global user_name
+    if 'user_name' not in globals():
+        user_name = input("\nWhat's your name? ")
 
     process_image() # go straight ahead into the image processing menu
 
@@ -84,18 +90,22 @@ def popup_input(prompt):
     user_input = filedialog.askdirectory(title=prompt, initialdir="/mnt/")
     return user_input
 
+
+user_choices = []
+
 def process_image():
 
-    print("\nWhat would you like to do?\n")
+    print(f"\nHi {user_name}! What would you like to do?\n")
     print("[1] Image Conversion")
     print("[2] Image Segmentation or Spot Detection")
     print("[3] Regions of Interest Analysis")
     print("[4] Validation")
     print("[5] Special Workflows")
     print("[x] Exit \n")
-
+    
     choice = input("\nEnter your choice: ")
-  
+    user_choices.append([choice])
+    
     if choice == "1":
         preprocess_images()
         restart_program()
@@ -129,7 +139,7 @@ def preprocess_images():
     print("[x] Exit \n")
 
     choice = input("\nEnter your choice: ")
-
+    user_choices.append([choice])
     if choice == "1":
         convert_images()
         restart_program()
@@ -187,6 +197,7 @@ def Image_Denoising():
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
+    user_choices.append([choice])
     if choice == "1":
         print("\nYou chose to denoise images. Opening Aydin Studio...")
         
@@ -221,6 +232,7 @@ def convert_images():
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
+    user_choices.append([choice])
     if choice == "1":
         os.system('clear')
         print("\nFile Conversion (.ndpi): Running python script...)")
@@ -278,7 +290,7 @@ def crop_images():
     print("[x] Exit \n")
 
     choice = input("\nEnter your choice: ")
-
+    user_choices.append([choice])
     if choice == "1":
         print('''
               \nYou chose manual. Napari will open in a moment. 
@@ -348,6 +360,7 @@ def image_segmentation():
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
+    user_choices.append([choice])
     if choice == "1":
         print("\nYou chose to manually segment objects in 2D with McLabel. Napari will open in just a moment.")
         napari_environment_setup("napari-assistant")  
@@ -401,6 +414,7 @@ def ROI_analysis():
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
+    user_choices.append([choice])
 
     if choice == "1":
         print("\nYou chose to create ROIs from masks.")
@@ -441,6 +455,7 @@ def validation():
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
+    user_choices.append([choice])
 
     if choice == "1":
         print("\nYou chose to validate predicted counts against manual counts.")
@@ -476,6 +491,7 @@ def workflows():
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
+    user_choices.append([choice])
 
     if choice == "1":
         print("\nYou chose to analyze multichannel .tif of CM culture wells.")
@@ -521,6 +537,10 @@ def exit_program():
     os.system('clear')
     print("\n Okay, goodbye!\n")
     print("PS: If you need me later, just type 'assistance'.\n")
+    
+    # print log
+    print(f"On {date}, {user_name} chose the following workflow: {', '.join(map(str, user_choices))}.")
+
     exit()
 
 # Start the program
