@@ -1,4 +1,4 @@
-# Tiny Bioimage_Analysis_Suite
+# A Tiny Bioimage Analysis Suite
 Bioimage processing and analysis suite for workstations. Just a few steps to install and run. Text-based user interface.
 
 Current features:
@@ -7,8 +7,10 @@ Current features:
 - Several batch processing scripts
 - Image Segmentation
 - ROI analysis
+- Validation of automated object counts or image segmentation
 
 WIP:
 
-- Validation of automated image segmentation
+
 - Workflow logging
+
