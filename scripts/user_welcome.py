@@ -540,6 +540,10 @@ def exit_program():
     
     # print log
     print(f"On {date}, {user_name} chose the following workflow: {', '.join(map(str, user_choices))}.")
+    # add to log.txt
+    with open('/opt/Image_Analysis_Suite/log.txt', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow([date, user_name, user_choices])
 
     exit()
 
