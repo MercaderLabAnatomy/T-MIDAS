@@ -113,6 +113,29 @@ def get_tif_files(input_folder):
     tif_files = [f for f in os.listdir(input_folder) if os.path.isfile(os.path.join(input_folder, f)) and f.endswith('.tif')]
     return tif_files
 
+
+# images = get_tif_files("/media/geffjoldblum/DATA/ImagesAsli/Experiments/Experiment10")
+# # join the path to the file name
+# images = [os.path.join("/media/geffjoldblum/DATA/ImagesAsli/Experiments/Experiment10", f) for f in images]
+
+
+# for img in images:
+#     img = imread(img)
+#     # check if sammple_tiles_random works
+#     tiles = sample_tiles_random(img, 1448)
+#     print("Number of tiles:", len(tiles))
+#     for i, tile in enumerate(tiles, start=1):
+#         print(i,tile.shape)
+
+
+#         tile_channels = split_channels(tile)
+#         print(len(tile_channels))
+
+
+
+
+
+
 def process_dapi_image(array):
     try:
         image = Image.fromarray(array, 'L')
@@ -212,7 +235,7 @@ def process_multichannel_tifs(input_folder, tile_diagonal, channel_names):
 # input_folder = "/media/geffjoldblum/DATA/ImagesAsli/Experiments/Experiment10/"
 # process_multichannel_tifs(input_folder, 1448, ['TRITC', 'FITC', 'DAPI'])
                     
-                    
+
 # tif_file = tif_files[0]
 # tile_diagonal = 1448
 # channel_names = ['TRITC','FITC','DAPI']
