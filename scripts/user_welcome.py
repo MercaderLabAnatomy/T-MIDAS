@@ -299,6 +299,7 @@ def crop_images():
               \nFor further info, see https://github.com/biapol/napari-crop
               ''')
         napari_environment_setup('napari-assistant')
+        restart_program()
     if choice == "2":
         print("\nYou chose automatic.")
         print("\nWhich file format?")
@@ -317,7 +318,7 @@ def crop_images():
                                             '/opt/Image_Analysis_Suite/scripts/ndpi2croppedtif.py',
                                             '--input ' + input_folder + 
                                             ' --cropping_template_channel_name ' + CROPPING_TEMPLATE_CHANNEL_NAME)
-            
+            restart_program()            
         if sub_choice == "2":
             print("\nYou chose to crop .lif files.")
             lif = popup_input("\nEnter the path to the .lif file: ")
@@ -329,6 +330,7 @@ def crop_images():
             python_script_environment_setup('napari-assistant', 
                                             '/opt/Image_Analysis_Suite/scripts/lif_to_cropped_hearts_tif.py',
                                             '--lif ' + lif + ' --template_channel ' + template_channel)
+            restart_program()
         else:
             print("Invalid choice")
             restart_program() 
@@ -363,10 +365,12 @@ def image_segmentation():
     user_choices.append([choice])
     if choice == "1":
         print("\nYou chose to manually segment objects in 2D with McLabel. Napari will open in just a moment.")
-        napari_environment_setup("napari-assistant")  
+        napari_environment_setup("napari-assistant")
+        restart_program()  
     if choice == "2":
         print("\nYou chose to train a pixel classifier to segment objects (2D or 3D). Napari will open in just a moment.")
-        napari_environment_setup("napari-assistant")       
+        napari_environment_setup("napari-assistant")
+        restart_program()       
     if choice == "3":
         print("\nYou chose to automatically segment bright spots in 2D.")
         input_folder = popup_input("\nEnter the path to the folder containing the intensity images: ")
@@ -374,6 +378,7 @@ def image_segmentation():
         python_script_environment_setup('napari-assistant', 
                                         '/opt/Image_Analysis_Suite/scripts/2D_segmentation_spots.py',
                                         '--input ' + input_folder + ' --bg ' + bg)
+        restart_program()
     if choice == "4":
         print("\nYou chose to automatically segment nuclei in 3D.")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
@@ -381,6 +386,7 @@ def image_segmentation():
         python_script_environment_setup('napari-assistant', 
                                         '/opt/Image_Analysis_Suite/scripts/3D_segment_nuclei.py',
                                         '--image_folder ' + input_folder + ' --nuclei_channel ' + nuclei_channel)
+        restart_program()
         sub_choice = input("\nEnter your choice: ")
     if choice == "5":
         print("\nYou chose to automatically segment tissue in 3D.")
@@ -389,12 +395,15 @@ def image_segmentation():
         python_script_environment_setup('napari-assistant', 
                                         '/opt/Image_Analysis_Suite/scripts/3D_segment_tissue.py',
                                         '--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
+        restart_program()
     if choice == "6":
         print("\nYou chose to automatically segment myocardium in cropped heart slices (2D).")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+        image_type = input("\nBrightfield images? (y/n): ")
         python_script_environment_setup('napari-assistant', 
                                         '/opt/Image_Analysis_Suite/scripts/get_myocardium_from_slices.py',
-                                        '--input ' + input_folder)
+                                        '--input ' + input_folder + ' --image_type ' + image_type)
+        restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":
@@ -423,13 +432,15 @@ def ROI_analysis():
         python_script_environment_setup('napari-assistant', 
                                         '/opt/Image_Analysis_Suite/scripts/create_ventricle_ROIs.py',
                                         '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
+        restart_program()
     if choice == "2":
         print("\nYou chose to count spots in 2D ROIs within ventricle slices.")
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         input_folder = popup_input("\nInput: Folder with all label images (ROIs and instance segmentations).")
         python_script_environment_setup('napari-assistant', 
                                         '/opt/Image_Analysis_Suite/scripts/count_instances_per_ROI.py',
-                                        '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution) 
+                                        '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
+        restart_program() 
     if choice == "3":
         print("\nYou chose to count nuclei in tissue (3D).")
         nuclei_folder = popup_input("\nEnter the path to the folder containing nuclei label images: ")
