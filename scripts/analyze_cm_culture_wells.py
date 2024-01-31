@@ -1,16 +1,16 @@
 
 import random
 import os
-import cv2
+#import cv2
 import numpy as np
 import argparse
 import tifffile as tf # imread gives dim order CXY !
 import pyclesperanto_prototype as cle
 from skimage.measure import label
-from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
+#from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 import pyclesperanto_prototype as cle
 from PIL import Image
-import torch
+#import torch
 import napari_segment_blobs_and_things_with_membranes as nsbatwm
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 from skimage.io import imread, imsave # gives dim order XYC !
@@ -27,14 +27,14 @@ def parse_arguments():
 
 
 # Check if CUDA is available
-print("CUDA is available:", torch.cuda.is_available())
+#print("CUDA is available:", torch.cuda.is_available())
 
 # Set up mask generator
-model_type = "vit_h"
-device = "cuda"
-sam = sam_model_registry[model_type](checkpoint='/opt/ML_models/sam_vit_h_4b8939.pth')#args.checkpoint)
-sam.to(device=device)
-mask_generator = SamAutomaticMaskGenerator(sam)
+# model_type = "vit_h"
+# device = "cuda"
+# sam = sam_model_registry[model_type](checkpoint='/opt/ML_models/sam_vit_h_4b8939.pth')#args.checkpoint)
+# sam.to(device=device)
+# mask_generator = SamAutomaticMaskGenerator(sam)
 
 
 
@@ -73,7 +73,7 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage=20):
     if is_multichannel(image):
         for pos in selected_positions:
             i, j = pos
-            tile = image[i:i+tile_size, j:j+tile_size,:]
+            tile = image[:,i:i+tile_size, j:j+tile_size]
             tiles.append(tile)
     else:
         for pos in selected_positions:
@@ -82,9 +82,6 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage=20):
             tiles.append(tile)
     
     return tiles
-
-#  image = imread("/mnt/disk2/Asli/Experiments/Experiment05/3 - 2023-05-10 13.37.00.tif")
-#  sample_tiles_random(image,1448)
 
 def split_channels(image):
     n_channels = image.shape[2] if len(image.shape) > 2 else 1 # Check if image is multichannel, expects 3rd dimension to be channels
