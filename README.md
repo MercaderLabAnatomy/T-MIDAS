@@ -28,14 +28,14 @@ User selection 1,1,1 corresponds to  list element 1.1.1
 - `1,2,1,2,2` Crop hearts from multichannel .lif image stacks
 - `1,2,1,3` Crop heart slices from brightfield .ndpi 
 - `1,3` Split multichannel image stack to single channel image stacks (.tif)
-- `1,4 Apply maximum intensity projection to image stacks
-- `1,5 Tile image 
-- `1,6 Sample random tiles
-- `2,3 Segment bright spots in 2D
-- `2,4 Segment nuclei in 3D
-- `2,5 Segment tissue in 3D
-- `2,6 Segment myocardium in cropped heart slices
-- `3,1 Generate ROIs from heart slice label images (that already contain masks of injury and intact ventricle regions) 
+- `1,4` Apply maximum intensity projection to image stacks
+- `1,5` Tile image 
+- `1,6` Sample random tiles
+- `2,3` Segment bright spots in 2D
+- `2,4` Segment nuclei in 3D
+- `2,5` Segment tissue in 3D
+- `2,6` Segment myocardium in cropped heart slices
+- `3,1` Generate ROIs from heart slice label images (that already contain masks of injury and intact ventricle regions) 
 - `3,2` Count spots within ROIs in heart slices
 - `3,3` Count nuclei within tissue (3D)
 - `4,1` Validate predicted spot counts against manual counts (2D label images)
