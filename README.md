@@ -16,7 +16,7 @@ WIP:
 
 Create conda environment YML (WIP).
 
-## User interface
+## Text-based user interface via CLI / SSH
 
 ![image](https://github.com/MercaderLabAnatomy/Image_Analysis_Suite/assets/99955854/a2cdf959-501c-431a-958e-09365254edf1)
 
