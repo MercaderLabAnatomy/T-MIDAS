@@ -1,11 +1,13 @@
 # A Tiny Bioimage Analysis Suite
-- A collection of Python scripts exectuable with a simple text-based user interface. 
+- A collection of Python scripts executable with a text-based user interface. 
 - For automated processing and analysis of biological tissue images.
-- Runs on any low-grade workstation with a single GPU. 
+- Runs on any low-grade workstation with a single GPU.
 - Supported imaging modalities:
-  - Confocal fluorescence microscopy (2D, 3D).
+  - Confocal fluorescence microscopy (2D, 3D),
   - Wholeslide images (.czi, .ndpi).
-Below you can find a list of currently available features.
+- Features include image conversion and preprocessing, image segmentation, validation and ROI analysis (see below).
+- Quick and easy installation (see below).
+
 
 ## Text-based user interface via CLI / SSH
 ![image](https://github.com/MercaderLabAnatomy/Image_Analysis_Suite/assets/99955854/a2cdf959-501c-431a-958e-09365254edf1)
