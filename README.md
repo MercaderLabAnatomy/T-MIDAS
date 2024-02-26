@@ -1,26 +1,16 @@
 # A Tiny Bioimage Analysis Suite
-Bioimage processing and analysis suite for workstations. Just a few steps to install and run. Text-based user interface.
-
-## Current features:
-
-- Convert proprietary formats to Ome-TIFF
-- Several batch processing scripts
-- Image Segmentation
-- ROI analysis
-- Validation of automated object counts or image segmentation
-
-WIP:
-- Workflow logging
-
-## Installation
-
-Create conda environment YML (WIP).
+- A collection of Python scripts exectuable with a simple text-based user interface. 
+- For automated processing and analysis of biological tissue images.
+- Runs on any low-grade workstation with a single GPU. 
+- Supported imaging modalities:
+  - Confocal fluorescence microscopy (2D, 3D).
+  - Wholeslide images (.czi, .ndpi).
+Below you can find a list of currently available features.
 
 ## Text-based user interface via CLI / SSH
-
 ![image](https://github.com/MercaderLabAnatomy/Image_Analysis_Suite/assets/99955854/a2cdf959-501c-431a-958e-09365254edf1)
 
-## Detailed list of automated (batch processing) features:
+## List of features for automated batch processing of images:
 User selection 1,1,1 corresponds to  list element 1.1.1
 
 - `1,1,1` Convert .ndpi to .tif
@@ -45,3 +35,10 @@ User selection 1,1,1 corresponds to  list element 1.1.1
 - `4,2` Validate predicted nuclei counts against manual counts (3D label images)
 - `5,1` Analyze multichannel .tif (ndpi viewer exports) of CM culture wells
 - `5,2` Count proliferating FITC+ cells
+
+WIP:
+- Workflow logging
+
+## Installation
+
+Create conda environment YML (WIP).
