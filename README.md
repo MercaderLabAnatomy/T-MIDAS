@@ -5,7 +5,7 @@
 - Supported imaging modalities:
   - Confocal fluorescence microscopy (2D, 3D),
   - wholeslide images (.czi, .ndpi).
-- Features include image conversion and preprocessing, image segmentation, validation and ROI analysis (see below).
+- Features include image conversion and preprocessing, image segmentation, segmentation validation and region-of-interest (ROI) analyses (see below).
 - Quick and easy installation (see below).
 
 
