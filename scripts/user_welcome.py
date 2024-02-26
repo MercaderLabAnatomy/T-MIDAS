@@ -170,12 +170,13 @@ def preprocess_images():
               \nRandom Tile Sampling: If your image consists of multiple channels, 
               please provide all channels in a single multichannel .tif image.
               ''')
-        input("\nTakes images with dimension order XY or CXY (Fiji ). Press Enter to continue...")
+        #input("\nTakes images with dimension order XY or CXY (Fiji ). Press Enter to continue...")
         input_folder = popup_input("\nEnter the path to the folder containing the (multichannel) .tif images: ")
         tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
+        percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
         python_script_environment_setup('napari-assistant', 
                                         '/opt/Image_Analysis_Suite/scripts/random_tile_sampler.py',
-                                        '--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal)
+                                        '--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + ' --percentage ' + percentage)
         restart_program()
     if choice == "7":
         Image_Denoising()

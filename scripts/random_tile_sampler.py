@@ -4,29 +4,32 @@ import argparse
 import tifffile as tf
 import os
 
-def load_tiff_image(path):
-    return tf.imread(path)
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Sample random tiles from a tiff image.')
     parser.add_argument('--input', type=str, help='Folder containing the .tif images.')
     parser.add_argument('--tile_diagonal', type=int, help='Enter the tile diagonal in pixels.')
-    # parser.add_argument('--num_tiles', type=int, help='Enter the number of tiles to sample.')
+    parser.add_argument('--percentage', type=int, help='Enter the percentage of random tiles to be picked from the entire image (20-100).')
     return parser.parse_args()
 
-# path = "/mnt/disk2/Asli/Experiments/Experiment01/7-ki67 - 2022-11-16 17.35.20.tif"
+
+def load_tiff_image(path):
+    return tf.imread(path)
 
 def is_multichannel(image):
     return len(image.shape) == 3
 
-
-# image = load_tiff_image(path)
-# is_multichannel(image)
-
 # the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
-def sample_tiles_random(image, tile_diagonal, subset_percentage=20):
+def sample_tiles_random(image, tile_diagonal, subset_percentage):
     tiles = []
-    height, width = image.shape[1], image.shape[2]
+    
+    if is_multichannel(image) and (image.shape[0] < 5): # to account for both cxy and xyc, where c < 5 (less than 5 colors)
+
+        height, width = image.shape[1], image.shape[2]
+    else:
+        height, width = image.shape[0], image.shape[1]
+            
     # print("image shape: ("+str(height)+","+str(width)+")\n")
     tile_size = int(np.sqrt(2) * tile_diagonal)  # Calculate the tile size
     
@@ -42,7 +45,7 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage=20):
     num_subset_tiles = int(len(possible_positions) * (subset_percentage / 100))  # Calculate number of tiles for subset
     selected_positions = random.sample(possible_positions, num_subset_tiles)  # Randomly select non-overlapping positions
     
-    if is_multichannel(image):
+    if is_multichannel(image) and (image.shape[0] < 5):
         for pos in selected_positions:
             i, j = pos
             tile = image[:,i:i+tile_size, j:j+tile_size]
@@ -54,9 +57,6 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage=20):
             tiles.append(tile)
     
     return tiles
-
-# test = sample_tiles_random(image,724)
-# test[1]
 
 def save_tiles(tiles, path, output_dir):
     if not os.path.exists(output_dir):
@@ -70,19 +70,18 @@ def save_tiles(tiles, path, output_dir):
 
 
 
-def process_image(path, tile_diagonal, output_dir):
+def process_image(path, tile_diagonal, output_dir, subset_percentage):
     image = load_tiff_image(path)
-    tiles = sample_tiles_random(image, tile_diagonal)
+    tiles = sample_tiles_random(image, tile_diagonal, subset_percentage)
     save_tiles(tiles, path, output_dir)
 
 def main():
     args = parse_arguments()
     output_dir = os.path.join(args.input, 'random_tiles')
-
     for filename in os.listdir(args.input):
         if filename.endswith(".tif"):
             path = os.path.join(args.input, filename)
-            process_image(path, args.tile_diagonal, output_dir)
+            process_image(path, args.tile_diagonal, output_dir, args.percentage)
         else:
             continue
 
