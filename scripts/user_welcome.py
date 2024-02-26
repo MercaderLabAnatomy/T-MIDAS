@@ -72,7 +72,7 @@ def welcome_message():
     if 'user_name' not in globals():
         user_name = input("\nWhat's your name? ")
 
-    process_image() # go straight ahead into the image processing menu
+    main_menu() # go straight ahead into the image processing menu
 
 def napari_environment_setup(env_name):
     subprocess.run(f"mamba run -n {env_name} napari".split(),cwd="/mnt/")
@@ -93,10 +93,10 @@ def popup_input(prompt):
 
 user_choices = []
 
-def process_image():
+def main_menu():
 
     print(f"\nHi {user_name}! What would you like to do?\n")
-    print("[1] Image Conversion")
+    print("[1] Image Preprocessing")
     print("[2] Image Segmentation or Spot Detection")
     print("[3] Regions of Interest Analysis")
     print("[4] Validation")
@@ -107,7 +107,7 @@ def process_image():
     user_choices.append([choice])
     
     if choice == "1":
-        preprocess_images()
+        image_preprocessing()
         restart_program()
     if choice == "2":
         image_segmentation()
@@ -125,9 +125,10 @@ def process_image():
         exit_program()
     
 
-def preprocess_images():
+def image_preprocessing():
+    
     os.system('clear')
-    print("Image Conversion: What would you like to do?\n")
+    print("Image Preprocessing: What would you like to do?\n")
     print("[1] File Conversion")
     print("[2] Image Cropping")
     print("[3] Split Channels")
@@ -140,8 +141,9 @@ def preprocess_images():
 
     choice = input("\nEnter your choice: ")
     user_choices.append([choice])
+    
     if choice == "1":
-        convert_images()
+        file_conversion()
         restart_program()
     if choice == "2":
         crop_images()
@@ -149,19 +151,19 @@ def preprocess_images():
     if choice == "3":
         os.system('clear')
         print("\nSplit Channels: Opening Fiji macro...")
-        subprocess.Popen("/opt/fiji/ImageJ-linux64 -macro /opt/macros/batch_channel_splitter.ijm".split(), 
+        subprocess.Popen("/opt/Image_Analysis_Suite/macros/batch_channel_splitter.ijm".split(), 
                          stdout=subprocess.PIPE)
         restart_program()
     if choice == "4":
         os.system('clear')       
         print("\nMIP: Opening Fiji macro...")
-        subprocess.Popen("/opt/fiji/ImageJ-linux64 -macro /opt/macros/batch_MIP.ijm".split(), 
+        subprocess.Popen("/opt/Image_Analysis_Suite/macros/batch_MIP.ijm".split(), 
                          stdout=subprocess.PIPE)
         restart_program()
     if choice == "5":
         os.system('clear')
         print("\nImage Tiling: Opening Fiji macro...")
-        subprocess.Popen("/opt/fiji/ImageJ-linux64 -macro /opt/macros/batch_tile_2D_images.ijm".split(), 
+        subprocess.Popen("/opt/Image_Analysis_Suite/macros/batch_tile_2D_images.ijm".split(), 
                          stdout=subprocess.PIPE)
         restart_program()
     if choice == "6":
@@ -223,7 +225,7 @@ def Image_Denoising():
         restart_program()
 
 
-def convert_images():
+def file_conversion():
     os.system('clear') 
     print("\nFile Conversion: Which file format would you like to convert?\n")
     print("[1] Convert .ndpi")
