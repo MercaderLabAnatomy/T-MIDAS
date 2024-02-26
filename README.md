@@ -10,10 +10,11 @@ Bioimage processing and analysis suite for workstations. Just a few steps to ins
 - Validation of automated object counts or image segmentation
 
 WIP:
-
-
 - Workflow logging
 
+## Installation
+
+Create conda environment YML (WIP).
 
 ![image](https://github.com/MercaderLabAnatomy/Image_Analysis_Suite/assets/99955854/a2cdf959-501c-431a-958e-09365254edf1)
 
