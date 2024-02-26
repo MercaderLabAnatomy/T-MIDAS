@@ -1,17 +1,20 @@
 # Tissue Microscopy Image Data Analysis Suite (T-MIDAS)
-- Collection of Python scripts executable with a simple text-based user interface
+T-MIDAS was created with a focus on the reproducibility of typical automated image analysis workflows for biological tissue microscopy data. 
+- Executable with a simple text-based user interface
 - Runs on any low-grade workstation with a single GPU
-- Automated image analysis of **biological tissue** images
+  
 - Supported imaging modalities:
-  - Confocal fluorescence microscopy (2D, 3D)
-  - Wholeslide images (.czi, .ndpi)
-- Features include
-  - Image format conversion (proprietary to open)
-  - Image preprocessing,
-  - Image segmentation,
-  - Image segmentation validation
-  - Region-of-interest (ROI) analyses (see below)
-- Quick and easy installation (see below)
+  - Confocal fluorescence microscopy
+  - Wholeslide images
+    
+- Features include:
+  - Image Format Conversion (proprietary to open)
+  - Image Preprocessing
+  - Image Segmentation
+  - Image Segmentation Validation
+  - Region-of-interest (ROI) Analyses (see below)
+    
+- Quick and Easy Installation (see below)
 
 
 ## Text-based User Interface
