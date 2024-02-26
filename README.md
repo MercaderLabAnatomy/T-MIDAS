@@ -1,10 +1,10 @@
 # A Tiny Bioimage Analysis Suite
 - A collection of Python scripts executable with a simple text-based user interface. 
-- For **automated** processing and analysis of biological tissue images.
+- For **automated** processing and analysis of **biological tissue** images.
 - Runs on any low-grade workstation with a single GPU.
 - Supported imaging modalities:
   - Confocal fluorescence microscopy (2D, 3D),
-  - Wholeslide images (.czi, .ndpi).
+  - wholeslide images (.czi, .ndpi).
 - Features include image conversion and preprocessing, image segmentation, validation and ROI analysis (see below).
 - Quick and easy installation (see below).
 
