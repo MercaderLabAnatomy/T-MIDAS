@@ -449,7 +449,7 @@ def ROI_analysis():
         nuclei_folder = popup_input("\nEnter the path to the folder containing nuclei label images: ")
         tissue_folder = popup_input("\nEnter the path to the folder containing tissue label images: ")
         python_script_environment_setup('napari-assistant', 
-                                        '/opt/Image_Analysis_Suite/scripts/3D_count_nuclei_in_tissue.py',
+                                        '/opt/Image_Analysis_Suite/scripts/3D_count_instances_in_ROIs.py',
                                         '--nuclei_folder ' + nuclei_folder + ' --tissue_folder ' + tissue_folder)
         restart_program()
     if choice == "r" or choice == "R":
