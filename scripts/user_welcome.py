@@ -519,7 +519,7 @@ def workflows():
                               Example: DAPI GFP RFP: 
                               ''')
         python_script_environment_setup('workflow_CM_culture', 
-                                        '/opt/Image_Analysis_Suite/scripts/analyze_cm_culture_wells.py',
+                                        '/opt/Image_Analysis_Suite/scripts/2D_wsi_cell_culture_wells.py',
                                         '--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + 
                                         ' --channels ' + channel_names)
         restart_program()
