@@ -271,7 +271,7 @@ def file_conversion():
         input_folder = popup_input("\nEnter the path to the folder containing the brightfield .czi(s) files: ")
         scale_factor = input("\nEnter the scale factor (0.5 = half the size (default)): ")
         python_script_environment_setup('napari-assistant', 
-                                        '/opt/Image_Analysis_Suite/scripts/brightfield_czi_to_tif.py',
+                                        '/opt/Image_Analysis_Suite/scripts/czi_to_tif_brightfield.py',
                                         '--input ' + input_folder + 'scale_factor ' + scale_factor)
         restart_program()
     if choice == "r" or choice == "R":
