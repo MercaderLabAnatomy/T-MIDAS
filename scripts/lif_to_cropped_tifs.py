@@ -6,13 +6,6 @@ import tifffile as tf
 import argparse
 
 
-# img = LifFile("/media/geffjoldblum/DATA/ImagesMarwa/20230821_ehd2_laser_abl_02.lif")
-
-
-
-
-# template_channel = 2
-
 # parse arguments
 parser = argparse.ArgumentParser(description='Process a lif file.')
 parser.add_argument('--lif', type=str, help='path to the lif file')

@@ -24,7 +24,7 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 User selection 1,1,1 corresponds to  list element 1.1.1
 
 - `1,1,1` Convert .ndpi to .tif
-- `1,1,2` Convert .lif to .tif
+- `1,1,2` Convert .lif to .tif (exports all scenes of all lifs in a folder)
 - `1,1,3` Convert multichannel .czi to .tif
 - `1,1,4` Convert brightfield .czi to .tif
 - `1,2,1,2,1` Crop heart slices from multichannel .ndpi 

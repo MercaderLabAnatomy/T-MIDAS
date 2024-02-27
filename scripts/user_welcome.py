@@ -255,9 +255,13 @@ def file_conversion():
         restart_program()
     if choice == "2":
         os.system('clear')
-        print("\nFile Conversion (.lif): Opening Fiji macro...")
-        subprocess.Popen("/opt/fiji/ImageJ-linux64 -macro /opt/macros/LIFs2TIFs.ijm".split(), 
-                         stdout=subprocess.PIPE)
+        print('''File Conversion (.lif): \n A popup will open in a moment asking you to select the folder containing the .lif files. 
+              Scenes of each .lif will be exported as .tif files with metadata. 
+              Be sure to use the Bioformats importer when opening a .tif file in Fiji.''')
+        input_folder = popup_input("\nEnter the path to the folder containing the .lif file: ")
+        python_script_environment_setup('napari-assistant', 
+                                        '/opt/Image_Analysis_Suite/scripts/lif_to_tifs.py',
+                                        '--input ' + input_folder)
         restart_program()
     if choice == "3":
         os.system('clear')
