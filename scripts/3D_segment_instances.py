@@ -1,20 +1,12 @@
-# this script takes two folders with TIF files as input: one with nuclei channel and one with nuclei channel
-# it requires to be run in the napari-apoc conda environment
-# https://github.com/haesleinhuepf/napari-accelerated-pixel-and-object-classification
-
-
-
 import os
 import numpy as np
 import argparse
 import pyclesperanto_prototype as cle
 from napari.utils import io as napari_io
-from skimage.io import imread, imsave
+from skimage.io import imread
 import pandas as pd
 import apoc
 import napari_segment_blobs_and_things_with_membranes as nsbatwm 
-
-# image_folder = "/mnt/disk1/Marco/Marwa/TIFs/"
 
 def load_image(filepath, nuclei_channel):
     try:
