@@ -250,7 +250,7 @@ def file_conversion():
               In that case, better use ndpi file cropping.
               ''')
         python_script_environment_setup('napari-assistant', 
-                                        '/opt/Image_Analysis_Suite/scripts/ndpi2tif.py',
+                                        '/opt/Image_Analysis_Suite/scripts/ndpis_to_tifs.py',
                                         '--input ' + input_folder + ' --level ' + LEVEL)
         restart_program()
     if choice == "2":
