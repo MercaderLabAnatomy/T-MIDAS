@@ -1,6 +1,7 @@
 from readlif.reader import LifFile
 import numpy as np
 import cv2
+import os
 import pyclesperanto_prototype as cle
 import tifffile as tf
 import argparse
@@ -8,25 +9,26 @@ import argparse
 
 # parse arguments
 parser = argparse.ArgumentParser(description='Process a lif file.')
-parser.add_argument('--lif', type=str, help='path to the lif file')
+parser.add_argument('--input_folder', type=str, help='path to the lif file')
 parser.add_argument('--template_channel', type=int, help='channel to use as template')
 args = parser.parse_args()
 
-if args.lif:
-    img = LifFile(args.lif)
-else:
-    print("Please provide a path to the lif file.")
-    exit()
+template_channel = args.template_channel
+input_folder = args.input_folder
 
 
-# index all series in the lif file
-img_list = [i for i in img.get_iter_image()]
 
-if args.template_channel:
-    template_channel = args.template_channel
-else:
-    print("Please provide a channel to use as template.")
-    exit()
+output_dir = input_folder + "/cropped_tif_files"
+
+# make output directory if it does not exist
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+
+lif_files = []
+for file in os.listdir(input_folder):
+    if file.endswith(".lif"):
+        lif_files.append(file)
 
 
 
@@ -50,41 +52,26 @@ def scene_to_stack(scene):
     multichannel_stack = np.array(array_list)
     return multichannel_stack
 
-# scene_to_stack(img_list[1]).shape
 
-#scene = img_list[2]
 
 def create_metadata(scene):
-    # get resolution
     scale_x = scene.info['scale_n'][1]
     scale_y = scene.info['scale_n'][2]
-    # if scale_z is not defined, set it to 1
-    if scene.info['scale_n'][3] == None:
-        scale_z = 1
-    else:
+    
+    # check if scale_z is defined in the dictionary
+    if 3 in scene.info['scale_n']:
         scale_z = scene.info['scale_n'][3]
+    else:
+        scale_z = 1
+    
     # get resolution in um
-    x_res = 1/scale_x 
-    y_res = 1/scale_y 
-    z_res = 1/scale_z 
+    x_res = 1 / scale_x 
+    y_res = 1 / scale_y 
+    z_res = 1 / scale_z 
+    resolution = (x_res, y_res)
+    metadata = {'spacing': z_res, 'unit': 'um'}
+    return resolution, metadata
 
-    n_channels = scene.info['channels']
-    metadata = """
-    <OME xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2016-06 http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd">
-        <Image ID="Image:0">
-            <Pixels ID="Pixels:0" SizeX="{sizex}" SizeY="{sizey}" SizeC="{sizec}" SizeT="{sizet}" SizeZ="{sizez}" PhysicalSizeX="{psizex}" PhysicalSizeY="{psizey}" PhysicalSizeZ="{psizez}" PhysicalSizeXUnit="{psizexu}" PhysicalSizeYUnit="{psizeyu}" PhysicalSizeZUnit="{psizezu}" DimensionOrder="{dimorder}">
-            </Pixels>
-        </Image>
-    </OME>
-    """
-
-    metadata = metadata.format(sizec=scene.info['dims'][4],sizet=scene.info['dims'][3],sizez=scene.info['dims'][2],sizex=scene.info['dims'][0],sizey=scene.info['dims'][1],psizex=x_res,psizey=y_res,psizez=z_res,psizexu='um',psizeyu='um',psizezu='um',dimorder='TZYXC')
-
-    # convert metadata to 7bit ascii
-    metadata = metadata.encode('ascii',errors='ignore')
-    return metadata
-
-#create_metadata(img_list[2])
 
 
 def get_array(scene,template_channel):
@@ -110,7 +97,6 @@ def get_template(scene,template_channel):
         template = get_array(scene,0)
     return template
 
-# get_template(img_list[1],template_channel).shape
 
 def get_binary_image(template):
 
@@ -127,7 +113,6 @@ def get_binary_image(template):
 
     return label_image
 
-# get_binary_image(get_template(img_list[1],template_channel)).shape
 
 def find_largest_rectangle(bounding_rectangles):
     # Calculate the area of each bounding rectangle
@@ -163,16 +148,15 @@ def get_bounding_rect(binary_image):
 
     return bounding_rect
 
-# get_bounding_rect(get_binary_image(get_template(img_list[1],template_channel)))
-
 
 def crop_multichannel_stack(multichannel_stack,bounding_rect):
-    # add same padding on all sides
-    padding = 100
+    
+    padding = 100 # add same padding on all sides to prevent cutoffs
     bounding_rect = [bounding_rect[0] - padding, bounding_rect[1] - padding, bounding_rect[2] + 2*padding, bounding_rect[3] + 2*padding]
 
     # Crop multichannel_stack slicewise along the bounding rectangle
-    cropped_frames = [multichannel_stack[:, z, bounding_rect[1]:bounding_rect[1] + bounding_rect[3], bounding_rect[0]:bounding_rect[0] + bounding_rect[2]] for z in range(multichannel_stack.shape[1])]
+    cropped_frames = [multichannel_stack[:, z, bounding_rect[1]:bounding_rect[1] + bounding_rect[3], 
+                                         bounding_rect[0]:bounding_rect[0] + bounding_rect[2]] for z in range(multichannel_stack.shape[1])]
     # stack the frames
     cropped_array = np.stack(cropped_frames, axis=1)
     # return the cropped image
@@ -184,21 +168,12 @@ def crop_multichannel_stack(multichannel_stack,bounding_rect):
     return cropped_array
 
 
-# crop_multichannel_stack(scene_to_stack(img_list[1]),get_bounding_rect(get_binary_image(get_template(img_list[1],template_channel)))).shape
 
+def save_image(image,res_meta,path):
+    # save the image stack
+    tf.imwrite(path, image,resolution = res_meta[0], metadata=res_meta[1], imagej=True) 
 
-# def crop_binary_image(binary_image,bounding_rect):
-#     # crop the binary image, too
-#     cropped_binary_image = binary_image[:, bounding_rect[1]:bounding_rect[1] + bounding_rect[3], bounding_rect[0]:bounding_rect[0] + bounding_rect[2]]
-#     return cropped_binary_image
-
-
-def save_image(image,metadata,path):
-    # save the cropped image stack
-    tf.imwrite(path, image,description=metadata)
-
-
-def process_scene(scene,template_channel):
+def process_scene(scene,template_channel,path):
     # get the template
     template = get_template(scene,template_channel)
     # get the binary image
@@ -207,25 +182,28 @@ def process_scene(scene,template_channel):
     bounding_rect = get_bounding_rect(binary_image)
     # crop the multichannel stack
     cropped_multichannel_stack = crop_multichannel_stack(scene_to_stack(scene),bounding_rect)
-    # crop the binary image
-    #cropped_binary_image = crop_binary_image(binary_image,bounding_rect)
     # create metadata
-    metadata = create_metadata(scene)
+    res_meta = create_metadata(scene)
     position = scene.info['name']
     # replace "/" with "_" in position
     position = position.replace("/","_")
     # save the cropped multichannel stack
-    save_image(cropped_multichannel_stack,metadata,args.lif.split(".")[0] +"_{scene}_cropped.tiff".format(scene=position))
+    save_image(cropped_multichannel_stack,res_meta,path.split(".")[0] +"_{scene}_cropped.tiff".format(scene=position))
     # save the cropped binary image
-    #save_image(cropped_binary_image,metadata,"/media/geffjoldblum/DATA/ImagesMarwa/20230821_ehd2_laser_abl_02_{scene}_label_cropped.tiff".format(scene=position))
     print("Processed {scene}".format(scene=position))
 
 
-#process_scene(img_list[1],template_channel)
-
-
-
-for scene in img_list:
-    process_scene(scene,template_channel)
+for lif_file in lif_files:
+    
+    if lif_file:
+        path = os.path.join(input_folder, lif_file)
+        img = LifFile(path)
+        img_list = [i for i in img.get_iter_image()]
+        for scene in img_list:
+            process_scene(scene,template_channel,path)
+    else:
+        print("Please provide a path to the lif file.")
+        exit()
+        
 
 

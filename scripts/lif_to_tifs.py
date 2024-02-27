@@ -11,16 +11,6 @@ args = parser.parse_args()
 
 input_folder = args.input
 
-
-
-output_dir = input_folder + "/tif_files"
-
-# make output directory if it does not exist
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
-#input_folder = "/media/geffjoldblum/DATA/Romario"
-
 lif_files = []
 for file in os.listdir(input_folder):
     if file.endswith(".lif"):
@@ -37,19 +27,25 @@ def scene_to_stack(scene):
         # get the array of the current scene
         frames = []
         for j in range(scene.nz):
-        # get the frame
-            frame = scene.get_frame(t=0,c=i,z=j)
-            # convert frame to numpy array
-            frame = np.array(frame)
-            frames.append(frame)
+            for t in range(scene.nt):    
+                frame = scene.get_frame(t=t,c=i,z=j)
+                # convert frame to numpy array
+                frame = np.array(frame)
+                frames.append(frame)
         frames = np.array(frames)
         array_list.append(frames)
 
     multichannel_stack = np.array(array_list)
+    if len(multichannel_stack.shape) < 5:
+         multichannel_stack = np.expand_dims(multichannel_stack, axis=0)
+    else:
+        pass    
+
+
     return multichannel_stack
 
+
 def create_metadata(scene):
-    # get resolution
     scale_x = scene.info['scale_n'][1]
     scale_y = scene.info['scale_n'][2]
     
@@ -63,38 +59,24 @@ def create_metadata(scene):
     x_res = 1 / scale_x 
     y_res = 1 / scale_y 
     z_res = 1 / scale_z 
+    resolution = (x_res, y_res)
+    metadata = {'spacing': z_res, 'unit': 'um'}
+    return resolution, metadata
 
-    n_channels = scene.info['channels']
-    
-    metadata = """
-    <OME xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2016-06 http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd">
-        <Image ID="Image:0">
-            <Pixels ID="Pixels:0" SizeX="{sizex}" SizeY="{sizey}" SizeC="{sizec}" SizeT="{sizet}" SizeZ="{sizez}" PhysicalSizeX="{psizex}" PhysicalSizeY="{psizey}" PhysicalSizeZ="{psizez}" PhysicalSizeXUnit="{psizexu}" PhysicalSizeYUnit="{psizeyu}" PhysicalSizeZUnit="{psizezu}" DimensionOrder="{dimorder}">
-            </Pixels>
-        </Image>
-    </OME>
-    """
-
-    metadata = metadata.format(sizec=scene.info['dims'][4], sizet=scene.info['dims'][3], sizez=scene.info['dims'][2], sizex=scene.info['dims'][0], sizey=scene.info['dims'][1], psizex=x_res, psizey=y_res, psizez=z_res, psizexu='um', psizeyu='um', psizezu='um', dimorder='TZYXC')
-
-    # convert metadata to 7bit ascii
-    metadata = metadata.encode('ascii', errors='ignore')
-    #print(metadata)
-    return metadata
-
-def save_image(image,metadata,path):
+def save_image(image,res_meta,path):
     # save the image stack
-    tf.imwrite(path, image,description=metadata)
+    tf.imwrite(path, image,resolution = res_meta[0], metadata=res_meta[1], imagej=True) 
 
 def process_scene(scene,path):
     multichannel_stack = scene_to_stack(scene)
+    
     # create metadata
-    metadata = create_metadata(scene)
+    res_meta = create_metadata(scene)
     position = scene.info['name']
     # replace "/" with "_" in position
     position = position.replace("/","_")
     # save the multichannel stack
-    save_image(multichannel_stack,metadata,path.split(".")[0] +"_{scene}.tif".format(scene=position))
+    save_image(multichannel_stack,res_meta,path.split(".")[0] +"_{scene}.tif".format(scene=position))
     print("Processed {scene}".format(scene=position))
 
 for lif_file in lif_files:

@@ -73,7 +73,7 @@ def popup_input(prompt):
 user_choices = []
 
 def main_menu():
-
+    os.system('clear')
     print(f"\nHi {user_name}! What would you like to do?\n")
     print("[1] Image Preprocessing")
     print("[2] Image Segmentation or Spot Detection")
@@ -110,7 +110,7 @@ def image_preprocessing():
     print("Image Preprocessing: What would you like to do?\n")
     print("[1] File Conversion")
     print("[2] Image Cropping")
-    print("[3] Split Channels")
+    print("[3] Split Color Channels")
     print("[4] Maximum Intensity Projection (MIP)")
     print("[5] Image Tiling")
     print("[6] Sample Random Tiles")
@@ -129,9 +129,11 @@ def image_preprocessing():
         restart_program()
     if choice == "3":
         os.system('clear')
-        print("\nSplit Channels: Opening Fiji macro...")
-        subprocess.Popen("/opt/Image_Analysis_Suite/macros/batch_channel_splitter.ijm".split(), 
-                         stdout=subprocess.PIPE)
+        print("\nSplit Channels: ")
+        input_folder = popup_input("\nEnter the path to the folder containing the multichannel .tif images: ")
+        python_script_environment_setup('napari-assistant', 
+                                        '/opt/Image_Analysis_Suite/scripts/split_color_channels.py',
+                                        '--input ' + input_folder)
         restart_program()
     if choice == "4":
         os.system('clear')       
@@ -236,7 +238,7 @@ def file_conversion():
         os.system('clear')
         print('''File Conversion (.lif): \n A popup will open in a moment asking you to select the folder containing the .lif files. 
               Scenes of each .lif will be exported as .tif files with metadata. 
-              Be sure to use the Bioformats importer when opening a .tif file in Fiji.''')
+              Be sure to use Napari, Fiji is not supported.''')
         input_folder = popup_input("\nEnter the path to the folder containing the .lif file: ")
         python_script_environment_setup('napari-assistant', 
                                         '/opt/Image_Analysis_Suite/scripts/lif_to_tifs.py',
@@ -307,7 +309,7 @@ def crop_images():
             restart_program()            
         if sub_choice == "2":
             print("\nYou chose to crop .lif files.")
-            lif = popup_input("\nEnter the path to the .lif file: ")
+            input_folder = popup_input("\nEnter the path to the .lif file: ")
             template_channel = input('''
                                      Enter the channel number 
                                      that represents the cropping template 
@@ -315,7 +317,7 @@ def crop_images():
                                      ''')
             python_script_environment_setup('napari-assistant', 
                                             '/opt/Image_Analysis_Suite/scripts/lif_to_cropped_tifs.py',
-                                            '--lif ' + lif + ' --template_channel ' + template_channel)
+                                            '--input_folder ' + input_folder + ' --template_channel ' + template_channel)
             restart_program()
         else:
             print("Invalid choice")
