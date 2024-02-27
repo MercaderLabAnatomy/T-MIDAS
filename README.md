@@ -7,8 +7,9 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 - Runs on any low-grade workstation with a single GPU
   
 - Supported imaging modalities:
-  - Confocal fluorescence microscopy
-  - Wholeslide images
+  - Confocal microscopy images
+  - Slidescanner images
+  - Multicolor and brightfield
     
 - Features include:
   - Image Format Conversion (proprietary to open)
