@@ -20,7 +20,7 @@ def get_hostname():
                                    shell=True).decode('utf-8').strip()
 
 
-def get_no_cores():
+def get_no_threads():
     return subprocess.check_output("lscpu | grep -E '^CPU\(s\):'", 
                                    shell=True).decode('utf-8').strip().replace(" ", "").replace("CPU(s):", "")
 
@@ -43,7 +43,7 @@ def welcome_message():
           ''')
     print(f" Welcome to the Tissue Microscopy Image Data Analysis Suite! \n")
     print(f" This machine with the name {get_hostname()} has\n") 
-    print(f"- a {get_model_name_CPU()} CPU with {get_no_cores()} cores, and\n")
+    print(f"- a {get_model_name_CPU()} CPU with {get_no_threads()} threads, and\n")
     print(f"- a {get_model_name_GPU()} GPU. \n") 
     print(f" Currently, {get_available_RAM()} RAM and {get_available_VRAM()} VRAM are available. \n")
 
