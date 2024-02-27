@@ -318,7 +318,7 @@ def crop_images():
                                                    (for example FITC or CY5): 
                                                    ''')
             python_script_environment_setup('napari-assistant', 
-                                            '/opt/Image_Analysis_Suite/scripts/ndpi2croppedtif.py',
+                                            '/opt/Image_Analysis_Suite/scripts/ndpis_to_cropped_tifs.py',
                                             '--input ' + input_folder + 
                                             ' --cropping_template_channel_name ' + CROPPING_TEMPLATE_CHANNEL_NAME)
             restart_program()            
@@ -341,7 +341,7 @@ def crop_images():
         print("\nYou chose to crop brightfield .ndpi files.")
         input_folder = popup_input("\nEnter the path to the folder containing the .ndpi files: ")
         python_script_environment_setup('napari-assistant', 
-                                        '/opt/Image_Analysis_Suite/scripts/brightfield_ndpi2croppedtif.py',
+                                        '/opt/Image_Analysis_Suite/scripts/ndpis_to_cropped_tifs_brightfield.py',
                                         '--input ' + input_folder)
         restart_program()
     if choice == "r" or choice == "R":
