@@ -485,7 +485,7 @@ def validation():
         input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
         segmentation_type = input("\nHow many labels do the label images contain? (s = single, m = multiple) ")
         python_script_environment_setup('napari-assistant', 
-                                        '/opt/Image_Analysis_Suite/scripts/3D_nuclei_validation.py',
+                                        '/opt/Image_Analysis_Suite/scripts/3D_segment_instances_validation.py',
                                         '--input ' + input_folder + ' --type ' + segmentation_type)
         restart_program()
     if choice == "r" or choice == "R":
