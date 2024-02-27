@@ -1,4 +1,4 @@
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/aada2d33-f5f7-4395-bf36-c0466b304d0d) 
+![T-MIDAS Logo](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/aada2d33-f5f7-4395-bf36-c0466b304d0d) 
 # Tissue Microscopy Image Data Analysis Suite
 
 
@@ -21,9 +21,9 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 
 
 ## Text-based User Interface
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/de888022-f2a6-4839-83fe-43c662f06b08)
+![welcome screen](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/de888022-f2a6-4839-83fe-43c662f06b08)
 
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ec79e613-2866-4677-a016-44a3a0540119)
+![main menu](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ec79e613-2866-4677-a016-44a3a0540119)
 
 
 ## List of Features for Automated Batch Processing of images:
