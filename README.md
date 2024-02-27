@@ -1,5 +1,6 @@
+![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/aada2d33-f5f7-4395-bf36-c0466b304d0d) 
 # Tissue Microscopy Image Data Analysis Suite
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/aada2d33-f5f7-4395-bf36-c0466b304d0d)
+
 
 T-MIDAS was created with a focus on the reproducibility of typical automated image analysis workflows for biological tissue microscopy data. 
 - Executable with a simple text-based user interface
