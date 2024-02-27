@@ -331,7 +331,7 @@ def crop_images():
                                      (single channel: 0): 
                                      ''')
             python_script_environment_setup('napari-assistant', 
-                                            '/opt/Image_Analysis_Suite/scripts/lif_to_cropped_hearts_tif.py',
+                                            '/opt/Image_Analysis_Suite/scripts/lif_to_cropped_tifs.py',
                                             '--lif ' + lif + ' --template_channel ' + template_channel)
             restart_program()
         else:
