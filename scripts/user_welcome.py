@@ -11,13 +11,13 @@ def get_available_RAM():
     return subprocess.check_output("free -h | grep -E 'Mem:' | awk '{print $2}'", 
                                    shell=True).decode('utf-8').strip().replace("Gi", "") + " GB"
 
-def get_model_name():
+def get_model_name_CPU():
     return subprocess.check_output("lscpu | grep -E 'Model name'", 
                                    shell=True).decode('utf-8').strip().replace("Model name:", "").replace(" ", "")
 
 def get_hostname():
     return subprocess.check_output("hostname", 
-                                   shell=True).decode('utf-8').strip() +" workstation"
+                                   shell=True).decode('utf-8').strip()
 
 
 def get_no_cores():
@@ -25,11 +25,10 @@ def get_no_cores():
                                    shell=True).decode('utf-8').strip().replace(" ", "").replace("CPU(s):", "")
 
 def get_model_name_GPU():
-    model_name_GPU = subprocess.check_output("nvidia-smi --query-gpu=gpu_name --format=csv,noheader", 
+    return subprocess.check_output("nvidia-smi --query-gpu=gpu_name --format=csv,noheader", 
                                              shell=True).decode('utf-8').strip()
-    return model_name_GPU
 
-def get_available_RAM_GPU():
+def get_available_VRAM():
     available_RAM_GPU = subprocess.check_output("nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits", 
                                                 shell=True).decode('utf-8').strip()
     return str(round(int(available_RAM_GPU) / 1024, 2)) + " GB"
@@ -37,40 +36,20 @@ def get_available_RAM_GPU():
 
 def welcome_message():
     os.system('clear')
-    print("""                                                                              
-                                                      n
-                                                     ñ░L
-                   -≈r≈≈,.                .«╥g]]DÑÑRDMh╟╥,
-                  ╘░░░░░░░░░░]n≈≈-,,╥╦%Ñ╠╦╦▄▄▄╫╫╫▓▓╫╫£░╟╩╫╫▓h,
-                   V░╩╦╦╦╦╦░░≥╦╦╦╦▄▓▓▓▓▀▓▓▓▌▌▒╫▓▓▓▓▓ÑÑ╩b░╫╫▓⌐╫N
-                    └Ü░░░░░û░░╦╦╗╫▓▓▀▀▀▀▒▒╫▄▓▓▓▓▓╫▒MÜ╦░░╫╫▓▌;▓Mµ
-                      ╙╨░ñ░░░░░µ╦å╫▒▀▀▀╫╬░╩╫╫╫╬Ñ╨╜ñ░░░╦╫╬▓▌░╣▌╔▌
-                      A╦╦NN╨Ü░░░µ═^`      ╓╦╩Ü░░░░░░╦╫╬▓▓▀╥▓▀╔▓▌
-                      ░░░░░░░Ü╨`      .≤D╨░░░░░░░░╦╫▄▓▌▀╥▄▓▀╦▓▌╔
-                      ░░░µ═^`      .gÑÜ░░░]░░░░╦╦╫╫▓▀░╦▓▓▀╠▓▓▀╥Å
-                                 ┌0░░░░░░░░░░╦╫╫▓▀Ö╗╬▓▓▀╠▓▓▌Ü╬▓
-"""+str(get_hostname())+"""       ╓Ñ░░░░░░░╨╩╬╦╫Ñ╨░╗╫▓▓▀╠╬▓▓▀Ü╦╬▌MÜ`
-   Image Analysis Suite      ¿Ñ░░░░░b╦░░░░░╫Å╬╫╫╫╣╫Ü╦╣▌▀░╬╫╫╩*`
-                            ê░]░░╦╩░▄▄╙╫░░░╫╫╫╫╬╬╫╣╫▀Ü╗╬╝"
-                           ╬╦╦░░░╫H░▀▀░╫╫╫╫╫╫ÑBÑ╨Ñ╦Ñ╨^
-                           ╙╬╫╫╫╫╫╫RN╦╫╫╫╫Ñ╫░BÑ╨^        Maintenance:
-                              *╩Ñ░╨╫ÑÑ╠Ñ╩╨`           marco.meer@unibe.ch
-""")
-    available_RAM = get_available_RAM()
-    model_name = get_model_name()
-    no_cores = get_no_cores()
-    model_name_GPU = get_model_name_GPU()
-    available_RAM_GPU = get_available_RAM_GPU()
+    print('''
+╔╦╗  ╔╦╗╦╔╦╗╔═╗╔═╗
+ ║───║║║║ ║║╠═╣╚═╗
+ ╩   ╩ ╩╩═╩╝╩ ╩╚═╝          
+          ''')
+    print(f" Welcome to the Tissue Microscopy Image Data Analysis Suite! \n")
+    print(f" This machine with the name {get_hostname()} has\n") 
+    print(f"- a {get_model_name_CPU()} CPU with {get_no_cores()} cores, and\n")
+    print(f"- a {get_model_name_GPU()} GPU. \n") 
+    print(f" Currently, {get_available_RAM()} RAM and {get_available_VRAM()} VRAM are available. \n")
 
-    print(f"Available RAM: {available_RAM}")
-    print(f"CPU Model: {model_name}")
-    print(f"CPU cores: {no_cores}")
-    print(f"GPU Model: {model_name_GPU}")
-    print(f"Available GPU Memory: {available_RAM_GPU}")
-    
     global user_name
     if 'user_name' not in globals():
-        user_name = input("\nWhat's your name? ")
+        user_name = input("\n What's your name? ")
 
     main_menu() # go straight ahead into the image processing menu
 
