@@ -387,7 +387,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         nuclei_channel = input("\nEnter the channel number that represents the nuclei channel: ")
         python_script_environment_setup('napari-assistant', 
-                                        '/opt/Image_Analysis_Suite/scripts/3D_segment_nuclei.py',
+                                        '/opt/Image_Analysis_Suite/scripts/3D_segment_instances.py',
                                         '--image_folder ' + input_folder + ' --nuclei_channel ' + nuclei_channel)
         restart_program()
         sub_choice = input("\nEnter your choice: ")
