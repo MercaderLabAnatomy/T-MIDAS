@@ -396,7 +396,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         tissue_channel = input("\nEnter the channel number that represents the tissue channel: ")
         python_script_environment_setup('napari-assistant', 
-                                        '/opt/Image_Analysis_Suite/scripts/3D_segment_tissue.py',
+                                        '/opt/Image_Analysis_Suite/scripts/3D_segment_semantic.py',
                                         '--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
         restart_program()
     if choice == "6":
