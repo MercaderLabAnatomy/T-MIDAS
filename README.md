@@ -5,7 +5,9 @@
 T-MIDAS was created with a focus on the reproducibility of batch image processing workflows for biological tissue microscopy data. 
 - Executable with a simple text-based user interface
 - Runs on any low-grade workstation with a single GPU
-  
+- Modular and simple codebase with few dependencies for easy maintenance
+- Quick installation
+
 - Supported imaging modalities:
   - Confocal microscopy images
   - Slidescanner images
@@ -18,7 +20,7 @@ T-MIDAS was created with a focus on the reproducibility of batch image processin
   - Image Segmentation Validation
   - Region-of-interest (ROI) Analyses
     
-- Quick and Easy Installation
+
 
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
@@ -36,6 +38,7 @@ T-MIDAS was created with a focus on the reproducibility of batch image processin
 - Lightsheet data
 - Time series data
 - ML-based hyperparameter selection method for CLAHE
+- Multicolor CLAHE
 
 ## Installation
 ```
