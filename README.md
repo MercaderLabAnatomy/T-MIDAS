@@ -2,7 +2,7 @@
 # Tissue Microscopy Image Data Analysis Suite
 
 
-T-MIDAS was created with a focus on the reproducibility of typical batch processing workflows for biological tissue microscopy data. 
+T-MIDAS was created with a focus on the reproducibility of batch image processing workflows for biological tissue microscopy data. 
 - Executable with a simple text-based user interface
 - Runs on any low-grade workstation with a single GPU
   
@@ -26,8 +26,8 @@ T-MIDAS was created with a focus on the reproducibility of typical batch process
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/a318594b-3cc6-4a67-b7ba-b84860f27266)
 
 
-## List of Features for Automated Batch Processing
-
+## Batch Image Processing 
+### List of available scripts
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/868dde8f-2cab-4662-ad60-8880f4ac8c75)
 
 ## WIP
