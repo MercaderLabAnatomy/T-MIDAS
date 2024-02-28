@@ -35,4 +35,8 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 
 ## Installation
 
-Create conda environment YML (WIP).
+```
+mamba create -n tmidas-env python=3.9
+mamba activate tmidas-env
+python ./scripts/install_dependencies.py
+```

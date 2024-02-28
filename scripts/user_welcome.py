@@ -108,11 +108,8 @@ def image_preprocessing():
     os.system('clear')
     print("Image Preprocessing: What would you like to do?\n")
     print("[1] File Conversion to TIFF")
-    print("[2] Image Cropping")
-    print("[3] Split Color Channels")
-    print("[4] Maximum Intensity Projection (MIP)")
-    print("[5] Image Tiling")
-    print("[6] Sample Random Tiles")
+    print("[2] Cropping Blobs from Images")
+    print("[3] Sample Random Image Subregions")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -126,26 +123,6 @@ def image_preprocessing():
         crop_images()
         restart_program()
     if choice == "3":
-        os.system('clear')
-        print("\nSplit Channels: ")
-        input_folder = popup_input("\nEnter the path to the folder containing the multichannel .tif images: ")
-        python_script_environment_setup('tmidas-env', 
-                                        '/opt/Image_Analysis_Suite/scripts/split_color_channels.py',
-                                        '--input ' + input_folder)
-        restart_program()
-    if choice == "4":
-        os.system('clear')       
-        print("\nMIP: Opening Fiji macro...")
-        subprocess.Popen("/opt/Image_Analysis_Suite/macros/batch_MIP.ijm".split(), 
-                         stdout=subprocess.PIPE)
-        restart_program()
-    if choice == "5":
-        os.system('clear')
-        print("\nImage Tiling: Opening Fiji macro...")
-        subprocess.Popen("/opt/Image_Analysis_Suite/macros/batch_tile_2D_images.ijm".split(), 
-                         stdout=subprocess.PIPE)
-        restart_program()
-    if choice == "6":
         os.system('clear')
         print('''
               \nRandom Tile Sampling: If your image consists of multiple channels, 
