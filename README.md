@@ -35,5 +35,4 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 - Time series data
 
 ## Installation
-
-Create conda environment YML (WIP).
+`mamba env create -f tmidas-env.yml`
