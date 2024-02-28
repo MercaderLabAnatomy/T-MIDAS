@@ -2,7 +2,7 @@
 # Tissue Microscopy Image Data Analysis Suite
 
 
-T-MIDAS was created with a focus on the reproducibility of typical automated image analysis workflows for biological tissue microscopy data. 
+T-MIDAS was created with a focus on the reproducibility of typical batch processing workflows for biological tissue microscopy data. 
 - Executable with a simple text-based user interface
 - Runs on any low-grade workstation with a single GPU
   
