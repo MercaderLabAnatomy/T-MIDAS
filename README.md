@@ -23,20 +23,19 @@ T-MIDAS was created with a focus on the reproducibility of typical batch process
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
 
+![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/a318594b-3cc6-4a67-b7ba-b84860f27266)
+
 
 ## List of Features for Automated Batch Processing
 
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/8f455c1a-e87f-41bd-bfde-3909dce2ed22)
-
-
-
-
+![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/868dde8f-2cab-4662-ad60-8880f4ac8c75)
 
 ## WIP
 - Workflow logging
 - Plug & Play DGMs for Transfer Learning (PyTorch framework)
 - Lightsheet data
 - Time series data
+- ML-based hyperparameter selection method for CLAHE
 
 ## Installation
 ```
