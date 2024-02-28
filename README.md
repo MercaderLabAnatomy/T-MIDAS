@@ -3,22 +3,13 @@
 
 
 T-MIDAS was created with a focus on the reproducibility of batch image processing workflows for biological tissue microscopy data. 
-- Executable with a simple text-based user interface
+- Batch image processing: Format conversion, preprocessing, segmentation, ROI analyses.
+- Executable with a simple, text-based user interface
 - Runs on any low-grade workstation with a single GPU
 - Modular and simple codebase with few dependencies for easy maintenance
 - Quick installation
-
-- Supported imaging modalities:
-  - Confocal microscopy images
-  - Slidescanner images
-  - Multicolor and brightfield
+- Supported imaging modalities: Confocal microscopy, slidescanner, multicolor, brightfield.
     
-- Features include:
-  - Image Format Conversion (proprietary to open)
-  - Image Preprocessing
-  - Image Segmentation
-  - Image Segmentation Validation
-  - Region-of-interest (ROI) Analyses
     
 
 
