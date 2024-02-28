@@ -20,7 +20,13 @@
 <pre>
 [1] Image Preprocessing
     [1] File Conversion to TIFF
+        [1] Convert .ndpi
+        [2] Convert .lif
+        [3] Convert brightfield .czi
     [2] Cropping Blobs from Images
+        [1] Slidescanner images (fluorescent, .ndpi)
+        [2] Slidescanner images (brightfield, .ndpi)
+        [3] Multicolor image stacks (.lif)
     [3] Sample Random Image Subregions
     [4] Normalize intensity across image (CLAHE)
 [2] Image Segmentation
