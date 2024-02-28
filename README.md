@@ -23,7 +23,7 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/f507d524-c991-4c04-b4d8-4e497de50f83)
 
-## List of Features for Automated Image Processing & Analysis:
+## List of Features for Automated Batch Processing
 
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/b40bf6fd-23f9-4a8a-a7a9-91225e5e5d99)
 
