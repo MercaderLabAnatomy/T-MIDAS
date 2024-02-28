@@ -38,13 +38,8 @@ T-MIDAS was created with a focus on the reproducibility of typical batch process
 - Time series data
 
 ## Installation
-<<<<<<< HEAD
-
 ```
 mamba create -n tmidas-env python=3.9
 mamba activate tmidas-env
 python ./scripts/install_dependencies.py
 ```
-=======
-`mamba env create -f tmidas-env.yml`
->>>>>>> 5aef8ae8dfbdeb416470caf4fd6afc86eea2cd87
