@@ -25,7 +25,8 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 
 ## List of Features for Automated Image Processing & Analysis:
 
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/2211c7c5-81b3-4938-8940-b0edee6a710e)
+![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/b40bf6fd-23f9-4a8a-a7a9-91225e5e5d99)
+
 
 ## WIP
 - Workflow logging
