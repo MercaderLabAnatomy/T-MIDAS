@@ -40,7 +40,7 @@ T-MIDAS was created with a focus on the reproducibility of typical batch process
 
 ## Installation
 ```
-mamba create -n tmidas-env python=3.9
+mamba create -y -n tmidas-env python=3.9
 mamba activate tmidas-env
 python ./scripts/install_dependencies.py
 ```

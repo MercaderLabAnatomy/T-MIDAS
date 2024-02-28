@@ -1,5 +1,5 @@
 """
-mamba create -n tmidas-env python=3.9
+mamba create -y -n tmidas-env python=3.9
 mamba activate tmidas-env
 python ./scripts/install_dependencies.py
 """
@@ -33,5 +33,7 @@ for dependency in dependencies:
 subprocess.call(['pip', 'install', 'SimpleITK'])
 subprocess.call(['pip', 'install', 'openslide-python']) # for reading .ndpi files 
 subprocess.call(['pip', 'install', 'glob2'])
+# mamba install -c conda-forge openslide
+subprocess.call(['mamba', 'install', '-y', 'openslide','ocl-icd-system','pyopencl'])
 
 print("All dependencies installed successfully.")

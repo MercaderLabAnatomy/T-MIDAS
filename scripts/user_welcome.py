@@ -110,6 +110,7 @@ def image_preprocessing():
     print("[1] File Conversion to TIFF")
     print("[2] Cropping Blobs from Images")
     print("[3] Sample Random Image Subregions")
+    print("[4] Normalize intensity across image (CLAHE)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -134,6 +135,17 @@ def image_preprocessing():
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/random_tile_sampler.py',
                                         '--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + ' --percentage ' + percentage)
+        restart_program()
+    if choice == "4":
+        os.system('clear')
+        print("\nIntensity Normalization (CLAHE):")
+        input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+        kernel_size = input("\nEnter the kernel size: ")
+        clip_limit = input("\nEnter the clip limit: ")
+        nbins = input("\nEnter the number of bins: ")
+        python_script_environment_setup('tmidas-env', 
+                                        '/opt/Image_Analysis_Suite/scripts/deep_tissue_clahe.py',
+                                        '--input ' + input_folder + ' --kernel_size ' + kernel_size + ' --clip_limit ' + clip_limit + ' --nbins ' + nbins)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
