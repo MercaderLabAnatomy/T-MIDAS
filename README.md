@@ -26,7 +26,8 @@ T-MIDAS was created with a focus on the reproducibility of typical batch process
 
 ## List of Features for Automated Batch Processing
 
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/a678e2de-413e-4465-833f-8ed372944350)
+![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/8f455c1a-e87f-41bd-bfde-3909dce2ed22)
+
 
 
 
