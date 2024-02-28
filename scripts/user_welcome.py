@@ -179,7 +179,7 @@ def file_conversion():
     user_choices.append([choice])
     if choice == "1":
         os.system('clear')
-        print("\nFile Conversion (.ndpi): Running python script...)")
+        print("\nFile Conversion (.ndpi): \n A popup will appear in a moment asking you to select the folder containing the .lif files.")
         input_folder = popup_input("\nEnter the path to the folder containing the .ndpi(s) files: ")
         LEVEL = input('''
                       \nEnter the desired resolution level 
@@ -187,7 +187,7 @@ def file_conversion():
                       ''')
         print('''\nConverting .ndpi files to .tif files. 
               Beware: If the image is too large this will raise an exception. 
-              In that case, better use ndpi file cropping.
+              In that case, better use the ndpi file cropping option [1][2] to extract your regions of interest from the slide.
               ''')
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/ndpis_to_tifs.py',
@@ -195,21 +195,15 @@ def file_conversion():
         restart_program()
     if choice == "2":
         os.system('clear')
-        print('''File Conversion (.lif): \n A popup will open in a moment asking you to select the folder containing the .lif files. 
-              Scenes of each .lif will be exported as .tif files with metadata. 
-              Be sure to use Napari, Fiji is not supported.''')
+        print('''File Conversion (.lif): 
+              \n A popup will appear in a moment asking you to select the folder containing the .lif files. 
+              Scenes of each .lif will be exported as .tif files with resolution metadata.''')
         input_folder = popup_input("\nEnter the path to the folder containing the .lif file: ")
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/lif_to_tifs.py',
                                         '--input ' + input_folder)
         restart_program()
     if choice == "3":
-        os.system('clear')
-        print("\nFile Conversion (.czi): Opening Fiji macro...")
-        subprocess.Popen("/opt/fiji/ImageJ-linux64 -macro /opt/macros/batch_CZI_to_8bitTIF.ijm".split(), 
-                         stdout=subprocess.PIPE)
-        restart_program()
-    if choice == "4":
         os.system('clear')
         print("\nFile Conversion (brightfield .czi):")
         input_folder = popup_input("\nEnter the path to the folder containing the brightfield .czi(s) files: ")

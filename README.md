@@ -30,6 +30,8 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 ## WIP
 - Workflow logging
 - Plug & Play DGMs for Transfer Learning (PyTorch framework)
+- Lightsheet data
+- Time series data
 
 ## Installation
 
