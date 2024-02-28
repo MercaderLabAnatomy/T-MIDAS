@@ -2,7 +2,7 @@
 # Tissue Microscopy Image Data Analysis Suite
 
 
-T-MIDAS was created with a focus on the reproducibility of typical automated image analysis workflows for biological tissue microscopy data. 
+T-MIDAS was created with a focus on the reproducibility of typical batch processing workflows for biological tissue microscopy data. 
 - Executable with a simple text-based user interface
 - Runs on any low-grade workstation with a single GPU
   
@@ -21,11 +21,15 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 - Quick and Easy Installation (see below)
 
 ## Text-based User Interface
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/f507d524-c991-4c04-b4d8-4e497de50f83)
+![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
 
-## List of Features for Automated Image Processing & Analysis:
 
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/2211c7c5-81b3-4938-8940-b0edee6a710e)
+## List of Features for Automated Batch Processing
+
+![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/a678e2de-413e-4465-833f-8ed372944350)
+
+
+
 
 ## WIP
 - Workflow logging
@@ -34,9 +38,13 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 - Time series data
 
 ## Installation
+<<<<<<< HEAD
 
 ```
 mamba create -n tmidas-env python=3.9
 mamba activate tmidas-env
 python ./scripts/install_dependencies.py
 ```
+=======
+`mamba env create -f tmidas-env.yml`
+>>>>>>> 5aef8ae8dfbdeb416470caf4fd6afc86eea2cd87
