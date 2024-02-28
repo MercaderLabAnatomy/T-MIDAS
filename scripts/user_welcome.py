@@ -107,7 +107,7 @@ def image_preprocessing():
     
     os.system('clear')
     print("Image Preprocessing: What would you like to do?\n")
-    print("[1] File Conversion")
+    print("[1] File Conversion to TIFF")
     print("[2] Image Cropping")
     print("[3] Split Color Channels")
     print("[4] Maximum Intensity Projection (MIP)")
@@ -168,7 +168,7 @@ def image_preprocessing():
 
 def file_conversion():
     os.system('clear') 
-    print("\nFile Conversion: Which file format would you like to convert?\n")
+    print("\nFile Conversion to TIFF: Which file format would you like to convert?\n")
     print("[1] Convert .ndpi")
     print("[2] Convert .lif")
     print("[3] Convert brightfield .czi")
