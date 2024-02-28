@@ -22,7 +22,11 @@ dependencies = [
     'apoc', # GPU-accelerated pixel and object classification
     'aicsimageio', # for reading .czi files
     'opencv-python',  
-    'readlif' # for reading .lif files
+    'readlif', # for reading .lif files
+    'SimpleITK',
+    'openslide-python', # for reading .ndpi files 
+    'glob2'
+    
 ]
 
 # Install each dependency using pip
@@ -30,10 +34,6 @@ for dependency in dependencies:
     subprocess.call(['pip', 'install', dependency])
 
 # Additional installations for specific packages
-subprocess.call(['pip', 'install', 'SimpleITK'])
-subprocess.call(['pip', 'install', 'openslide-python']) # for reading .ndpi files 
-subprocess.call(['pip', 'install', 'glob2'])
-# mamba install -c conda-forge openslide
 subprocess.call(['mamba', 'install', '-y', 'openslide','ocl-icd-system','pyopencl'])
 
 print("All dependencies installed successfully.")
