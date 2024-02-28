@@ -21,7 +21,8 @@ T-MIDAS was created with a focus on the reproducibility of typical automated ima
 - Quick and Easy Installation (see below)
 
 ## Text-based User Interface
-![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/f507d524-c991-4c04-b4d8-4e497de50f83)
+![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
+
 
 ## List of Features for Automated Batch Processing
 
