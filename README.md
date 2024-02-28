@@ -16,9 +16,9 @@ T-MIDAS was created with a focus on the reproducibility of typical batch process
   - Image Preprocessing
   - Image Segmentation
   - Image Segmentation Validation
-  - Region-of-interest (ROI) Analyses (see below)
+  - Region-of-interest (ROI) Analyses
     
-- Quick and Easy Installation (see below)
+- Quick and Easy Installation
 
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
