@@ -7,9 +7,8 @@
 - Executable with a simple, text-based user interface
 - Runs on any low-grade workstation with a single GPU
 - Modular and simple codebase with few dependencies for easy maintenance
-- Quick installation
 - Supported imaging modalities: Confocal microscopy, slidescanner, multicolor, brightfield
-    
+- [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation)
     
 
 
