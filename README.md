@@ -30,7 +30,7 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
         [1] Slidescanner images (fluorescent, .ndpi)
         [2] Slidescanner images (brightfield, .ndpi)
         [3] Multicolor image stacks (.lif)
-    [3] Sample Random Image Subregions
+    [3] Sample Random Image Subregions (2D)
     [4] Normalize intensity across image (CLAHE)
 [2] Image Segmentation
     [1] Segment bright spots (2D)
