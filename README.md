@@ -10,7 +10,7 @@
 - Supported imaging modalities: Confocal microscopy, slidescanner, multicolor, brightfield
 - [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation)
     
-
+T-MIDAS is built on established image processing libraries such as [scikit-image](https://github.com/scikit-image/scikit-image) or [py-clesperanto](https://github.com/clEsperanto/pyclesperanto_prototype). 
 
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
