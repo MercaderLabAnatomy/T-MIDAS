@@ -5,7 +5,7 @@
 
 
 #### T-MIDAS was created with a focus on the reproducibility of batch image processing 
-- Image format conversion, preprocessing, segmentation, ROI analyses
+- Image format conversion, preprocessing, segmentation, ROI analysis
 - Executable with a simple, text-based user interface
 - Runs on any low-grade workstation with a single GPU
 - Modular and simple codebase with few dependencies for easy maintenance
@@ -57,7 +57,7 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
 ## Installation
 A prerequisite is the [Conda](https://en.wikipedia.org/wiki/Conda_(package_manager)) package and environment management system. 
 The minimal Conda installer [miniforge](https://github.com/conda-forge/miniforge) is preferable for its simplicity and speed. 
-After installing miniforge, you can use the miniforge terminal in Windows and macOS operating systems (Linux already has a terminal).
+After installing miniforge, you can use the miniforge terminal in Windows and macOS operating systems, in Linux the default terminal.
 In the terminal, run the following commands to create and activate a conda environment for T-MIDAS:
 ```
 mamba create -y -n tmidas-env python=3.9
