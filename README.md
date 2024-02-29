@@ -3,7 +3,7 @@
 
 
 #### T-MIDAS was created with a focus on the reproducibility of batch image processing 
-- Format conversion, preprocessing, segmentation, ROI analyses
+- Image format conversion, preprocessing, segmentation, ROI analyses
 - Executable with a simple, text-based user interface
 - Runs on any low-grade workstation with a single GPU
 - Modular and simple codebase with few dependencies for easy maintenance
