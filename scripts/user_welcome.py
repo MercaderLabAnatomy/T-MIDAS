@@ -167,7 +167,9 @@ def file_conversion():
     user_choices.append([choice])
     if choice == "1":
         os.system('clear')
-        print("\nFile Conversion (.ndpi): \n A popup will appear in a moment asking you to select the folder containing the .lif files.")
+        print('''You chose to convert multicolor .ndpi files to .tif files. \n
+              A popup will appear in a moment asking you to select the folder containing the .ndpi(s) files.
+              ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .ndpi(s) files: ")
         LEVEL = input('''
                       \nEnter the desired resolution level 
@@ -183,8 +185,8 @@ def file_conversion():
         restart_program()
     if choice == "2":
         os.system('clear')
-        print('''File Conversion (.lif): 
-              \n A popup will appear in a moment asking you to select the folder containing the .lif files. 
+        print('''You chose to convert .lif files to .tif files.\n
+              A popup will appear in a moment asking you to select the folder containing the .lif files. 
               Scenes of each .lif will be exported as .tif files with resolution metadata.''')
         input_folder = popup_input("\nEnter the path to the folder containing the .lif file: ")
         python_script_environment_setup('tmidas-env', 
@@ -193,7 +195,9 @@ def file_conversion():
         restart_program()
     if choice == "3":
         os.system('clear')
-        print("\nFile Conversion (brightfield .czi):")
+        print('''You chose to convert brightfield .czi files to .tif files. \n
+              A popup will appear in a moment asking you to select the folder containing the brightfield .czi(s) files.
+              ''')
         input_folder = popup_input("\nEnter the path to the folder containing the brightfield .czi(s) files: ")
         scale_factor = input("\nEnter the scale factor (0.5 = half the size (default)): ")
         python_script_environment_setup('tmidas-env', 
@@ -222,6 +226,8 @@ def crop_images():
     user_choices.append([choice])
     if choice == "1":
         os.system('clear')
+        print('''You chose to crop blobs from multicolor .ndpi files.  \n
+              A popup will appear in a moment asking you to select the folder containing ndpi(s) files.''')
         input_folder = popup_input("\nEnter the path to the folder containing ndpi(s) files: ")
         CROPPING_TEMPLATE_CHANNEL_NAME = input('''
                                                Enter the channel name 
@@ -235,7 +241,8 @@ def crop_images():
         restart_program()            
 
     if choice == "2":
-        print("\nYou chose to crop brightfield .ndpi files.")
+        print('''You chose to crop blobs from brightfield .ndpi files. \n
+              A popup will appear in a moment asking you to select the folder containing ndpi files.''')
         input_folder = popup_input("\nEnter the path to the folder containing the .ndpi files: ")
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/ndpis_to_cropped_tifs_brightfield.py',
@@ -243,7 +250,8 @@ def crop_images():
         restart_program()
     if choice == "3":
         os.system('clear')
-        print("\nYou chose to crop .lif files.")
+        print('''You chose to crop blobs from multicolor .lif files. \n
+              A popup will appear in a moment asking you to select the folder containing ndpi files.''')
         input_folder = popup_input("\nEnter the path to the .lif file: ")
         template_channel = input('''
                                  Enter the channel number 
@@ -276,7 +284,10 @@ def image_segmentation():
     user_choices.append([choice])
    
     if choice == "1":
-        print("\nYou chose to automatically segment bright spots in 2D.")
+        os.system('clear')
+        print('''You chose to segment bright spots in 2D. \n
+                A popup will appear in a moment asking you to select the folder containing the intensity images.
+              ''')
         input_folder = popup_input("\nEnter the path to the folder containing the intensity images: ")
         bg = input("\nWhat kind of background? (1 = gray, 2 = dark): ")
         python_script_environment_setup('tmidas-env', 
@@ -284,7 +295,10 @@ def image_segmentation():
                                         '--input ' + input_folder + ' --bg ' + bg)
         restart_program()
     if choice == "2":
-        print("\nYou chose to automatically segment blobs in 3D.")
+        os.system('clear')
+        print('''You chose to segment blobs in 3D. \n
+              A popup will appear in a moment asking you to select the folder containing the .tif images.
+              ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         nuclei_channel = input("\nEnter number of the color channel you want to segment:  ")
         python_script_environment_setup('tmidas-env', 
@@ -292,7 +306,11 @@ def image_segmentation():
                                         '--image_folder ' + input_folder + ' --nuclei_channel ' + nuclei_channel)
         restart_program()
     if choice == "3":
-        print("\nYou chose semantic segmentation (2D, fluorescence or brightfield).")
+        os.system('clear')
+        print('''You chose semantic segmentation (2D, fluorescence or brightfield).\n
+                A popup will appear in a moment asking you to select the folder containing the .tif images.
+                
+              ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         image_type = input("\nBrightfield images? (y/n): ")
         python_script_environment_setup('tmidas-env', 
@@ -300,7 +318,10 @@ def image_segmentation():
                                         '--input ' + input_folder + ' --image_type ' + image_type)
         restart_program()
     if choice == "4":
-        print("\nYou chose semantic segmentation (3D).")
+        os.system('clear')
+        print('''You chose semantic segmentation (3D). \n
+                A popup will appear in a moment asking you to select the folder containing the .tif images.
+                ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         tissue_channel = input("\nEnter number of the color channel you want to segment: ")
         python_script_environment_setup('tmidas-env', 
@@ -330,7 +351,10 @@ def ROI_analysis():
     user_choices.append([choice])
 
     if choice == "1":
-        print("\nYou chose to create ROIs from masks.")
+        os.system('clear')
+        print('''You chose to create ROIs from masks. \n
+                A popup will appear in a moment asking you to select the folder containing the label images.
+                ''')
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         python_script_environment_setup('tmidas-env', 
@@ -338,15 +362,22 @@ def ROI_analysis():
                                         '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
         restart_program()
     if choice == "2":
-        print("\nYou chose to count spots in 2D ROIs within ventricle slices.")
-        pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
+        os.system('clear')
+        print('''You chose to count spots in 2D ROIs within ventricle slices. \n
+                A popup will appear in a moment asking you to select the folder containing the label images.
+                ''')
+
         input_folder = popup_input("\nInput: Folder with all label images (ROIs and instance segmentations).")
+        pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/count_instances_per_ROI.py',
                                         '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
         restart_program() 
     if choice == "3":
-        print("\nYou chose to count nuclei in tissue (3D).")
+        os.system('clear')
+        print('''You chose to count nuclei in tissue (3D). \n
+                Two popups will appear in a moment asking you to select the folder containing the label images for both nuclei and tissue.
+                ''')
         nuclei_folder = popup_input("\nEnter the path to the folder containing nuclei label images: ")
         tissue_folder = popup_input("\nEnter the path to the folder containing tissue label images: ")
         python_script_environment_setup('tmidas-env', 
@@ -373,7 +404,10 @@ def validation():
     user_choices.append([choice])
 
     if choice == "1":
-        print("\nYou chose to validate predicted counts against manual counts.")
+        os.system('clear')
+        print('''You chose to validate predicted counts against manual counts. \n
+                A popup will appear in a moment asking you to select the folder containing the segmentation results.'''
+        )
         print("\nNames of your manually annotated label images must end with '_ground_truth.tif'.")
         input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
         python_script_environment_setup('tmidas-env', 
@@ -381,7 +415,10 @@ def validation():
                                         '--input ' + input_folder)
         restart_program()
     if choice == "2":
-        print("\nYou chose to validate segmentation results against manual segmentation results.")
+        os.system('clear')
+        print('''You chose to validate segmentation results against manual segmentation results. \n
+                A popup will appear in a moment asking you to select the folder containing the segmentation results.'''
+        )
         print("\nNames of your manually annotated label images must end with '_ground_truth.tif'.")
         input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
         segmentation_type = input("\nHow many labels do the label images contain? (s = single, m = multiple) ")
