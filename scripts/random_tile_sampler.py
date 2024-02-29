@@ -18,7 +18,7 @@ def load_tiff_image(path):
     return tf.imread(path)
 
 def is_multichannel(image):
-    return len(image.shape) == 3
+    return len(image.shape) > 2
 
 # the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
 def sample_tiles_random(image, tile_diagonal, subset_percentage):
