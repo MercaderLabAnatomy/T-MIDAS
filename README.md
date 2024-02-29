@@ -63,12 +63,16 @@ In the terminal, run the following commands to create and activate a conda envir
 mamba create -y -n tmidas-env python=3.9
 mamba activate tmidas-env
 ```
-Now you need to download the T-MIDAS repository either using `git clone https://github.com/MercaderLabAnatomy/T-MIDAS.git` or by downloading and unpacking the [ZIP](https://github.com/MercaderLabAnatomy/T-MIDAS/archive/refs/heads/main.zip). In your terminal, change directory to the T-MIDAS folder and type 
+Now you need to download the T-MIDAS repository either using 
+```
+git clone https://github.com/MercaderLabAnatomy/T-MIDAS.git
+```
+or by downloading and unpacking the [ZIP](https://github.com/MercaderLabAnatomy/T-MIDAS/archive/refs/heads/main.zip). In your terminal, change directory to the T-MIDAS folder and type 
 ```
 python ./scripts/install_dependencies.py
 ```
 ## Usage
 To start the text-based user interface in your terminal, change directory to the T-MIDAS folder and type 
 ```
-python ./scripts/user_welcome.py`
+python ./scripts/user_welcome.py
 ```
