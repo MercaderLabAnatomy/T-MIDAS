@@ -7,9 +7,8 @@
 - Executable with a simple, text-based user interface
 - Runs on any low-grade workstation with a single GPU
 - Modular and simple codebase with few dependencies for easy maintenance
-- Quick installation
 - Supported imaging modalities: Confocal microscopy, slidescanner, multicolor, brightfield
-    
+- [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation)
     
 
 
@@ -52,8 +51,20 @@
 - Multicolor CLAHE
 
 ## Installation
+A prerequisite is the [Conda](https://en.wikipedia.org/wiki/Conda_(package_manager)) package and environment management system. 
+The minimal Conda installer [miniforge](https://github.com/conda-forge/miniforge) is preferable for its simplicity and speed. 
+After installing miniforge, you can use the miniforge terminal in Windows and macOS operating systems (Linux already has a terminal).
+In the terminal, run the following commands to create and activate a conda environment for T-MIDAS:
 ```
 mamba create -y -n tmidas-env python=3.9
 mamba activate tmidas-env
+```
+Now you need to download the T-MIDAS repository either using `git clone https://github.com/MercaderLabAnatomy/T-MIDAS.git` or by downloading and unpacking the [ZIP](https://github.com/MercaderLabAnatomy/T-MIDAS/archive/refs/heads/main.zip). In your terminal, change directory to the T-MIDAS folder and type 
+```
 python ./scripts/install_dependencies.py
+```
+## Usage
+To start the text-based user interface in your terminal, change directory to the T-MIDAS folder and type 
+```
+python ./scripts/user_welcome.py`
 ```
