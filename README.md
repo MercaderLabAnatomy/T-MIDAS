@@ -52,8 +52,8 @@
 - Multicolor CLAHE
 
 ## Installation
-A prerequisite is the [**Conda** package and environment management system](https://en.wikipedia.org/wiki/Conda_(package_manager)). 
-The minimal **Conda** installer [miniforge](https://github.com/conda-forge/miniforge) is preferable for its simplicity and speed. 
+A prerequisite is the [Conda](https://en.wikipedia.org/wiki/Conda_(package_manager)) package and environment management system. 
+The minimal Conda installer [miniforge](https://github.com/conda-forge/miniforge) is preferable for its simplicity and speed. 
 After installing miniforge, you can use the miniforge terminal in Windows and macOS operating systems (Linux already has a terminal).
 In the terminal, run the following commands to create and activate a conda environment for T-MIDAS:
 ```
