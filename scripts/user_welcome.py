@@ -112,7 +112,7 @@ def image_preprocessing():
     print("[1] File Conversion to TIFF")
     print("[2] Cropping Blobs from Images")
     print("[3] Sample Random Image Subregions")
-    print("[4] Normalize intensity across image (CLAHE)")
+    print("[4] Normalize intensity across single color image (CLAHE)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -140,7 +140,7 @@ def image_preprocessing():
         restart_program()
     if choice == "4":
         os.system('clear')
-        print(wrapper.fill("You chose to apply Contrast Limited Adaptive Histogram Equalization (CLAHE) to the images. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
+        print(wrapper.fill("You chose to apply Contrast Limited Adaptive Histogram Equalization (CLAHE) to single color images. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
         print("\n")
         print(wrapper.fill("- kernel_size: Should correspond to the size of the features that should be enhanced (e.g. 64 for 64x64 pixel tiles or 64x64x64 pixel volumes),"))
         print("\n")
