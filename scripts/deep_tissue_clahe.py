@@ -25,7 +25,10 @@ def main():
         image = tf.imread(image_path)
         image_clahe = exposure.equalize_adapthist(image, kernel_size=args.kernel_size, clip_limit=args.clip_limit, nbins=args.nbins)
         if image_clahe is not None:
-            output_path = os.path.join(image_folder, f"{filename[:-4]}_clahe.tif")
+            output_path = os.path.join(image_folder, f"{filename[:-4]}_clahe_" + 
+                           "ksize-" + str(args.kernel_size) +
+                            "_cliplim-" + str(args.clip_limit) +
+                            "_nbins-" + str(args.nbins) + ".tif")
             tf.imwrite(output_path, image_clahe, compression='zlib')
 
 if __name__ == "__main__":
