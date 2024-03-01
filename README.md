@@ -26,17 +26,19 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
         [1] Convert .ndpi
         [2] Convert .lif
         [3] Convert brightfield .czi
-    [2] Cropping Blobs from Images
+    [2] Cropping Largest Objects from Images
         [1] Slidescanner images (fluorescent, .ndpi)
         [2] Slidescanner images (brightfield, .ndpi)
         [3] Multicolor image stacks (.lif)
-    [3] Sample Random Image Subregions (2D)
-    [4] Normalize intensity across image (CLAHE)
+    [3] Extract Blob Region from Images
+    [4] Sample Random Image Subregions
+    [5] Normalize intensity across single color image (CLAHE)
 [2] Image Segmentation
     [1] Segment bright spots (2D)
     [2] Segment blobs (3D; requires dark background and good SNR)
     [3] Semantic segmentation (2D, fluorescence or brightfield)
     [4] Semantic segmentation (3D; requires dark background and good SNR)
+    [5] Segment CLAHE'd images
 [3] Regions of Interest (ROI) Analysis
     [1] Heart slices: Generate ROIs from [intact+injured] ventricle masks
     [2] Heart slices: Count spots within ventricle ROIs
