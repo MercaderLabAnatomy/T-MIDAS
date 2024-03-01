@@ -4,8 +4,6 @@ import tkinter as tk
 from tkinter import filedialog
 import csv
 import datetime
-import textwrap
-wrapper = textwrap.TextWrapper(width=80)
 now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -60,7 +58,7 @@ def napari_environment_setup(env_name):
     restart_program()
 
 
-def python_script_environment_setup(env_name, script_name, input_parameters):
+def python_script_environment_setup(env_name, script_name, input_parameters=None):
     subprocess.run(f"mamba run -n {env_name} python {script_name} {input_parameters}".split(),
                    capture_output=False,text=True,cwd="/mnt/")
     restart_program()
@@ -136,36 +134,18 @@ def image_preprocessing():
         percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/random_tile_sampler.py',
-                                        '--input ' + input_folder + 
-                                        ' --tile_diagonal ' + tile_diagonal + 
-                                        ' --percentage ' + percentage)
+                                        '--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + ' --percentage ' + percentage)
         restart_program()
     if choice == "4":
         os.system('clear')
-
-        print(wrapper.fill("You chose to apply Contrast Limited Adaptive Histogram Equalization (CLAHE) to the images. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values."))
-        print("\n")
-        print(wrapper.fill("- kernel_size: Should correspond to the size of the features that should be enhanced (e.g. 64 for 64x64 pixel tiles or 64x64x64 pixel volumes),"))
-        print("\n")
-        print(wrapper.fill("- nbins: 256 (typical for 8-bit images),"))
-        print("\n")
-        print(wrapper.fill("- clip_limit: 0.01 (> 1/nbins, controls extent of contrast enhancement)"))
-        print("\n")
+        print("\nIntensity Normalization (CLAHE):")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        multicolor = input("\nMulticolor images? (y/n): ")
         kernel_size = input("\nEnter the kernel size: ")
-        nbins = input("\nEnter the number of bins for the histogram: ")
         clip_limit = input("\nEnter the clip limit: ")
-
-
+        nbins = input("\nEnter the number of bins: ")
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/deep_tissue_clahe.py',
-                                        '--input ' + input_folder + 
-                                        ' --multicolor ' + multicolor +
-                                        ' --kernel_size ' + kernel_size + 
-                                        ' --nbins ' + nbins +
-                                        ' --clip_limit ' + clip_limit
-                                        )
+                                        '--input ' + input_folder + ' --kernel_size ' + kernel_size + ' --clip_limit ' + clip_limit + ' --nbins ' + nbins)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
