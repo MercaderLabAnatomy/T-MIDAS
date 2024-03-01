@@ -5,6 +5,8 @@ from tkinter import filedialog
 import csv
 import datetime
 now = datetime.datetime.now()
+import textwrap
+wrapper = textwrap.TextWrapper(width=80)
 date = now.strftime("%Y-%m-%d %H:%M:%S")
 
 def get_available_RAM():
@@ -138,7 +140,14 @@ def image_preprocessing():
         restart_program()
     if choice == "4":
         os.system('clear')
-        print("\nIntensity Normalization (CLAHE):")
+        print(wrapper.fill("You chose to apply Contrast Limited Adaptive Histogram Equalization (CLAHE) to the images. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
+        print("\n")
+        print(wrapper.fill("- kernel_size: Should correspond to the size of the features that should be enhanced (e.g. 64 for 64x64 pixel tiles or 64x64x64 pixel volumes),"))
+        print("\n")
+        print(wrapper.fill("- nbins <= 256 (corresponds to color depth of 8bit images)"))
+        print("\n")
+        print(wrapper.fill("- clip_limit: 0.01 (> 1/nbins, controls extent of contrast enhancement)"))
+        print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         kernel_size = input("\nEnter the kernel size: ")
         clip_limit = input("\nEnter the clip limit: ")
