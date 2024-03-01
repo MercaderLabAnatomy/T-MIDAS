@@ -110,9 +110,10 @@ def image_preprocessing():
     os.system('clear')
     print("Image Preprocessing: What would you like to do?\n")
     print("[1] File Conversion to TIFF")
-    print("[2] Cropping Blobs from Images")
-    print("[3] Sample Random Image Subregions")
-    print("[4] Normalize intensity across single color image (CLAHE)")
+    print("[2] Cropping Largest Objects from Images")
+    print("[3] Extract Blob Region from Images")
+    print("[4] Sample Random Image Subregions")
+    print("[5] Normalize intensity across single color image (CLAHE)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -127,6 +128,20 @@ def image_preprocessing():
         restart_program()
     if choice == "3":
         os.system('clear')
+        print(wrapper.fill("Blob-based Cropping: This script is designed to crop the largest object from a binary image. The largest object is determined by the number of pixels in the object. The script will prompt you to select the folder containing both the label and intensity images and ask you for their tags (rest of filename is supposed to be identical). Example tags: _tissue_labels.tif and _nuclei_intensities.tif. The cropped images will be saved in the same folder."))
+        input_folder = popup_input("\nEnter the path to the folder containing the binary images: ")
+        blobfiles = input("\nEnter tag label images: ")
+        intensityfiles = input("\nEnter tag of your intensity images: ")
+        output_tag = input("\nEnter the tag of the output images: ")
+        python_script_environment_setup('tmidas-env', 
+                                        '/opt/Image_Analysis_Suite/scripts/blob_based_crop.py',
+                                        '--input ' + input_folder + 
+                                        ' --blobfiles ' + blobfiles + 
+                                        ' --intensityfiles ' + intensityfiles +
+                                        ' --output_tag ' + output_tag)
+        restart_program()
+    if choice == "4":
+        os.system('clear')
         print('''
               \nRandom Tile Sampling: If your image consists of multiple channels, 
               please provide all channels in a single multichannel .tif image.
@@ -138,7 +153,7 @@ def image_preprocessing():
                                         '/opt/Image_Analysis_Suite/scripts/random_tile_sampler.py',
                                         '--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + ' --percentage ' + percentage)
         restart_program()
-    if choice == "4":
+    if choice == "5":
         os.system('clear')
         print(wrapper.fill("You chose to apply Contrast Limited Adaptive Histogram Equalization (CLAHE) to single color images. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
         print("\n")

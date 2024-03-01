@@ -29,7 +29,8 @@ def main():
                            "ksize-" + str(args.kernel_size) +
                             "_cliplim-" + str(args.clip_limit) +
                             "_nbins-" + str(args.nbins) + ".tif")
-            tf.imwrite(output_path, image_clahe, compression='zlib')
+
+            tf.imwrite(output_path, util.img_as_ubyte(image_clahe), compression='zlib')
 
 if __name__ == "__main__":
     main()
