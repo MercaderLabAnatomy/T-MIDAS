@@ -302,6 +302,7 @@ def image_segmentation():
     print("[2] Segment blobs (3D; requires dark background and good SNR)")
     print("[3] Semantic segmentation (2D, fluorescence or brightfield)")
     print("[4] Semantic segmentation (3D; requires dark background and good SNR)")
+    print("[5] Segment CLAHE'd images")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -351,6 +352,23 @@ def image_segmentation():
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/3D_segment_semantic.py',
                                         '--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
+        restart_program()
+    if choice == "5":
+        os.system('clear')
+        print(wrapper.fill("You chose to segment CLAHE'd images. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
+        print("\n")
+        print(wrapper.fill("- min_box: Defines the pixel cube neighborhood. Usually 1-2 pixels, so e.g. (1.0,1.0,0.0) or (2.0,2.0,1.0)"))
+        print("\n")
+        print(wrapper.fill("- outline_sigma: Defines the sigma for the gauss-otsu-labeling. Also typically in the range of 1.0-2.0."))
+        print("\n")
+        input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+        min_box = input("\nEnter the minimum box size (x,y,z): ")
+        outline_sigma = input("\nEnter the outline sigma: ")
+        python_script_environment_setup('tmidas-env', 
+                                        '/opt/Image_Analysis_Suite/scripts/segment_clahe.py',
+                                        '--input ' + input_folder +
+                                        ' --min_box ' + min_box +
+                                        ' --outline_sigma ' + outline_sigma)
         restart_program()
 
     if choice == "r" or choice == "R":
