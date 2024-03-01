@@ -51,8 +51,7 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
 - Plug & Play DGMs for Transfer Learning (PyTorch framework)
 - Lightsheet data
 - Time series data
-- ML-based hyperparameter selection method for CLAHE
-- Multicolor CLAHE
+
 
 ## Installation
 A prerequisite is the [Conda](https://en.wikipedia.org/wiki/Conda_(package_manager)) package and environment management system. 

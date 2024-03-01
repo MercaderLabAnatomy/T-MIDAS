@@ -459,7 +459,7 @@ def validation():
         restart_program()
  
 def restart_program():
-    choice = input("\n When you are finished, press Enter to restart the Image Analysis Suite or press x to exit.\n")
+    choice = input("\n You are finished. Press Enter to restart the Image Analysis Suite or press x to exit.\n")
     if choice == "":
         os.system('clear')
         welcome_message()
