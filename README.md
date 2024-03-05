@@ -58,10 +58,10 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
 - Time series data
 
 
-## Installation
+## Installation (Ubuntu)
 A prerequisite is the [Conda](https://en.wikipedia.org/wiki/Conda_(package_manager)) package and environment management system. 
 The minimal Conda installer [miniforge](https://github.com/conda-forge/miniforge) is preferable for its simplicity and speed. 
-After installing miniforge, you can use the miniforge terminal in Windows and macOS operating systems, in Linux the default terminal.
+After installing miniforge, you can use `mamba` in the Linux terminal.
 In the terminal, run the following commands to create and activate a conda environment for T-MIDAS:
 ```
 mamba create -y -n tmidas-env python=3.9
