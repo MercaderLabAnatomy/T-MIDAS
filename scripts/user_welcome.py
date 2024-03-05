@@ -381,7 +381,7 @@ def image_segmentation():
         tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
         percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
         python_script_environment_setup('tmidas-env', 
-                                        '/opt/Image_Analysis_Suite/scripts/2D_wsi_cell_culture_wells.py',
+                                        '/opt/Image_Analysis_Suite/scripts/2D_segmentation_multicolor_cell_culture.py',
                                         '--input ' + input_folder +
                                         ' --channels ' + 
                                         ' --tile_diagonal ' + tile_diagonal +
@@ -404,6 +404,7 @@ def ROI_analysis():
     print("[1] Heart slices: Generate ROIs from [intact+injured] ventricle masks")
     print("[2] Heart slices: Count spots within ventricle ROIs")
     print("[3] Heart volume: Count nuclei within ROIs")
+    print("[4] Colocalize ROIs (e.g. nuclei and cell bodies)")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -442,6 +443,16 @@ def ROI_analysis():
         python_script_environment_setup('tmidas-env', 
                                         '/opt/Image_Analysis_Suite/scripts/3D_count_instances_in_ROIs.py',
                                         '--nuclei_folder ' + nuclei_folder + ' --tissue_folder ' + tissue_folder)
+        restart_program()
+    if choice == "4":
+        os.system('clear')
+        print('''You chose to colocalize ROIs (e.g. nuclei and cell bodies). \n
+                A popup will appear in a moment asking you to select the folder containing the label images.
+                ''')
+        input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        python_script_environment_setup('tmidas-env', 
+                                        '/opt/Image_Analysis_Suite/scripts/colocalization_multicolor_cell_culture.py',
+                                        '--input ' + input_folder)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()

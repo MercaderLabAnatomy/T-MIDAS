@@ -23,8 +23,8 @@ image_folder = args.input
 image_type = args.image_type
 
 
-device = cle.get_device()
-cle.select_device(device.name)
+# device = cle.get_device()
+# cle.select_device(device.name)
 
 
 cl_filename = "/opt/Image_Analysis_Suite/models/PixelClassifier_Joao_brightfield.cl"

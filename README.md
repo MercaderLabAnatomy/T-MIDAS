@@ -40,10 +40,12 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
     [3] Semantic segmentation (2D, fluorescence or brightfield)
     [4] Semantic segmentation (3D; requires dark background and good SNR)
     [5] Segment CLAHE'd images
+    [6] Segment multicolor images of cell cultures (2D)
 [3] Regions of Interest (ROI) Analysis
     [1] Heart slices: Generate ROIs from [intact+injured] ventricle masks
     [2] Heart slices: Count spots within ventricle ROIs
     [3] Heart volume: Count nuclei within ROIs
+    [4] Colocalize ROIs (e.g. nuclei and cell bodies)
 [4] Image Segmentation Validation
     [1] Validate predicted counts against manual counts (2D label images)
     [2] Validate predicted segmentation results against manual segmentation results (2D or 3D label images)   
