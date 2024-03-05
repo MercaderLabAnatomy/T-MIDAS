@@ -22,7 +22,8 @@ def parse_arguments():
     parser.add_argument('--input', type=str, help='Path to the folder containing the multichannel .tif files.')
     parser.add_argument('--channels', nargs='+', help='Enter the names of the channels in the order they appear in the .tif files.\n Example: DAPI GFP RFP')
     parser.add_argument('--tile_diagonal', type=int, help='Enter the tile diagonal in pixels.')
-    # parser.add_argument('--num_tiles', type=int, help='Enter the number of tiles to sample.')
+    parser.add_argument('--percentage', type=int, help='Enter the percentage of random tiles to be picked from the entire image (20-100).')
+    
     return parser.parse_args()
 
 
@@ -49,14 +50,21 @@ def make_output_dirs(input_folder, channel_names):
     return output_folder
 
 def is_multichannel(image):
-    return len(image.shape) == 3
+    return len(image.shape) > 2
 
 
 
 # the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
-def sample_tiles_random(image, tile_diagonal, subset_percentage=20):
+# the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
+def sample_tiles_random(image, tile_diagonal, subset_percentage):
     tiles = []
-    height, width = image.shape[0], image.shape[1]
+    
+    if is_multichannel(image) and (image.shape[0] < 5): # to account for both cxy and xyc, where c < 5 (less than 5 colors)
+
+        height, width = image.shape[1], image.shape[2]
+    else:
+        height, width = image.shape[0], image.shape[1]
+            
     # print("image shape: ("+str(height)+","+str(width)+")\n")
     tile_size = int(np.sqrt(2) * tile_diagonal)  # Calculate the tile size
     
@@ -72,10 +80,10 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage=20):
     num_subset_tiles = int(len(possible_positions) * (subset_percentage / 100))  # Calculate number of tiles for subset
     selected_positions = random.sample(possible_positions, num_subset_tiles)  # Randomly select non-overlapping positions
     
-    if is_multichannel(image):
+    if is_multichannel(image) and (image.shape[0] < 5):
         for pos in selected_positions:
             i, j = pos
-            tile = image[i:i+tile_size, j:j+tile_size,:] # XYC
+            tile = image[:,i:i+tile_size, j:j+tile_size]
             tiles.append(tile)
     else:
         for pos in selected_positions:
@@ -96,9 +104,6 @@ def split_channels(image):
         channels.append(image)
     return channels
 
-# image_channels = split_channels(image)
-# okay
-
 def save_channels(tile_channels, save_path, channel_names):
 
     for i, tile_channel in enumerate(tile_channels):  
@@ -112,29 +117,6 @@ def save_channels(tile_channels, save_path, channel_names):
 def get_tif_files(input_folder):
     tif_files = [f for f in os.listdir(input_folder) if os.path.isfile(os.path.join(input_folder, f)) and f.endswith('.tif')]
     return tif_files
-
-
-# images = get_tif_files("/media/geffjoldblum/DATA/ImagesAsli/Experiments/Experiment10")
-# # join the path to the file name
-# images = [os.path.join("/media/geffjoldblum/DATA/ImagesAsli/Experiments/Experiment10", f) for f in images]
-
-
-# for img in images:
-#     img = imread(img)
-#     # check if sammple_tiles_random works
-#     tiles = sample_tiles_random(img, 1448)
-#     print("Number of tiles:", len(tiles))
-#     for i, tile in enumerate(tiles, start=1):
-#         print(i,tile.shape)
-
-
-#         tile_channels = split_channels(tile)
-#         print(len(tile_channels))
-
-
-
-
-
 
 def process_dapi_image(array):
     try:
@@ -160,21 +142,6 @@ def process_fitc_image(array, mask_generator):
         print(f"Error processing {array}: {str(e)}")
         return None
 
-# def process_tritc_image(array):
-#     try:
-#         image = Image.fromarray(array, 'L')
-#         image = cle.push(image) 
-#         image_gb = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
-#         image_thb = cle.top_hat_box(image_gb, None, 10.0, 10.0, 0.0)
-#         image_t = cle.threshold_otsu(image_thb, None)
-#         image_cclb = cle.connected_components_labeling_box(image_t)
-#         result_esl = cle.exclude_labels_outside_size_range(image_cclb, None, 200.0, 1200.0)
-#         result_esl = cle.pull(result_esl)
-#         return result_esl
-#     except Exception as e:
-#         print(f"Error processing {array}: {str(e)}")
-#         return None
-
 def process_tritc_image(array):
     try:
         image = Image.fromarray(array, 'L')
@@ -190,9 +157,6 @@ def process_tritc_image(array):
         print(f"Error processing {array}: {str(e)}")
         return None
 
-# imsave("/mnt/disk2/Marco/test.tif", result_esl)
-
-
 def process_fitc_image_classical(array):
     image = Image.fromarray(array, 'L')
     image = cle.push(image)
@@ -200,12 +164,16 @@ def process_fitc_image_classical(array):
     labels = cle.pull(labels)
     return labels
 
+
 def process_multichannel_tifs(input_folder, tile_diagonal, channel_names):
+    """
+    this is the main function that processes the multichannel tif files 
+    by sampling random tiles and saving them, and then processing the tiles
+    """
     tif_files = get_tif_files(input_folder)
     tile_dir = make_output_dirs(input_folder, channel_names)
     for tif_file in tif_files:
         tiff_image = imread(os.path.join(input_folder, tif_file))
-        #tiff_image = imread("/media/geffjoldblum/DATA/ImagesAsli/Experiments/Experiment10/well_01_hypoxia_slide_1 - 2023-10-25 00.15.30.tif")
         tiles = sample_tiles_random(tiff_image, tile_diagonal)
         print("Number of tiles:", len(tiles))
         for i, tile in enumerate(tiles, start=1):
@@ -225,62 +193,13 @@ def process_multichannel_tifs(input_folder, tile_diagonal, channel_names):
                     label_image = process_fitc_image_classical(tile_channels[1])
                 elif channel_name == "TRITC":
                     label_image = process_tritc_image(tile_channels[0])
+                elif channel_name == "CY5":
+                    label_image = process_fitc_image_classical(tile_channels[3])
                 else:
                     print("Channel name not recognized.")
                 if label_image is not None:
                     label_filename = 'C'+str(i+1)+'-'+filename.split('.')[0] + '_labels.tif'
                     imsave(os.path.join(tile_dir, channel_name, label_filename), label_image)#, compression='zlib')
-
-
-# input_folder = "/media/geffjoldblum/DATA/ImagesAsli/Experiments/Experiment10/"
-# process_multichannel_tifs(input_folder, 1448, ['TRITC', 'FITC', 'DAPI'])
-                    
-
-# tif_file = tif_files[0]
-# tile_diagonal = 1448
-# channel_names = ['TRITC','FITC','DAPI']
-
-
-# def process_multichannel_tifs(input_folder, tile_diagonal, channel_names):
-#     tif_files = get_tif_files(input_folder)
-#     tile_dir = make_output_dirs(input_folder, channel_names)
-#     for tif_file in tif_files:
-#         tiff_image = imread(os.path.join(input_folder, tif_file))
-#         tiles = sample_tiles_random(tiff_image, tile_diagonal)
-#         for i, tile in enumerate(tiles, start=1):
-#             # filename = os.path.basename(tif_file)
-#             # filename = filename.split('.')[0] + '_tile_' + str(i).zfill(2) + '.tif'
-#             # save_path = os.path.join(tile_dir, filename)
-#             tile_channels = split_channels(tile)
-            
-#             print("Length of channel_names:", len(channel_names))
-#             print("Shape of tile_channels:", (tile_channels[i].shape))
-
-
-            
-#             save_channels(tile_channels, save_path, channel_names)
-
-#             # Ensure channel_names matches the number of tile channels
-#             if len(channel_names) != len(tile_channels):
-#                 print(f"Number of channels provided ({len(channel_names)}) does not match the number of channels detected in the image ({len(tile_channels)})")
-#                 continue
-
-#             for i, channel_name in enumerate(channel_names):
-#                 if channel_name == "DAPI":
-#                     label_image = process_dapi_image(tile_channels[i])
-#                 elif channel_name == "FITC":
-#                     label_image = process_fitc_image_classical(tile_channels[i])
-#                 elif channel_name == "TRITC":
-#                     label_image = process_tritc_image(tile_channels[i])
-#                 else:
-#                     print("Channel name not recognized.")
-#                     continue
-
-#                 if label_image is not None:
-#                     label_filename = 'C' + str(i + 1) + '-' + filename.split('.')[0] + '_labels.tif'
-#                     tf.imwrite(os.path.join(tile_dir, channel_name, label_filename), label_image, compression='zlib')
-
-
 
 def main():
     args = parse_arguments()
