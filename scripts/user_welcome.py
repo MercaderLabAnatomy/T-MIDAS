@@ -10,20 +10,20 @@ wrapper = textwrap.TextWrapper(width=80)
 date = now.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def popup_input(prompt):
-    root = tk.Tk()
-    root.withdraw()  # Hide the main window
-    user_input = filedialog.askdirectory(title=prompt, initialdir="/mnt/")
-    return user_input
-
 
 
 # if T-MIDAS is not in /opt, ask user where it is
 if not os.path.exists('/opt/T-MIDAS'):
     print("T-MIDAS is not in /opt. Please provide the path to the T-MIDAS folder.")
-    tmidas_path = popup_input("Please provide the path to the T-MIDAS folder.")
-    os.environ['PATH'] += os.pathsep + tmidas_path
-    os.environ['T-MIDAS'] = tmidas_path
+    # make a popup window appear to ask for the path to T-MIDAS
+    tmidas_path = filedialog.askdirectory(title="Please provide the path to the T-MIDAS folder.")
+    os.environ["TMIDAS_PATH"] = tmidas_path
+    print("T-MIDAS path set to " + os.environ["TMIDAS_PATH"])
+else:
+    os.environ["TMIDAS_PATH"] = "/opt/T-MIDAS" 
+
+    
+
 
 
 
@@ -152,7 +152,7 @@ def image_preprocessing():
         intensityfiles = input("\nEnter tag of your intensity images: ")
         output_tag = input("\nEnter the tag of the output images: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/blob_based_crop.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/blob_based_crop.py',
                                         '--input ' + input_folder + 
                                         ' --blobfiles ' + blobfiles + 
                                         ' --intensityfiles ' + intensityfiles +
@@ -168,7 +168,7 @@ def image_preprocessing():
         tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
         percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/random_tile_sampler.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/random_tile_sampler.py',
                                         '--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + ' --percentage ' + percentage)
         restart_program()
     if choice == "5":
@@ -186,7 +186,7 @@ def image_preprocessing():
         clip_limit = input("\nEnter the clip limit: ")
         nbins = input("\nEnter the number of bins: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/deep_tissue_clahe.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/deep_tissue_clahe.py',
                                         '--input ' + input_folder + ' --kernel_size ' + kernel_size + ' --clip_limit ' + clip_limit + ' --nbins ' + nbins)
         restart_program()
     if choice == "r" or choice == "R":
@@ -222,7 +222,7 @@ def file_conversion():
               In that case, better use the ndpi file cropping option [1][2] to extract your regions of interest from the slide.
               ''')
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/ndpis_to_tifs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/ndpis_to_tifs.py',
                                         '--input ' + input_folder + ' --level ' + LEVEL)
         restart_program()
     if choice == "2":
@@ -232,7 +232,7 @@ def file_conversion():
               Scenes of each .lif will be exported as .tif files with resolution metadata.''')
         input_folder = popup_input("\nEnter the path to the folder containing the .lif file: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/lif_to_tifs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/lif_to_tifs.py',
                                         '--input ' + input_folder)
         restart_program()
     if choice == "3":
@@ -243,7 +243,7 @@ def file_conversion():
         input_folder = popup_input("\nEnter the path to the folder containing the brightfield .czi(s) files: ")
         scale_factor = input("\nEnter the scale factor (0.5 = half the size (default)): ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/czi_to_tif_brightfield.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/czi_to_tif_brightfield.py',
                                         '--input ' + input_folder + 'scale_factor ' + scale_factor)
         restart_program()
     if choice == "r" or choice == "R":
@@ -277,7 +277,7 @@ def crop_images():
                                                (for example FITC or CY5): 
                                                ''')
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/ndpis_to_cropped_tifs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/ndpis_to_cropped_tifs.py',
                                         '--input ' + input_folder + 
                                         ' --cropping_template_channel_name ' + CROPPING_TEMPLATE_CHANNEL_NAME)
         restart_program()            
@@ -287,7 +287,7 @@ def crop_images():
               A popup will appear in a moment asking you to select the folder containing ndpi files.''')
         input_folder = popup_input("\nEnter the path to the folder containing the .ndpi files: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/ndpis_to_cropped_tifs_brightfield.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/ndpis_to_cropped_tifs_brightfield.py',
                                         '--input ' + input_folder)
         restart_program()
     if choice == "3":
@@ -301,7 +301,7 @@ def crop_images():
                                  (single channel: 0): 
                                  ''')
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/lif_to_cropped_tifs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/lif_to_cropped_tifs.py',
                                         '--input_folder ' + input_folder + ' --template_channel ' + template_channel)
         restart_program()
     if choice == "r" or choice == "R":
@@ -335,7 +335,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the intensity images: ")
         bg = input("\nWhat kind of background? (1 = gray, 2 = dark): ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/2D_segmentation_spots.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/2D_segmentation_spots.py',
                                         '--input ' + input_folder + ' --bg ' + bg)
         restart_program()
     if choice == "2":
@@ -346,7 +346,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         nuclei_channel = input("\nEnter number of the color channel you want to segment:  ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/3D_segment_instances.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/3D_segment_instances.py',
                                         '--image_folder ' + input_folder + ' --nuclei_channel ' + nuclei_channel)
         restart_program()
     if choice == "3":
@@ -358,7 +358,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         image_type = input("\nBrightfield images? (y/n): ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/get_myocardium_from_slices.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/get_myocardium_from_slices.py',
                                         '--input ' + input_folder + ' --image_type ' + image_type)
         restart_program()
     if choice == "4":
@@ -369,7 +369,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         tissue_channel = input("\nEnter number of the color channel you want to segment: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/3D_segment_semantic.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/3D_segment_semantic.py',
                                         '--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
         restart_program()
     if choice == "5":
@@ -384,7 +384,7 @@ def image_segmentation():
         min_box = input("\nEnter the minimum box size (x,y,z): ")
         outline_sigma = input("\nEnter the outline sigma: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/segment_clahe.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segment_clahe.py',
                                         '--input ' + input_folder +
                                         ' --min_box ' + min_box +
                                         ' --outline_sigma ' + outline_sigma)
@@ -399,7 +399,7 @@ def image_segmentation():
         tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
         percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/2D_segmentation_multicolor_cell_culture.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/2D_segmentation_multicolor_cell_culture.py',
                                         '--input ' + input_folder +
                                         ' --channels ' + 
                                         ' --tile_diagonal ' + tile_diagonal +
@@ -436,7 +436,7 @@ def ROI_analysis():
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/create_ventricle_ROIs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/create_ventricle_ROIs.py',
                                         '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
         restart_program()
     if choice == "2":
@@ -448,7 +448,7 @@ def ROI_analysis():
         input_folder = popup_input("\nInput: Folder with all label images (ROIs and instance segmentations).")
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/count_instances_per_ROI.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/count_instances_per_ROI.py',
                                         '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
         restart_program() 
     if choice == "3":
@@ -459,7 +459,7 @@ def ROI_analysis():
         nuclei_folder = popup_input("\nEnter the path to the folder containing nuclei label images: ")
         tissue_folder = popup_input("\nEnter the path to the folder containing tissue label images: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/3D_count_instances_in_ROIs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/3D_count_instances_in_ROIs.py',
                                         '--nuclei_folder ' + nuclei_folder + ' --tissue_folder ' + tissue_folder)
         restart_program()
     if choice == "4":
@@ -469,7 +469,7 @@ def ROI_analysis():
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/colocalization_multicolor_cell_culture.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor_cell_culture.py',
                                         '--input ' + input_folder)
         restart_program()
     if choice == "r" or choice == "R":
@@ -499,7 +499,7 @@ def validation():
         print("\nNames of your manually annotated label images must end with '_ground_truth.tif'.")
         input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/counts_validation.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/counts_validation.py',
                                         '--input ' + input_folder)
         restart_program()
     if choice == "2":
@@ -511,7 +511,7 @@ def validation():
         input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
         segmentation_type = input("\nHow many labels do the label images contain? (s = single, m = multiple) ")
         python_script_environment_setup('tmidas-env', 
-                                        './scripts/3D_segment_instances_validation.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/3D_segment_instances_validation.py',
                                         '--input ' + input_folder + ' --type ' + segmentation_type)
         restart_program()
     if choice == "r" or choice == "R":
