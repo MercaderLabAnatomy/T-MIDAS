@@ -36,19 +36,17 @@ def get_volume(ROI):
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Get nuclei inside tissue')
-parser.add_argument('--nuclei_folder', type=str, help='Path to folder containing TIF files with nuclei channel')
-parser.add_argument('--tissue_folder', type=str, help='Path to folder containing TIF files with tissue channel')
+parser.add_argument('--input_folder', type=str, help='Path to folder containing nuclei and tissue label image subfolders')
+# ask for names of the subfolders
+parser.add_argument('--nuclei_folder', type=str, help='Name of the folder containing nuclei label images')
+parser.add_argument('--tissue_folder', type=str, help='Name of the folder containing tissue label images')
 #parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
 args = parser.parse_args()
 
 
-# nuclei_folder = "/mnt/disk1/Marco/Marwa/nuclei_label_images"
-# tissue_folder = "/mnt/disk1/Marco/Marwa/tissue_label_images_cropped"
 
-
-# Prompt user for input folders
-nuclei_folder = args.nuclei_folder
-tissue_folder = args.tissue_folder
+nuclei_folder = os.path.join(args.input_folder, nuclei_folder)
+tissue_folder = os.path.join(args.input_folder, tissue_folder)
 
 
 # take parent folder as directory for output folder

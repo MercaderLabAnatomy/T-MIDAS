@@ -73,16 +73,22 @@ def welcome_message():
 
     main_menu() # go straight ahead into the image processing menu
 
-def napari_environment_setup(env_name):
-    subprocess.run(f"mamba run -n {env_name} napari".split(),cwd="/mnt/")
-    restart_program()
+def logging(env_name, script_name, input_parameters=None, user_name=None):
+    # get input folder from input_parameters
+    input_folder = input_parameters.split(' ')[1] # this relies on input_folder being the first parameter
+    print(f"{user_name}, I am logging your choices to " + f'{input_folder}/{env_name}_log.csv')
+    with open(f'{input_folder}/{env_name}_log.csv', mode='a') as file:
+        writer = csv.writer(file)
+        writer.writerow([date, env_name, script_name, input_parameters, user_name])
 
 
 def python_script_environment_setup(env_name, script_name, input_parameters=None):
     subprocess.run(f"mamba run -n {env_name} python {script_name} {input_parameters}".split(),
                    capture_output=False,text=True,cwd="/mnt/")
+    logging(env_name, script_name, input_parameters, user_name)
     restart_program()
-
+    
+    
 def popup_input(prompt):
     root = tk.Tk()
     root.withdraw()  # Hide the main window
@@ -90,7 +96,7 @@ def popup_input(prompt):
     return user_input
 
 
-user_choices = []
+
 
 def main_menu():
     os.system('clear')
@@ -102,7 +108,7 @@ def main_menu():
     print("[x] Exit \n")
     
     choice = input("\nEnter your choice: ")
-    user_choices.append([choice])
+    
     
     if choice == "1":
         image_preprocessing()
@@ -136,7 +142,7 @@ def image_preprocessing():
     print("[x] Exit \n")
 
     choice = input("\nEnter your choice: ")
-    user_choices.append([choice])
+    
     
     if choice == "1":
         file_conversion()
@@ -206,7 +212,7 @@ def file_conversion():
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
-    user_choices.append([choice])
+    
     if choice == "1":
         os.system('clear')
         print('''You chose to convert multicolor .ndpi files to .tif files. \n
@@ -265,7 +271,7 @@ def crop_images():
     print("[x] Exit \n")
 
     choice = input("\nEnter your choice: ")
-    user_choices.append([choice])
+    
     if choice == "1":
         os.system('clear')
         print('''You chose to crop blobs from multicolor .ndpi files.  \n
@@ -325,7 +331,7 @@ def image_segmentation():
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
-    user_choices.append([choice])
+    
    
     if choice == "1":
         os.system('clear')
@@ -426,15 +432,15 @@ def ROI_analysis():
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
-    user_choices.append([choice])
+    
 
     if choice == "1":
         os.system('clear')
         print('''You chose to create ROIs from masks. \n
                 A popup will appear in a moment asking you to select the folder containing the label images.
                 ''')
-        pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/create_ventricle_ROIs.py',
                                         '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
@@ -456,11 +462,14 @@ def ROI_analysis():
         print('''You chose to count nuclei in tissue (3D). \n
                 Two popups will appear in a moment asking you to select the folder containing the label images for both nuclei and tissue.
                 ''')
-        nuclei_folder = popup_input("\nEnter the path to the folder containing nuclei label images: ")
-        tissue_folder = popup_input("\nEnter the path to the folder containing tissue label images: ")
+        input_folder = popup_input("\nEnter the path to the folder containing nuclei and tissue label image subfolders: ")
+        nuclei_folder = input("\nEnter the name of the folder containing nuclei label images: ")
+        tissue_folder = input("\nEnter the name of the folder containing tissue label images: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/3D_count_instances_in_ROIs.py',
-                                        '--nuclei_folder ' + nuclei_folder + ' --tissue_folder ' + tissue_folder)
+                                        '--input_folder ' + input_folder +
+                                        '--nuclei_folder ' + nuclei_folder + 
+                                        ' --tissue_folder ' + tissue_folder)
         restart_program()
     if choice == "4":
         os.system('clear')
@@ -489,7 +498,7 @@ def validation():
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
-    user_choices.append([choice])
+    
 
     if choice == "1":
         os.system('clear')
@@ -535,14 +544,6 @@ def exit_program():
     os.system('clear')
     print("\n Okay, goodbye!\n")
     print("PS: If you need me later, just type 'assistance'.\n")
-    
-    # print log
-    print(f"On {date}, {user_name} chose the following workflow: {', '.join(map(str, user_choices))}.")
-    # add to log.txt
-    with open('./log.txt', 'a') as f:
-        writer = csv.writer(f)
-        writer.writerow([date, user_name, user_choices])
-
     exit()
 
 # Start the program
