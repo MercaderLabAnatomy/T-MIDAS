@@ -12,7 +12,7 @@
 - Supported imaging modalities: Confocal microscopy, slidescanner, multicolor, brightfield
 - Logs all your workflows and your parameter choices to a simple CSV
 - You can fork this repository to adapt the batch processing scripts to your own image analysis workflows
-- [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation)
+- [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation-ubuntu)
 
   
 T-MIDAS is built on established image processing libraries such as [scikit-image](https://github.com/scikit-image/scikit-image) or [py-clesperanto](https://github.com/clEsperanto/pyclesperanto_prototype). 
