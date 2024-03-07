@@ -10,8 +10,10 @@
 - Runs on any low-grade workstation with a single GPU
 - Modular and simple codebase with few dependencies for easy maintenance
 - Supported imaging modalities: Confocal microscopy, slidescanner, multicolor, brightfield
-- [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation)
+- Logs all your workflows and your parameter choices to a simple CSV
 - You can fork this repository to adapt the batch processing scripts to your own image analysis workflows
+- [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation)
+
   
 T-MIDAS is built on established image processing libraries such as [scikit-image](https://github.com/scikit-image/scikit-image) or [py-clesperanto](https://github.com/clEsperanto/pyclesperanto_prototype). 
 
@@ -52,7 +54,6 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
 </pre>
 
 ## WIP
-- Workflow logging
 - Plug & Play DGMs for Transfer Learning (PyTorch framework)
 - Lightsheet data
 - Time series data
