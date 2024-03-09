@@ -9,6 +9,10 @@ from skimage.color import rgb2gray
 import tifffile as tf
 import pyclesperanto_prototype as cle
 import napari_segment_blobs_and_things_with_membranes as nsbatwm
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
+
 from skimage.measure import label
 import cv2
 import apoc

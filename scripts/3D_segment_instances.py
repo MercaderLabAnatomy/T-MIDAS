@@ -7,6 +7,9 @@ from skimage.io import imread
 import pandas as pd
 import apoc
 import napari_segment_blobs_and_things_with_membranes as nsbatwm 
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
 
 def load_image(filepath, nuclei_channel):
     try:

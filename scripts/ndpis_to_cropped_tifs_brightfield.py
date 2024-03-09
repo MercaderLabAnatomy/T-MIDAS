@@ -27,6 +27,9 @@ from PIL import Image, ImageOps
 import argparse
 import napari_segment_blobs_and_things_with_membranes as nsbatwm  # version 0.3.7
 from skimage.measure import regionprops
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
 
 
 # ask for the path to the ndpis files using argparse

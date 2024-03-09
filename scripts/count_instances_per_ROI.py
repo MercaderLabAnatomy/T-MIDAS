@@ -12,6 +12,9 @@ import pyclesperanto_prototype as cle
 import napari_segment_blobs_and_things_with_membranes as nsbatwm
 import re
 from skimage.measure import regionprops
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
 
 # Argument Parsing
 parser = argparse.ArgumentParser(description="Input: Folder with all label images (ROIs and instance segmentations).")

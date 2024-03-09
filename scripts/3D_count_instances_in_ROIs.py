@@ -13,6 +13,9 @@ from skimage.io import imread, imsave
 import pandas as pd
 import apoc
 import napari_segment_blobs_and_things_with_membranes as nsbatwm 
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
 import SimpleITK as sitk
 from skimage.measure import regionprops
 import pyclesperanto_prototype as cle

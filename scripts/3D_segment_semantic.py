@@ -13,6 +13,9 @@ from skimage.io import imread, imsave
 import pandas as pd
 import apoc
 import napari_segment_blobs_and_things_with_membranes as nsbatwm 
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
 
 
 # image_folder = "/mnt/disk1/Marco/Marwa/"

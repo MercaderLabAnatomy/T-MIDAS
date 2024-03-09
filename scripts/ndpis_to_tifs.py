@@ -9,6 +9,9 @@ import argparse
 import tifffile as tf
 import pyclesperanto_prototype as cle
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
 
 
 # ask for the path to the ndpis files using argparse

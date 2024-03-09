@@ -13,6 +13,9 @@ from PIL import Image
 #import torch
 import napari_segment_blobs_and_things_with_membranes as nsbatwm
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
 from skimage.io import imread, imsave # gives dim order XYC !
 
 
