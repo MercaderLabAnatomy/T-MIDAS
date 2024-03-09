@@ -76,7 +76,7 @@ def welcome_message():
 def logging(env_name, script_name, input_parameters=None, user_name=None):
     # get input folder from input_parameters
     input_folder = input_parameters.split(' ')[1] # this relies on input_folder being the first parameter
-    print(f"{user_name}, I am logging your choices to " + f'{input_folder}/{env_name}_log.csv')
+    print(f"\n{user_name}, I am logging your choices to " + f'{input_folder}/{env_name}_log.csv')
     with open(f'{input_folder}/{env_name}_log.csv', mode='a') as file:
         writer = csv.writer(file)
         writer.writerow([date, env_name, script_name, input_parameters, user_name])
@@ -474,12 +474,21 @@ def ROI_analysis():
     if choice == "4":
         os.system('clear')
         print('''You chose to colocalize ROIs (e.g. nuclei and cell bodies). \n
-                A popup will appear in a moment asking you to select the folder containing the label images.
+                A popup will appear in a moment asking you to select the folder containing the label images. 
+              You will be asked to enter a few parameter values. 
+              Bounding boxes of all objects in the target channel will be checked against centroids of all objects in the other color channels. 
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        channels = input("\nEnter the names of all color channels: ")
+        target = input("\nName of the target channel: ")
+        label_pattern = input("\nEnter the pattern to match label images (default: *_labels.tif): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor_cell_culture.py',
-                                        '--input ' + input_folder)
+                                        '--input ' + input_folder +
+                                        ' --channels ' + channels +
+                                        ' --target ' + target +
+                                        ' --label_pattern ' + label_pattern
+                                        )
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()

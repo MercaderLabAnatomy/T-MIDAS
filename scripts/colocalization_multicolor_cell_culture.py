@@ -8,95 +8,112 @@ import argparse
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Count proliferating FITC+ cells.')
-    parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders with segmented tiles.')
-    # parser.add_argument('--num_tiles', type=int, help='Enter the number of tiles to sample.')
+    parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
+    parser.add_argument('--channels',  nargs='+', type=str, help='Names of all color channels. Example: "TRITC DAPI FITC"')
+    # name of color channel that is supposed to serve as target
+    parser.add_argument('--target', type=str, help='Name of the target channel. Bounding boxes of all objects in this channel will be checked against centroids of all objects in the other color channels. Example: "FITC"')
+    parser.add_argument('--label_pattern', type=str, default='*_labels.tif', help='Pattern to match label images. Default: "*_labels.tif"')
     return parser.parse_args()
 
 
 args = parse_arguments()
-
+# output of parse_arguments is a Namespace object
+# a namespace object can be accessed like a dictionary
 
 # Define the naming pattern for label and intensity images
-label_pattern = '*_labels.tif'
-# label_pattern_2 = '*_cp_masks.tif' # cellpose
-
+label_pattern = args.label_pattern
 parent_dir = args.input +'/'
+channels = [c.upper() for c in args.channels]
+
+# give error if channel names are not unique or smaller than 2
+if len(set(channels)) < len(channels) or len(channels) < 2:
+    raise ValueError("Channel names must be unique and at least two channels must be provided.")
 
 
-# Get the list of label files
-FITC_labels = sorted(glob.glob(os.path.join(parent_dir + 'FITC/', label_pattern)))
-TRITC_labels = sorted(glob.glob(os.path.join(parent_dir + 'TRITC/', label_pattern)))
-DAPI_labels = sorted(glob.glob(os.path.join(parent_dir + 'DAPI/', label_pattern)))
 
-FITC_intensities = [filename.replace("_labels", "") if "_labels" in filename else filename for filename in FITC_labels]
-TRITC_intensities = [filename.replace("_labels", "") if "_labels" in filename else filename for filename in TRITC_labels]
-DAPI_intensities = [filename.replace("_labels", "") if "_labels" in filename else filename for filename in DAPI_labels]
+target = args.target
+
+#channels = ["TRITCA", "CY5"]
+# target = "FITC"
+# parent_dir = "/media/geffjoldblum/DATA/images_joao/20240205_ntn1a_col1a2_IB4"
+# label_pattern = "*_labels.tif"
+
+def get_file_list(parent_dir, channels, label_pattern):
+    file_lists = {}  # Dictionary to store lists with channel names as keys
+
+    for channel in channels:
+        labels = sorted(glob.glob(os.path.join(parent_dir, channel + '/', label_pattern)))
+        file_lists[channel] = labels
+
+    return file_lists
+
+file_lists = get_file_list(parent_dir, channels, label_pattern)
 
 
-# # Create a new directory called "output" in the parent directory
-# output_dir = os.path.join(parent_dir, "output")
-# if not os.path.exists(output_dir):
-#     os.makedirs(output_dir)
-    
+# check if lenght of all file lists is the same
+# if not, print a warning
+lengths = [len(file_lists[channel]) for channel in file_lists.keys()]
+if len(set(lengths)) > 1:
+    print("Warning: The number of label files in the different channels is not the same.")
+    print("Number of label files in each channel:", lengths)
+
+
 # Create a list to store row data
 csv_rows = []
  
-# Loop through each element in FITC_labels and FITC_intensities and apply regionprops
-for i in range(len(FITC_labels)):
-    FITC_props = regionprops(io.imread(FITC_labels[i]), io.imread(FITC_intensities[i]))
-    TRITC_props = regionprops(io.imread(TRITC_labels[i]), io.imread(TRITC_intensities[i]))
-    DAPI_props = regionprops(io.imread(DAPI_labels[i]), io.imread(DAPI_intensities[i]))
-
-    # Extract FITC file name without extension for CSV file name
-    FITC_filename = os.path.splitext(os.path.basename(FITC_labels[i]))[0]
-    # output_csv = os.path.join(output_dir, '{}_output.csv'.format(FITC_filename))
-
- # okay
-  
-    # Loop through each region in FITC_props and check for DAPI and TRITC centroids
-    for FITC_prop in FITC_props:
-        FITC_area = FITC_prop.area
-        if 100 < FITC_area < 100000:
-            FITC_bbox = FITC_prop.bbox
-            FITC_min_row, FITC_min_col, FITC_max_row, FITC_max_col = FITC_bbox
-
-            # Check whether a DAPI centroid is in the corresponding FITC bbox
-            DAPI_centroid_in_FITC_bbox = False
-
-            for DAPI_prop in DAPI_props:
-                DAPI_centroid = DAPI_prop.centroid
-                DAPI_row, DAPI_col = int(DAPI_centroid[0]), int(DAPI_centroid[1])
-                DAPI_bbox = DAPI_prop.bbox
-                DAPI_min_row, DAPI_min_col, DAPI_max_row, DAPI_max_col = DAPI_bbox
-
-                if FITC_min_row <= DAPI_row <= FITC_max_row and FITC_min_col <= DAPI_col <= FITC_max_col:
-                    DAPI_centroid_in_FITC_bbox = True
-                    
-
-                    # Check whether a TRITC centroid is in the corresponding DAPI bbox
-                    TRITC_centroid_in_DAPI_bbox = False
-
-                    for TRITC_prop in TRITC_props:
-                        TRITC_centroid = TRITC_prop.centroid
-                        TRITC_row, TRITC_col = int(TRITC_centroid[0]), int(TRITC_centroid[1])
+for i in range(len(file_lists[target])):
+    # get regionprops of shots
+    target_props = regionprops(io.imread(file_lists[target][i]))
+    # add props of other channels. Account for variable number of channels
+    other_props = {}
+    for channel in file_lists.keys():
+        if channel != target:
+            other_props[channel] = regionprops(io.imread(file_lists[channel][i]))
 
 
+    # extract target file name without extension for CSV file name
+    target_filename = os.path.splitext(os.path.basename(file_lists[target][i]))[0]
 
-                        if DAPI_min_row <= TRITC_row <= DAPI_max_row and DAPI_min_col <= TRITC_col <= DAPI_max_col:
-                            TRITC_centroid_in_DAPI_bbox = True
-                            break
+    # Loop through each region in target_props and check for centroids in other channels
+    for target_prop in target_props:
+        target_area = target_prop.area
+        if 100 < target_area < 100000:
+            target_bbox = target_prop.bbox
+            target_min_row, target_min_col, target_max_row, target_max_col = target_bbox
 
-                    # Append row data to the list
-                    csv_rows.append([FITC_filename, FITC_prop.label, FITC_prop.area * (0.23**2), FITC_prop.mean_intensity, 
-                                     FITC_prop.major_axis_length* 0.23, FITC_prop.minor_axis_length* 0.23,
-                                     FITC_prop.eccentricity,
-                                     DAPI_centroid_in_FITC_bbox,TRITC_centroid_in_DAPI_bbox])
+            # Count the number of centroids in the corresponding target bbox
+            centroid_count = {}
+            for channel in other_props.keys():
+                centroid_count[channel] = 0
+                for other_prop in other_props[channel]:
+                    centroid = other_prop.centroid
+                    row, col = int(centroid[0]), int(centroid[1])
+                    bbox = other_prop.bbox
+                    min_row, min_col, max_row, max_col = bbox
 
-output_csv = os.path.join(parent_dir, 'regionprops.csv')  # Path for the combined CSV file
-              
+                    if target_min_row <= row <= target_max_row and target_min_col <= col <= target_max_col:
+                        centroid_count[channel] += 1
+
+            # Append row data to the list
+            csv_rows.append([target_filename, target_prop.label, target_prop.area,
+                                *[centroid_count[channel] for channel in other_props.keys()] 
+                                # the * unpacks the list of centroid_count values
+                                ]) 
+
+# Define the path for the combined CSV file
+output_csv = os.path.join(parent_dir, 'colocalization_count.csv')
+
 # Write the row data to the CSV file
 with open(output_csv, 'w', newline='') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(['filename', 'label', 'area_um2', 'mean_intensity', 'major_axis_length_um2','minor_axis_length_um2','eccentricity', 'DAPI_centroid_in_FITC_bbox', 'TRITC_centroid_in_DAPI_bbox'])
-    writer.writerows(csv_rows)
-print("\n"+ str(output_csv)+" created.")
+    csvwriter = csv.writer(csvfile)
+    csvwriter.writerow(['Filename', f'{target} Labels', 
+                        f'{target} Area (sq px)',
+                        *other_props.keys()])
+    csvwriter.writerows(csv_rows)
+            
+
+
+
+
+
+

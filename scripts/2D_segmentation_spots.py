@@ -2,7 +2,7 @@ import os
 import argparse
 import numpy as np
 from skimage.io import imread
-import tifffile as tf
+from tifffile import imwrite
 import pyclesperanto_prototype as cle
 
 # Argument Parsing
@@ -24,7 +24,7 @@ def process_image(image_path):
     try:
         image = imread(image_path)
         intensity_threshold = calculate_threshold(image)
-        image = cle.push(image)
+        #image = cle.push(image)
         
         if args.bg == 1:
             image = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
@@ -39,12 +39,18 @@ def process_image(image_path):
         image_l = cle.connected_components_labeling_box(image_to)
         image_labeled = cle.exclude_small_labels(image_l, None, SIZE_THRESHOLD)
         image_labeled = cle.pull(image_labeled)
-        image_labeled = np.array(image_labeled, dtype=np.uint32)
+        #image_labeled = np.array(image_labeled, dtype=np.uint32)
         
         return image_labeled
     except Exception as e:
         print(f"Error processing {image_path}: {str(e)}")
         return None
+
+def save_image(image, filename):
+    # Convert image data type to uint32 before saving
+    image_uint32 = image.astype(np.uint32)
+    imwrite(filename, image_uint32, compression='zlib')
+
 
 def main():
     """Main function to process all images in the input directory."""
@@ -56,7 +62,8 @@ def main():
         labeled_image = process_image(os.path.join(image_folder, filename))
         if labeled_image is not None:
             output_path = os.path.join(image_folder, f"{filename[:-4]}_labels.tif")
-            tf.imwrite(output_path, labeled_image, compression='zlib')
+            #tf.imwrite(output_path, labeled_image, compression='zlib')
+            save_image(labeled_image, output_path)
 
 if __name__ == "__main__":
     main()
