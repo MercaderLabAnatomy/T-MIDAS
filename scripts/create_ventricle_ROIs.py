@@ -30,7 +30,6 @@ def gpu_processing(array):
     try:
         label_image = cle.push(array)
         label_image = cle.merge_touching_labels(label_image)
-        label_image = nsitk.binary_fill_holes(label_image)
         return label_image
     except Exception as e:
         print(f"Error processing {image}: {str(e)} on the GPU.")
@@ -40,7 +39,7 @@ def get_largest_label(label_image):
     label_image = cle.connected_components_labeling_box(label_image)
     label_props = regionprops(label_image)
     areas = [region.area for region in label_props]
-    max_area_label = np.argmax(areas) + 1
+    max_area_label = np.argmax(areas) + 1 
     return cle.equal_constant(label_image, None, max_area_label)
 
 def get_myocardium(image):
@@ -74,6 +73,7 @@ def get_injury(myocardium, myocardium_wo_injury):
 
 def get_fibrous_layer(myocardium): 
     try:
+        myocardium = nsitk.binary_fill_holes(myocardium)
         not_myocardium = cle.binary_not(myocardium)
         not_myocardium_dilated = cle.dilate_labels(not_myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
         fibrous_layer = cle.binary_and(not_myocardium_dilated, myocardium)
@@ -119,19 +119,16 @@ for filename in os.listdir(image_folder):
         
         border_zone = get_border_zone(injury, myocardium_wo_injury)
 
-        
-        save_image(myocardium, os.path.join(image_folder, filename.replace("_labels.tif", "_myocardium.tif")))
-        
-       
-        save_image(myocardium_wo_injury, os.path.join(image_folder, filename.replace("_labels.tif", "_myocardium_wo_injury.tif")))
-        
-       
-        save_image(injury, os.path.join(image_folder, filename.replace("_labels.tif", "_injury.tif")))
-        
-       
-        save_image(fibrous_layer, os.path.join(image_folder, filename.replace("_labels.tif", "_fibrous_layer.tif")))
-        
-       
-        save_image(border_zone, os.path.join(image_folder, filename.replace("_labels.tif", "_border_zone.tif")))
+        # merge all ROIs into one image
+
+        ROIs = np.zeros_like(myocardium)
+        ROIs[myocardium > 0] = 1
+        ROIs[myocardium_wo_injury > 0] = 2
+        ROIs[injury > 0] = 3
+        ROIs[fibrous_layer > 0] = 4
+        ROIs[border_zone > 0] = 5
+
+        save_image(ROIs, os.path.join(image_folder, filename.replace("_labels.tif", "_ROIs.tif")))
+
 
 print("Done.")
