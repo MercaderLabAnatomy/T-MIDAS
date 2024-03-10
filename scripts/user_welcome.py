@@ -441,9 +441,14 @@ def ROI_analysis():
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
+        intact_label_id = input("\nEnter the label id of the intact myocardium: ")
+        injury_label_id = input("\nEnter the label id of the injury region: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/create_ventricle_ROIs.py',
-                                        '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
+                                        '--input ' + input_folder + 
+                                        ' --pixel_resolution ' + pixel_resolution +
+                                        ' --intact_label_id ' + intact_label_id +
+                                        ' --injury_label_id ' + injury_label_id)
         restart_program()
     if choice == "2":
         os.system('clear')
