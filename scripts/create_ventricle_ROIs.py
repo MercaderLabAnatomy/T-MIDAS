@@ -13,6 +13,13 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+# napari viewer
+# import napari
+# if 'viewer' not in globals():
+#     viewer = napari.Viewer()
+
+
+
 parser = argparse.ArgumentParser(description="Input: Folder with label images containing masks of intact myocardium and injury regions.")
 parser.add_argument("--input", type=str, required=True, help="Path to input label images.")
 parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
@@ -87,14 +94,33 @@ def get_injury(image):
         print(f"Error processing {image}: {str(e)} while getting injury.")
         return None
 
+
+
+# image = imread("/media/geffjoldblum/DATA/images_joao/20240205_ntn1a_col1a2_IB4/test_ROIgen/ntn1_KO_7dpi_col_IB4_f1.1 - 2024-02-05 13.54.15-FITC_roi_01_labels.tif")
+
 def get_fibrous_layer(image): 
     try:
         myocardium = cle.merge_touching_labels(image)
-        myocardium = nsitk.binary_fill_holes(myocardium)
-        not_myocardium = cle.binary_not(myocardium)
-        not_myocardium_dilated = cle.dilate_labels(not_myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
-        fibrous_layer = cle.binary_and(not_myocardium_dilated, myocardium)
-        fibrous_layer = get_largest_label(fibrous_layer)
+        #viewer.add_labels(myocardium)
+        myocardium_dilated = cle.dilate_labels(myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
+        #viewer.add_labels(myocardium_dilated)
+        myocardium_dilated = nsitk.binary_fill_holes(myocardium_dilated)
+        #viewer.add_labels(myocardium_dilated)
+        # dilate the myocardium to get the fibrous layer
+        myocardium_dilated = get_largest_label(myocardium_dilated)
+        #viewer.add_labels(myocardium_dilated)
+        not_myocardium = cle.binary_not(myocardium_dilated)
+        not_myocardium_dilated = cle.erode_labels(not_myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
+        not_myocardium_dilated = get_largest_label(not_myocardium_dilated)
+        #viewer.add_labels(not_myocardium_dilated)
+        # combine myocardium_dilated and not_myocardium_dilated to get the fibrous layer
+
+        #not_myocardium_dilated = cle.dilate_labels(not_myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
+        not_fibrous_layer = cle.combine_labels(not_myocardium_dilated, myocardium_dilated)
+        fibrous_layer = cle.binary_not(not_fibrous_layer)
+        fibrous_layer = cle.dilate_labels(fibrous_layer, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
+        #viewer.add_labels(fibrous_layer)
+        #fibrous_layer = get_largest_label(fibrous_layer)
         return cle.pull(fibrous_layer)
     except Exception as e:
         print(f"Error processing {image}: {str(e)} while getting fibrous layer.")
