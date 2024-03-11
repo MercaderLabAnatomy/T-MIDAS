@@ -478,14 +478,18 @@ def ROI_analysis():
         restart_program()
     if choice == "4":
         os.system('clear')
+        print(wrapper.fill("You chose to colocalize ROIs (e.g. nuclei and cell bodies). A popup will appear in a moment asking you to select the folder containing the label images. You will be asked to enter a few parameter values."))
+        print(wrapper.fill("The first parameter is the parent folder containing the color channel subfolders. Those should contain the original images as well as the segmentations (label fimages). The second parameter are the folder names of all color channels. The third parameter is the folder name of the color channel with the target objects within which you want to count the number of objects from the other colour channels. The fourth parameter is the pattern to match label images (default: *_labels.tif)."))
+        
+        
         print('''You chose to colocalize ROIs (e.g. nuclei and cell bodies). \n
                 A popup will appear in a moment asking you to select the folder containing the label images. 
               You will be asked to enter a few parameter values. 
               Bounding boxes of all objects in the target channel will be checked against centroids of all objects in the other color channels. 
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
-        channels = input("\nEnter the names of all color channels: ")
-        target = input("\nName of the target channel: ")
+        channels = input("\nEnter the folder names of all color channels (example: DAPI FITC TRITC): ")
+        target = input("\nEnter the folder name of the target color channel: ")
         label_pattern = input("\nEnter the pattern to match label images (default: *_labels.tif): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor_cell_culture.py',
