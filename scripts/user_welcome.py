@@ -173,9 +173,13 @@ def image_preprocessing():
         input_folder = popup_input("\nEnter the path to the folder containing the (multichannel) .tif images: ")
         tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
         percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
+        random_seed = input("\nEnter a random seed for reproducibility (integer): ")    
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/random_tile_sampler.py',
-                                        '--input ' + input_folder + ' --tile_diagonal ' + tile_diagonal + ' --percentage ' + percentage)
+                                        '--input ' + input_folder + 
+                                        ' --tile_diagonal ' + tile_diagonal + 
+                                        ' --percentage ' + percentage +
+                                        ' --random_seed ' + random_seed)
         restart_program()
     if choice == "5":
         os.system('clear')

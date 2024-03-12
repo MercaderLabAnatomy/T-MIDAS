@@ -11,6 +11,8 @@ def parse_arguments():
     parser.add_argument('--input', type=str, help='Folder containing the .tif images.')
     parser.add_argument('--tile_diagonal', type=int, help='Enter the tile diagonal in pixels.')
     parser.add_argument('--percentage', type=int, help='Enter the percentage of random tiles to be picked from the entire image (20-100).')
+    # add random seed
+    parser.add_argument('--random_seed', type=int, help='Enter a random seed for reproducibility (integer): ')
     return parser.parse_args()
 
 
@@ -43,8 +45,10 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage):
             possible_positions.append((i, j))  # Collect all possible tile positions
     
     num_subset_tiles = int(len(possible_positions) * (subset_percentage / 100))  # Calculate number of tiles for subset
+    random.seed(args.random_seed)
     selected_positions = random.sample(possible_positions, num_subset_tiles)  # Randomly select non-overlapping positions
-    
+
+
     if is_multichannel(image) and (image.shape[0] < 5):
         for pos in selected_positions:
             i, j = pos
