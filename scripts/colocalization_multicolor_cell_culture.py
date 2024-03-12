@@ -9,9 +9,7 @@ import argparse
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Count proliferating FITC+ cells.')
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
-    parser.add_argument('--channels',  nargs='+', type=str, help='Names of all color channels. Example: "TRITC DAPI FITC"')
-    # name of color channel that is supposed to serve as target
-    parser.add_argument('--target', type=str, help='Name of the target channel. Bounding boxes of all objects in this channel will be checked against centroids of all objects in the other color channels. Example: "FITC"')
+    parser.add_argument('--channels',  nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--label_pattern', type=str, default='*_labels.tif', help='Pattern to match label images. Default: "*_labels.tif"')
     return parser.parse_args()
 
@@ -31,10 +29,8 @@ if len(set(channels)) < len(channels) or len(channels) < 2:
 
 
 
-target = args.target
 
-#channels = ["TRITCA", "CY5"]
-# target = "FITC"
+#channels = ["FITC", "TRITC", "DAPI"]
 # parent_dir = "/media/geffjoldblum/DATA/images_joao/20240205_ntn1a_col1a2_IB4"
 # label_pattern = "*_labels.tif"
 
@@ -50,7 +46,7 @@ def get_file_list(parent_dir, channels, label_pattern):
 file_lists = get_file_list(parent_dir, channels, label_pattern)
 
 
-# check if lenght of all file lists is the same
+# check if length of all file lists is the same
 # if not, print a warning
 lengths = [len(file_lists[channel]) for channel in file_lists.keys()]
 if len(set(lengths)) > 1:
@@ -58,62 +54,60 @@ if len(set(lengths)) > 1:
     print("Number of label files in each channel:", lengths)
 
 
-# Create a list to store row data
 csv_rows = []
  
-for i in range(len(file_lists[target])):
-    # get regionprops of shots
-    target_props = regionprops(io.imread(file_lists[target][i]))
-    # add props of other channels. Account for variable number of channels
-    other_props = {}
-    for channel in file_lists.keys():
-        if channel != target:
-            other_props[channel] = regionprops(io.imread(file_lists[channel][i]))
 
+for i in range(len(file_lists[channels[0]])):
+    """
+    This loop iterates through the label images of the first channel 
+    and 
+    - counts the number of regions in the second channel 
+    that are inside the bounding box of the first channel, and
+    - counts the number of regions in the third channel that
+    are inside the bounding box of the first and second channels.
+    """
 
-    # extract target file name without extension for CSV file name
-    target_filename = os.path.splitext(os.path.basename(file_lists[target][i]))[0]
+    props = {}
+    for channel in channels:
+        img = io.imread(file_lists[channel][i])
+        props[channel] = regionprops(img)
+    
+    
+    filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
+    
+    # Initialize counters
+    count_in_bbox_1 = 0
+    count_in_bbox_1_and_bbox_2 = 0
+    
+    # loop through regions in the second channel
+    for region in props[channels[1]]:
+        centroid = region.centroid
+        area = region.area
+        label = region.label
+        if 100 < area:
+        
+            # check if the centroid is inside the bbox of the first channel
+            for region in props[channels[0]]:
+                minr, minc, maxr, maxc = region.bbox
+                if minr < centroid[0] < maxr and minc < centroid[1] < maxc:
+                    count_in_bbox_1 += 1
 
-    # Loop through each region in target_props and check for centroids in other channels
-    for target_prop in target_props:
-        target_area = target_prop.area
-        if 100 < target_area < 100000:
-            target_bbox = target_prop.bbox
-            target_min_row, target_min_col, target_max_row, target_max_col = target_bbox
-
-            # Count the number of centroids in the corresponding target bbox
-            centroid_count = {}
-            for channel in other_props.keys():
-                centroid_count[channel] = 0
-                for other_prop in other_props[channel]:
-                    centroid = other_prop.centroid
-                    row, col = int(centroid[0]), int(centroid[1])
-                    bbox = other_prop.bbox
-                    min_row, min_col, max_row, max_col = bbox
-
-                    if target_min_row <= row <= target_max_row and target_min_col <= col <= target_max_col:
-                        centroid_count[channel] += 1
-
-            # Append row data to the list
-            csv_rows.append([target_filename, target_prop.label, target_prop.area,
-                                *[centroid_count[channel] for channel in other_props.keys()] 
-                                # the * unpacks the list of centroid_count values
-                                ]) 
-
-# Define the path for the combined CSV file
-output_csv = os.path.join(parent_dir, 'colocalization_count.csv')
-
-# Write the row data to the CSV file
-with open(output_csv, 'w', newline='') as csvfile:
-    csvwriter = csv.writer(csvfile)
-    csvwriter.writerow(['Filename', f'{target} Labels', 
-                        f'{target} Area (sq px)',
-                        *other_props.keys()])
-    csvwriter.writerows(csv_rows)
+                for region in props[channels[2]]:
+                    minr, minc, maxr, maxc = region.bbox
+                    if minr < centroid[0] < maxr and minc < centroid[1] < maxc:
+                        count_in_bbox_1_and_bbox_2 += 1
+                        break
+            # append row data to the list
+            csv_rows.append([filename, label, area, count_in_bbox_1, count_in_bbox_1_and_bbox_2])  
             
+# define path to save the csv file
+csv_file = os.path.join(parent_dir, 'colocalization_counts.csv')
 
 
-
-
-
-
+# write row data to a csv file
+with open(csv_file, 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(["filename", f"{channels[0]} ROI id", f"{channels[0]} ROI area (sq px)", 
+                     f"Number of {channels[1]} ROIs in {channels[0]} ROIs", f"Number of {channels[2]} ROIs in {channels[0]} and {channels[1]} ROIs" ])
+    writer.writerows(csv_rows)
+    

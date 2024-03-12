@@ -323,11 +323,12 @@ def image_segmentation():
     os.system('clear')
     print("\nImage Segmentation: What would you like to do?\n")
     print("[1] Segment bright spots (2D)")
-    print("[2] Segment blobs (3D; requires dark background and good SNR)")
-    print("[3] Semantic segmentation (2D, fluorescence or brightfield)")
-    print("[4] Semantic segmentation (3D; requires dark background and good SNR)")
-    print("[5] Segment CLAHE'd images")
-    print("[6] Segment multicolor images of cell cultures (2D)")
+    print("[2] Segment blobs (2D)")
+    print("[3] Segment blobs (3D; requires dark background and good SNR)")
+    print("[4] Semantic segmentation (2D, fluorescence or brightfield)")
+    print("[5] Semantic segmentation (3D; requires dark background and good SNR)")
+    print("[6] Segment CLAHE'd images")
+    print("[7] Segment multicolor images of cell cultures (2D)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -344,7 +345,20 @@ def image_segmentation():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/2D_segmentation_spots.py',
                                         '--input ' + input_folder + ' --bg ' + bg)
         restart_program()
+        
     if choice == "2":
+        os.system('clear')
+        print('''You chose to segment blobs in 2D. \n
+                A popup will appear in a moment asking you to select the folder containing the single color .tif images.
+                ''')
+        input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/2D_segmentation_blobs.py',
+                                        '--input ' + input_folder)
+        restart_program()
+        
+    
+    if choice == "3":
         os.system('clear')
         print('''You chose to segment blobs in 3D. \n
               A popup will appear in a moment asking you to select the folder containing the .tif images.
@@ -355,7 +369,7 @@ def image_segmentation():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/3D_segment_instances.py',
                                         '--image_folder ' + input_folder + ' --nuclei_channel ' + nuclei_channel)
         restart_program()
-    if choice == "3":
+    if choice == "4":
         os.system('clear')
         print('''You chose semantic segmentation (2D, fluorescence or brightfield).\n
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
@@ -367,7 +381,7 @@ def image_segmentation():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/get_myocardium_from_slices.py',
                                         '--input ' + input_folder + ' --image_type ' + image_type)
         restart_program()
-    if choice == "4":
+    if choice == "5":
         os.system('clear')
         print('''You chose semantic segmentation (3D). \n
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
@@ -378,7 +392,7 @@ def image_segmentation():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/3D_segment_semantic.py',
                                         '--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
         restart_program()
-    if choice == "5":
+    if choice == "6":
         os.system('clear')
         print(wrapper.fill("You chose to segment CLAHE'd images. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
         print("\n")
@@ -395,7 +409,7 @@ def image_segmentation():
                                         ' --min_box ' + min_box +
                                         ' --outline_sigma ' + outline_sigma)
         restart_program()
-    if choice == "6":
+    if choice == "7":
         os.system('clear')
         print('''You chose to segment multicolor images of cell cultures in 2D. \n
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
@@ -478,26 +492,25 @@ def ROI_analysis():
         restart_program()
     if choice == "4":
         os.system('clear')
-        print(wrapper.fill("You chose to colocalize ROIs (e.g. nuclei and cell bodies). A popup will appear in a moment asking you to select the folder containing the label images. You will be asked to enter a few parameter values."))
-        print(wrapper.fill("The first parameter is the parent folder containing the color channel subfolders. Those should contain the original images as well as the segmentations (label fimages). The second parameter are the folder names of all color channels. The third parameter is the folder name of the color channel with the target objects within which you want to count the number of objects from the other colour channels. The fourth parameter is the pattern to match label images (default: *_labels.tif)."))
-        
-        
-        print('''You chose to colocalize ROIs (e.g. nuclei and cell bodies). \n
-                A popup will appear in a moment asking you to select the folder containing the label images. 
-              You will be asked to enter a few parameter values. 
-              Bounding boxes of all objects in the target channel will be checked against centroids of all objects in the other color channels. 
-                ''')
+        print("\n")
+        print("------------------------------------------------")
+        print("You chose to colocalize ROIs in different color channels.")
+        print("------------------------------------------------")
+        print("\n")
+        print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing a subfolder for each color channel. Those should contain the segmentations (label images). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. 
+                           """))
+        print("\n")
+
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
-        channels = input("\nEnter the folder names of all color channels (example: DAPI FITC TRITC): ")
-        target = input("\nEnter the folder name of the target color channel: ")
-        label_pattern = input("\nEnter the pattern to match label images (default: *_labels.tif): ")
+        label_pattern = input("\nEnter the suffix of your label images (default: *_labels.tif): ")
+        channels = input("\nEnter the names of your color channel subfolders in the abovementioned order (example: FITC DAPI TRITC): ")
+        
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor_cell_culture.py',
-                                        '--input ' + input_folder +
-                                        ' --channels ' + channels +
-                                        ' --target ' + target +
-                                        ' --label_pattern ' + label_pattern
-                                        )
+                                    os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor_cell_culture.py',
+                                    '--input ' + input_folder +
+                                    ' --label_pattern ' + label_pattern +
+                                    ' --channels ' + channels 
+                                    )
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()

@@ -5,7 +5,7 @@
 
 
 #### T-MIDAS was created with a focus on the reproducibility of batch image processing 
-- Image format conversion, preprocessing, segmentation, ROI analysis
+- Batch processing pipelines for image format conversion, preprocessing, segmentation, ROI analysis
 - Executable with a simple, text-based user interface
 - Runs on any low-grade workstation with a single GPU
 - Modular and simple codebase with few dependencies for easy maintenance
@@ -38,11 +38,12 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
     [5] Normalize intensity across single color image (CLAHE)
 [2] Image Segmentation
     [1] Segment bright spots (2D)
-    [2] Segment blobs (3D; requires dark background and good SNR)
-    [3] Semantic segmentation (2D, fluorescence or brightfield)
-    [4] Semantic segmentation (3D; requires dark background and good SNR)
-    [5] Segment CLAHE'd images
-    [6] Segment multicolor images of cell cultures (2D)
+    [2] Segment blobs (2D)
+    [3] Segment blobs (3D; requires dark background and good SNR)
+    [4] Semantic segmentation (2D, fluorescence or brightfield)
+    [5] Semantic segmentation (3D; requires dark background and good SNR)
+    [6] Segment CLAHE'd images
+    [7] Segment multicolor images of cell cultures (2D)
 [3] Regions of Interest (ROI) Analysis
     [1] Heart slices: Generate ROIs from [intact+injured] ventricle masks
     [2] Heart slices: Count spots within ventricle ROIs
