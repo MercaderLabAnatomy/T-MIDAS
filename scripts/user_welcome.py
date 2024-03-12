@@ -497,18 +497,18 @@ def ROI_analysis():
         print("You chose to colocalize ROIs in different color channels.")
         print("------------------------------------------------")
         print("\n")
-        print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing a subfolder for each color channel. Those should contain the segmentations (label images). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. 
+        print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing a subfolder for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. 
                            """))
         print("\n")
 
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
-        label_pattern = input("\nEnter the suffix of your label images (default: *_labels.tif): ")
+        #label_pattern = input("\nEnter the suffix of your label images (default: *_labels.tif): ")
         channels = input("\nEnter the names of your color channel subfolders in the abovementioned order (example: FITC DAPI TRITC): ")
         
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor_cell_culture.py',
                                     '--input ' + input_folder +
-                                    ' --label_pattern ' + label_pattern +
+                                    #' --label_pattern ' + label_pattern +
                                     ' --channels ' + channels 
                                     )
         restart_program()

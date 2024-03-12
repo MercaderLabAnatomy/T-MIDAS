@@ -7,19 +7,15 @@ import argparse
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Count proliferating FITC+ cells.')
+    parser = argparse.ArgumentParser(description='')
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
     parser.add_argument('--channels',  nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
-    parser.add_argument('--label_pattern', type=str, default='*_labels.tif', help='Pattern to match label images. Default: "*_labels.tif"')
     return parser.parse_args()
 
 
 args = parse_arguments()
-# output of parse_arguments is a Namespace object
-# a namespace object can be accessed like a dictionary
 
-# Define the naming pattern for label and intensity images
-label_pattern = args.label_pattern
+label_pattern = '*_labels.tif'
 parent_dir = args.input +'/'
 channels = [c.upper() for c in args.channels]
 
@@ -28,11 +24,6 @@ if len(set(channels)) < len(channels) or len(channels) < 2:
     raise ValueError("Channel names must be unique and at least two channels must be provided.")
 
 
-
-
-#channels = ["FITC", "TRITC", "DAPI"]
-# parent_dir = "/media/geffjoldblum/DATA/images_joao/20240205_ntn1a_col1a2_IB4"
-# label_pattern = "*_labels.tif"
 
 def get_file_list(parent_dir, channels, label_pattern):
     file_lists = {}  # Dictionary to store lists with channel names as keys
@@ -57,57 +48,92 @@ if len(set(lengths)) > 1:
 csv_rows = []
  
 
+# for i in range(len(file_lists[channels[0]])):
+#     # Extract filename without extension
+#     filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
+
+#     # Initialize counters
+#     rois1_count_in_bbox_0 = 0
+#     rois2_count_in_bbox_0_and_bbox_1 = 0
+#     rois2_count_in_bbox_0 = 0
+
+#     props = {}
+#     for channel in channels:
+#         img = io.imread(file_lists[channel][i])
+#         props[channel] = regionprops(img)
+
+#     # Loop through regions in the zeroth channel
+#     for ROIs0 in props[channels[0]]:
+#         # count centroids of first channel in bbox of zeroth channel
+#         for ROIs1 in props[channels[1]]:
+#             if ROIs0.bbox[0] <= ROIs1.centroid[0] <= ROIs0.bbox[2] and ROIs0.bbox[1] <= ROIs1.centroid[1] <= ROIs0.bbox[3]:
+#                 rois1_count_in_bbox_0 += 1
+#                 if len(channels) == 3:
+#                     for ROIs2 in props[channels[2]]:
+#                         if ROIs1.bbox[0] <= ROIs2.centroid[0] <= ROIs1.bbox[2] and ROIs1.bbox[1] <= ROIs2.centroid[1] <= ROIs1.bbox[3]:
+#                             rois2_count_in_bbox_0_and_bbox_1 += 1
+#                         elif (ROIs0.bbox[0] <= ROIs2.centroid[0] <= ROIs0.bbox[2] and ROIs0.bbox[1] <= ROIs2.centroid[1] <= ROIs0.bbox[3]):
+#                             rois2_count_in_bbox_0 += 1
+
+#                     csv_rows.append([filename, ROIs0.label, ROIs0.area, rois1_count_in_bbox_0, 
+#                                      rois2_count_in_bbox_0 , rois2_count_in_bbox_0_and_bbox_1])
+#                 elif len(channels) == 2:
+#                     csv_rows.append([filename, ROIs0.label, ROIs0.area, rois1_count_in_bbox_0])
+#                 else:
+#                     raise ValueError("Number of channels must be 2 or 3.")
+
+
+
 for i in range(len(file_lists[channels[0]])):
-    """
-    This loop iterates through the label images of the first channel 
-    and 
-    - counts the number of regions in the second channel 
-    that are inside the bounding box of the first channel, and
-    - counts the number of regions in the third channel that
-    are inside the bounding box of the first and second channels.
-    """
-
-    props = {}
-    for channel in channels:
-        img = io.imread(file_lists[channel][i])
-        props[channel] = regionprops(img)
+    C0_props = regionprops(io.imread(file_lists[channels[0]][i]))
+    C0_filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
+    C1_props = regionprops(io.imread(file_lists[channels[1]][i]))
+    C2_props = regionprops(io.imread(file_lists[channels[2]][i]))
     
-    
-    filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
-    
-    # Initialize counters
-    count_in_bbox_1 = 0
-    count_in_bbox_1_and_bbox_2 = 0
-    
-    # loop through regions in the second channel
-    for region in props[channels[1]]:
-        centroid = region.centroid
-        area = region.area
-        label = region.label
-        if 100 < area:
-        
-            # check if the centroid is inside the bbox of the first channel
-            for region in props[channels[0]]:
-                minr, minc, maxr, maxc = region.bbox
-                if minr < centroid[0] < maxr and minc < centroid[1] < maxc:
-                    count_in_bbox_1 += 1
-
-                for region in props[channels[2]]:
-                    minr, minc, maxr, maxc = region.bbox
-                    if minr < centroid[0] < maxr and minc < centroid[1] < maxc:
-                        count_in_bbox_1_and_bbox_2 += 1
-                        break
-            # append row data to the list
-            csv_rows.append([filename, label, area, count_in_bbox_1, count_in_bbox_1_and_bbox_2])  
-            
-# define path to save the csv file
-csv_file = os.path.join(parent_dir, 'colocalization_counts.csv')
 
 
-# write row data to a csv file
-with open(csv_file, 'w', newline='') as file:
+    # Loop through each region in C0_props and check for C1 and C2 centroids
+    for C0_prop in C0_props:
+        C0_area = C0_prop.area
+        if 100 < C0_area:# < 100000:
+            C0_bbox = C0_prop.bbox
+            C0_min_row, C0_min_col, C0_max_row, C0_max_col = C0_bbox
+
+            # Check whether a C1 centroid is in the corresponding C0 bbox
+            C1_centroid_in_C0_bbox = False
+
+            for C1_prop in C1_props:
+                C1_centroid = C1_prop.centroid
+                C1_row, C1_col = int(C1_centroid[0]), int(C1_centroid[1])
+                C1_bbox = C1_prop.bbox
+                C1_min_row, C1_min_col, C1_max_row, C1_max_col = C1_bbox
+
+                if C0_min_row <= C1_row <= C0_max_row and C0_min_col <= C1_col <= C0_max_col:
+                    C1_centroid_in_C0_bbox = True
+
+
+                    # Check whether a C2 centroid is in the corresponding C1 bbox
+                    C2_centroid_in_C1_bbox = False
+
+                    for C2_prop in C2_props:
+                        C2_centroid = C2_prop.centroid
+                        C2_row, C2_col = int(C2_centroid[0]), int(C2_centroid[1])
+
+
+
+                        if C1_min_row <= C2_row <= C1_max_row and C1_min_col <= C2_col <= C1_max_col:
+                            C2_centroid_in_C1_bbox = True
+                            break
+
+
+                    csv_rows.append([C0_filename, C0_prop.label, C0_area, C1_centroid_in_C0_bbox, C2_centroid_in_C1_bbox])
+
+
+output_csv = os.path.join(parent_dir, 'colocalization.csv')
+
+
+with open(output_csv, 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(["filename", f"{channels[0]} ROI id", f"{channels[0]} ROI area (sq px)", 
-                     f"Number of {channels[1]} ROIs in {channels[0]} ROIs", f"Number of {channels[2]} ROIs in {channels[0]} and {channels[1]} ROIs" ])
+    writer.writerow(["Filename", "ROI Label", "Area", f"{channels[1]} centroid in {channels[0]} bbox", f"{channels[2]} centroid in {channels[1]} bbox"])
     writer.writerows(csv_rows)
-    
+                
