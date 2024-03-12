@@ -4,12 +4,14 @@ import csv
 from skimage import io
 from skimage.measure import regionprops
 import argparse
+import numpy as np
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
     parser.add_argument('--channels',  nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
+    parser.add_argument('--add_intensity', type=str, help='Do you want to quantify average intensity of C2 in C1 ROI? (y/n)')
     return parser.parse_args()
 
 
@@ -85,11 +87,18 @@ csv_rows = []
 
 
 for i in range(len(file_lists[channels[0]])):
-    C0_props = regionprops(io.imread(file_lists[channels[0]][i]))
+
+    # read images and get regionprops
+    C0_img = io.imread(file_lists[channels[0]][i])
+    C1_img = io.imread(file_lists[channels[1]][i])
+    C2_img = io.imread(file_lists[channels[2]][i])
+
+    C0_props = regionprops(C0_img)
+    C1_props = regionprops(C1_img)
+    C2_props = regionprops(C2_img)
+
     C0_filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
-    C1_props = regionprops(io.imread(file_lists[channels[1]][i]))
-    C2_props = regionprops(io.imread(file_lists[channels[2]][i]))
-    
+
 
 
     # Loop through each region in C0_props and check for C1 and C2 centroids
@@ -118,22 +127,31 @@ for i in range(len(file_lists[channels[0]])):
                     for C2_prop in C2_props:
                         C2_centroid = C2_prop.centroid
                         C2_row, C2_col = int(C2_centroid[0]), int(C2_centroid[1])
-
-
-
                         if C1_min_row <= C2_row <= C1_max_row and C1_min_col <= C2_col <= C1_max_col:
                             C2_centroid_in_C1_bbox = True
                             break
-
-
-                    csv_rows.append([C0_filename, C0_prop.label, C0_area, C1_centroid_in_C0_bbox, C2_centroid_in_C1_bbox])
+                    # get average intensity of C2 in C1 ROI
+                    mask = np.zeros_like(C1_img, dtype=bool)
+                    mask[C1_prop.coords[:, 0], C1_prop.coords[:, 1]] = True
+                    mean_intensity = np.mean(C2_img[mask])
+                    if args.add_intensity == 'y':
+                        csv_rows.append([C0_filename, C0_prop.label, C0_area, C1_centroid_in_C0_bbox, C2_centroid_in_C1_bbox, mean_intensity])
+                    else:
+                        csv_rows.append([C0_filename, C0_prop.label, C0_area, C1_centroid_in_C0_bbox, C2_centroid_in_C1_bbox])
 
 
 output_csv = os.path.join(parent_dir, 'colocalization.csv')
 
 
+if args.add_intensity == 'y':
+    header = ['Filename', 'C0_label', 'C0_area', 'C1_centroid_in_C0_bbox', 'C2_centroid_in_C1_bbox', 'C2_mean_intensity']
+else:
+    header = ['Filename', 'C0_label', 'C0_area', 'C1_centroid_in_C0_bbox', 'C2_centroid_in_C1_bbox']
+
 with open(output_csv, 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(["Filename", "ROI Label", "Area", f"{channels[1]} centroid in {channels[0]} bbox", f"{channels[2]} centroid in {channels[1]} bbox"])
+    writer.writerow(header)
     writer.writerows(csv_rows)
-                
+
+print("Colocalization data saved to", output_csv)
+print("Done.")

@@ -508,12 +508,13 @@ def ROI_analysis():
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         #label_pattern = input("\nEnter the suffix of your label images (default: *_labels.tif): ")
         channels = input("\nEnter the names of your color channel subfolders in the abovementioned order (example: FITC DAPI TRITC): ")
-        
+        add_intensity = input("\nDo you want to quantify average intensity of C2 in C1 ROI? (y/n): ")
         python_script_environment_setup('tmidas-env', 
-                                    os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor_cell_culture.py',
+                                    os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor.py',
                                     '--input ' + input_folder +
                                     #' --label_pattern ' + label_pattern +
-                                    ' --channels ' + channels 
+                                    ' --channels ' + channels +
+                                    ' --add_intensity ' + add_intensity
                                     )
         restart_program()
     if choice == "r" or choice == "R":
