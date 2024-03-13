@@ -60,7 +60,7 @@ def is_multichannel(image):
 
 # the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
 # the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
-def sample_tiles_random(image, tile_diagonal, subset_percentage):
+def sample_tiles_random(image, tile_diagonal, subset_percentage, random_seed):
     tiles = []
     
     if is_multichannel(image) and (image.shape[0] < 5): # to account for both cxy and xyc, where c < 5 (less than 5 colors)
@@ -82,7 +82,7 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage):
             possible_positions.append((i, j))  # Collect all possible tile positions
     
     num_subset_tiles = int(len(possible_positions) * (subset_percentage / 100))  # Calculate number of tiles for subset
-    random.seed(args.random_seed)
+    random.seed(random_seed)
     selected_positions = random.sample(possible_positions, num_subset_tiles)  # Randomly select non-overlapping positions
     
     if is_multichannel(image) and (image.shape[0] < 5):
@@ -170,7 +170,7 @@ def process_fitc_image_classical(array):
     return labels
 
 
-def process_multichannel_tifs(input_folder, tile_diagonal, channel_names, subset_percentage):
+def process_multichannel_tifs(input_folder, tile_diagonal, channel_names, subset_percentage, random_seed):
     """
     this is the main function that processes the multichannel tif files 
     by sampling random tiles and saving them, and then processing the tiles
@@ -179,7 +179,7 @@ def process_multichannel_tifs(input_folder, tile_diagonal, channel_names, subset
     tile_dir = make_output_dirs(input_folder, channel_names)
     for tif_file in tif_files:
         tiff_image = imread(os.path.join(input_folder, tif_file))
-        tiles = sample_tiles_random(tiff_image, tile_diagonal, subset_percentage)
+        tiles = sample_tiles_random(tiff_image, tile_diagonal, subset_percentage, random_seed)
         print("Number of tiles:", len(tiles))
         for i, tile in enumerate(tiles, start=1):
             print(i,tile.shape)
@@ -213,7 +213,11 @@ def main():
         channel_list = [c.upper() for c in args.channels]
     else:
         print('No channels provided.')
-    process_multichannel_tifs(args.input, args.tile_diagonal, channel_list, args.percentage)
+    process_multichannel_tifs(args.input, 
+                              args.tile_diagonal, 
+                              channel_list, 
+                              args.percentage,
+                              args.random_seed)
 
 if __name__ == "__main__":
     main()
