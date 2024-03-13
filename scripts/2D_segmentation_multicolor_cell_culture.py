@@ -179,7 +179,7 @@ def process_multichannel_tifs(input_folder, tile_diagonal, channel_names):
     tile_dir = make_output_dirs(input_folder, channel_names)
     for tif_file in tif_files:
         tiff_image = imread(os.path.join(input_folder, tif_file))
-        tiles = sample_tiles_random(tiff_image, tile_diagonal)
+        tiles = sample_tiles_random(tiff_image, tile_diagonal, args.percentage)
         print("Number of tiles:", len(tiles))
         for i, tile in enumerate(tiles, start=1):
             print(i,tile.shape)
