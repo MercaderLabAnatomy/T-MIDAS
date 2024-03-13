@@ -419,15 +419,17 @@ def image_segmentation():
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        channels = input("\nEnter the names of the channels in the order they appear in the multicolor image.\n Example: DAPI GFP RFP")
+        channels = input("\nEnter the names of the channels in the order they appear in the multicolor image (example: DAPI GFP RFP): ")
         tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
         percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
+        random_seed = input("\nEnter a random seed for reproducibility (integer): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/2D_segmentation_multicolor_cell_culture.py',
                                         '--input ' + input_folder +
-                                        ' --channels ' + 
+                                        ' --channels ' + channels +
                                         ' --tile_diagonal ' + tile_diagonal +
-                                        ' --percentage ' + percentage
+                                        ' --percentage ' + percentage +
+                                        ' --random_seed ' + random_seed
                                         )                                       
         restart_program()
     if choice == "r" or choice == "R":
