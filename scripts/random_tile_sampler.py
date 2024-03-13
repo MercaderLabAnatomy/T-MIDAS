@@ -23,7 +23,7 @@ def is_multichannel(image):
     return len(image.shape) > 2
 
 # the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
-def sample_tiles_random(image, tile_diagonal, subset_percentage):
+def sample_tiles_random(image, tile_diagonal, subset_percentage, random_seed):
     tiles = []
     
     if is_multichannel(image) and (image.shape[0] < 5): # to account for both cxy and xyc, where c < 5 (less than 5 colors)
@@ -45,7 +45,7 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage):
             possible_positions.append((i, j))  # Collect all possible tile positions
     
     num_subset_tiles = int(len(possible_positions) * (subset_percentage / 100))  # Calculate number of tiles for subset
-    random.seed(args.random_seed)
+    random.seed(random_seed)
     selected_positions = random.sample(possible_positions, num_subset_tiles)  # Randomly select non-overlapping positions
 
 
@@ -76,7 +76,7 @@ def save_tiles(tiles, path, output_dir):
 
 def process_image(path, tile_diagonal, output_dir, subset_percentage):
     image = load_tiff_image(path)
-    tiles = sample_tiles_random(image, tile_diagonal, subset_percentage)
+    tiles = sample_tiles_random(image, tile_diagonal, subset_percentage, random_seed)
     save_tiles(tiles, path, output_dir)
 
 def main():
@@ -85,7 +85,7 @@ def main():
     for filename in os.listdir(args.input):
         if filename.endswith(".tif"):
             path = os.path.join(args.input, filename)
-            process_image(path, args.tile_diagonal, output_dir, args.percentage)
+            process_image(path, args.tile_diagonal, output_dir, args.percentage, args.random_seed)
         else:
             continue
 
