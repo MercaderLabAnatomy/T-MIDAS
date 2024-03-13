@@ -172,7 +172,7 @@ for filename in os.listdir(image_folder):
         ROIs[fibrous_layer > 0] = 4
         ROIs[border_zone > 0] = 5
 
-        save_image(ROIs, os.path.join(image_folder, filename.replace("_labels.tif", "_ROIs.tif")))
+        save_image(ROIs, os.path.join(image_folder, filename.replace(".tif", "_labels.tif")))
 
 
 print("Done.")

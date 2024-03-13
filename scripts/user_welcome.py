@@ -382,7 +382,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         image_type = input("\nBrightfield images? (y/n): ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/get_myocardium_from_slices.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/2D_semantic_segmentation.py',
                                         '--input ' + input_folder + ' --image_type ' + image_type)
         restart_program()
     if choice == "5":

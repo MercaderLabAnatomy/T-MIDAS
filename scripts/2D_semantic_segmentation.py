@@ -68,6 +68,6 @@ for filename in os.listdir(image_folder):
     print(f"Processing image: {filename}")
     labeled_image = process_image(os.path.join(image_folder, filename), image_type)
     if labeled_image is not None:
-        tf.imwrite(os.path.join(image_folder, f"{filename[:-4]}_labels.tif"), labeled_image, compression='zlib')
+        tf.imwrite(os.path.join(image_folder, f"{filename[:-4]}_semantic_seg.tif"), labeled_image, compression='zlib')
         
   
