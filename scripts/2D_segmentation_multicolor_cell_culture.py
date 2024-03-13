@@ -170,7 +170,7 @@ def process_fitc_image_classical(array):
     return labels
 
 
-def process_multichannel_tifs(input_folder, tile_diagonal, channel_names):
+def process_multichannel_tifs(input_folder, tile_diagonal, channel_names, subset_percentage):
     """
     this is the main function that processes the multichannel tif files 
     by sampling random tiles and saving them, and then processing the tiles
@@ -179,7 +179,7 @@ def process_multichannel_tifs(input_folder, tile_diagonal, channel_names):
     tile_dir = make_output_dirs(input_folder, channel_names)
     for tif_file in tif_files:
         tiff_image = imread(os.path.join(input_folder, tif_file))
-        tiles = sample_tiles_random(tiff_image, tile_diagonal, args.percentage)
+        tiles = sample_tiles_random(tiff_image, tile_diagonal, subset_percentage)
         print("Number of tiles:", len(tiles))
         for i, tile in enumerate(tiles, start=1):
             print(i,tile.shape)
@@ -213,7 +213,7 @@ def main():
         channel_list = [c.upper() for c in args.channels]
     else:
         print('No channels provided.')
-    process_multichannel_tifs(args.input, args.tile_diagonal, channel_list)
+    process_multichannel_tifs(args.input, args.tile_diagonal, channel_list, args.percentage)
 
 if __name__ == "__main__":
     main()
