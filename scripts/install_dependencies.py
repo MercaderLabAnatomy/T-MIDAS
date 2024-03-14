@@ -15,7 +15,8 @@ dependencies = [
     'readlif', # for reading .lif files
     'SimpleITK',
     'openslide-python', # for reading .ndpi files 
-    'glob2' 
+    'glob2',
+    'pytest' 
 ]
 
 # Install each dependency using pip
@@ -27,5 +28,9 @@ subprocess.call(['mamba', 'install', '-y',
                  'openslide',
                  'ocl-icd-system',
                  'pyopencl'])
+
+# install napari
+
+subprocess.call(['python', '-m', 'pip', 'install', 'napari[all]'])
 
 print("All dependencies installed successfully.")

@@ -346,7 +346,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the intensity images: ")
         bg = input("\nWhat kind of background? (1 = gray, 2 = dark): ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/2D_segmentation_spots.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots_2D.py',
                                         '--input ' + input_folder + ' --bg ' + bg)
         restart_program()
         
@@ -357,7 +357,7 @@ def image_segmentation():
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/2D_segmentation_blobs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_2D.py',
                                         '--input ' + input_folder)
         restart_program()
         
@@ -370,7 +370,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         nuclei_channel = input("\nEnter number of the color channel you want to segment:  ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/3D_segment_instances.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances_3D.py',
                                         '--image_folder ' + input_folder + ' --nuclei_channel ' + nuclei_channel)
         restart_program()
     if choice == "4":
@@ -382,7 +382,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         image_type = input("\nBrightfield images? (y/n): ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/2D_semantic_segmentation.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_2D.py',
                                         '--input ' + input_folder + ' --image_type ' + image_type)
         restart_program()
     if choice == "5":
@@ -393,7 +393,7 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         tissue_channel = input("\nEnter number of the color channel you want to segment: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/3D_segment_semantic.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_3D.py',
                                         '--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
         restart_program()
     if choice == "6":
@@ -408,7 +408,7 @@ def image_segmentation():
         min_box = input("\nEnter the minimum box size (x,y,z): ")
         outline_sigma = input("\nEnter the outline sigma: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segment_clahe.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_clahe.py',
                                         '--input ' + input_folder +
                                         ' --min_box ' + min_box +
                                         ' --outline_sigma ' + outline_sigma)
@@ -424,7 +424,7 @@ def image_segmentation():
         percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
         random_seed = input("\nEnter a random seed for reproducibility (integer): ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/2D_segmentation_multicolor_cell_culture.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_multicolor_cell_culture_2D.py',
                                         '--input ' + input_folder +
                                         ' --channels ' + channels +
                                         ' --tile_diagonal ' + tile_diagonal +
@@ -562,7 +562,7 @@ def validation():
         input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
         segmentation_type = input("\nHow many labels do the label images contain? (s = single, m = multiple) ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/3D_segment_instances_validation.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances_validation.py',
                                         '--input ' + input_folder + ' --type ' + segmentation_type)
         restart_program()
     if choice == "r" or choice == "R":

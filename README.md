@@ -40,7 +40,7 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
     [1] Segment bright spots (2D)
     [2] Segment blobs (2D)
     [3] Segment blobs (3D; requires dark background and good SNR)
-    [4] Semantic segmentation (2D, fluorescence or brightfield)
+    [4] Semantic segmentation (2D; fluorescence or brightfield)
     [5] Semantic segmentation (3D; requires dark background and good SNR)
     [6] Segment CLAHE'd images
     [7] Segment multicolor images of cell cultures (2D)
