@@ -45,13 +45,13 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
     [6] Segment CLAHE'd images
     [7] Segment multicolor images of cell cultures (2D)
 [3] Regions of Interest (ROI) Analysis
-    [1] Heart slices: Generate ROIs from [intact+injured] ventricle masks
-    [2] Heart slices: Count spots within ventricle ROIs
-    [3] Heart volume: Count nuclei within ROIs
-    [4] Colocalize ROIs (e.g. nuclei and cell bodies)
+    [1] Heart slices: Generate ROI from [intact+injured] ventricle masks
+    [2] Count spots within ROI (2D)
+    [3] Count blobs within ROI (3D)
+    [4] Colocalize ROI in different color chammels
 [4] Image Segmentation Validation
-    [1] Validate predicted counts against manual counts (2D label images)
-    [2] Validate predicted segmentation results against manual segmentation results (2D or 3D label images)   
+    [1] Validate spot counts (2D)
+    [2] Validate blob intersections (2D or 3D)   
 </pre>
 
 ## WIP

@@ -492,8 +492,8 @@ def ROI_analysis():
                 Two popups will appear in a moment asking you to select the folders containing the label images.
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing blob and ROI label image subfolders: ")
-        nuclei_folder = input("\nEnter the name of the folder containing blob label images: ")
-        tissue_folder = input("\nEnter the name of the folder containing ROI label images: ")
+        blob_folder = input("\nEnter the name of the folder containing blob label images: ")
+        ROI_folder = input("\nEnter the name of the folder containing ROI label images: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/ROI_count_instances_3D.py',
                                         '--input_folder ' + input_folder +
@@ -535,8 +535,8 @@ def ROI_analysis():
 def validation():
     os.system('clear')
     print("\nValidation: What would you like to do?\n")
-    print("[1] Validate predicted counts against manual counts (2D label images)")
-    print("[2] Validate predicted segmentation results against manual segmentation results (2D or 3D label images)")
+    print("[1] Validate counts against manual counts (2D label images)")
+    print("[2] Validate segmentation results against manual segmentation results (2D or 3D label images)")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
