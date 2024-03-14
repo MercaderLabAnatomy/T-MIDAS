@@ -47,6 +47,9 @@ def make_output_dirs(input_folder, channel_names):
     output_folder = os.path.join(input_folder, "random_tiles")
     os.makedirs(output_folder, exist_ok=True)  # Create the 'random_tiles' directory
 
+    # create subdirectory for the multicolor tiles
+    os.makedirs(os.path.join(output_folder, "multicolor_tiles"), exist_ok=True)
+
     for channel_name in channel_names:
         channel_path = os.path.join(output_folder, channel_name)
         os.makedirs(channel_path, exist_ok=True)  # Create subdirectories for each channel
@@ -176,7 +179,8 @@ def process_multichannel_tifs(input_folder, tile_diagonal, channel_names, subset
     by sampling random tiles and saving them, and then processing the tiles
     """
     tif_files = get_tif_files(input_folder)
-    tile_dir = make_output_dirs(input_folder, channel_names)
+    output_dir = make_output_dirs(input_folder, channel_names) 
+    tile_dir = os.path.join(output_dir, "multicolor_tiles")
     for tif_file in tif_files:
         tiff_image = imread(os.path.join(input_folder, tif_file))
         tiles = sample_tiles_random(tiff_image, tile_diagonal, subset_percentage, random_seed)
@@ -186,8 +190,8 @@ def process_multichannel_tifs(input_folder, tile_diagonal, channel_names, subset
             filename = os.path.basename(tif_file)
             filename = filename.split('.')[0] + '_tile_' + str(i).zfill(2) + '.tif'
             save_path = os.path.join(tile_dir, filename)
-            print("save_path:", save_path)
-            imsave(save_path, tile)
+            #print("save_path:", save_path)
+            #imsave(save_path, tile)
 
             tile_channels = split_channels(tile)
             save_channels(tile_channels, save_path, channel_names)
@@ -213,11 +217,14 @@ def main():
         channel_list = [c.upper() for c in args.channels]
     else:
         print('No channels provided.')
+    print('\nProcessing...\n')
     process_multichannel_tifs(args.input, 
                               args.tile_diagonal, 
                               channel_list, 
                               args.percentage,
                               args.random_seed)
+    print('\nDone.')
+    
 
 if __name__ == "__main__":
     main()
