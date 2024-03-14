@@ -27,11 +27,7 @@ image_folder = args.input
 image_type = args.image_type
 
 
-# device = cle.get_device()
-# cle.select_device(device.name)
-
-
-cl_filename = "/opt/Image_Analysis_Suite/models/PixelClassifier_Joao_brightfield.cl"
+cl_filename = os.path.join(os.environ['TMIDAS_PATH'], "models/PixelClassifier_Joao_brightfield.cl")
 classifier = apoc.PixelClassifier(cl_filename)
 
 def process_image(image_path, image_type):

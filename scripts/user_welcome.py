@@ -445,10 +445,10 @@ def image_segmentation():
 def ROI_analysis():
     os.system('clear')
     print("\nRegions of Interest (ROI) Analysis: What would you like to do?\n")
-    print("[1] Heart slices: Generate ROIs from [intact+injured] ventricle masks")
-    print("[2] Heart slices: Count spots within ventricle ROIs")
-    print("[3] Heart volume: Count nuclei within ROIs")
-    print("[4] Colocalize ROIs (e.g. nuclei and cell bodies)")
+    print("[1] Heart slices: Generate ROI from [intact+injured] ventricle masks")
+    print("[2] Count spots within ROI (2D)")
+    print("[3] Count blobs within ROI (3D)")
+    print("[4] Colocalize ROI in different color channels")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -456,7 +456,7 @@ def ROI_analysis():
 
     if choice == "1":
         os.system('clear')
-        print('''You chose to create ROIs from masks. \n
+        print('''You chose to create ROI from label images containing ventricle + injury masks. \n
                 A popup will appear in a moment asking you to select the folder containing the label images.
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
@@ -464,7 +464,7 @@ def ROI_analysis():
         intact_label_id = input("\nEnter the label id of the intact myocardium: ")
         injury_label_id = input("\nEnter the label id of the injury region: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/create_ventricle_ROIs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/create_ventricle_ROI.py',
                                         '--input ' + input_folder + 
                                         ' --pixel_resolution ' + pixel_resolution +
                                         ' --intact_label_id ' + intact_label_id +
@@ -472,35 +472,39 @@ def ROI_analysis():
         restart_program()
     if choice == "2":
         os.system('clear')
-        print('''You chose to count spots in 2D ROIs within ventricle slices. \n
+        print('''You chose to count spots in 2D ROI. You will have to provide two sets of label images: \n
+                1. The label images containing the ROI (suffix: _labels.tif) and \n
+                2. The label images containing the spots (suffix: _labels.tif). \n
                 A popup will appear in a moment asking you to select the folder containing the label images.
                 ''')
 
-        input_folder = popup_input("\nInput: Folder with all label images (ROIs and instance segmentations).")
+        input_folder = popup_input("\nInput: Folder with all label images (ROI and spots).")
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/count_instances_per_ROI.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/ROI_count_instances_2D.py',
                                         '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
         restart_program() 
     if choice == "3":
         os.system('clear')
-        print('''You chose to count nuclei in tissue (3D). \n
-                Two popups will appear in a moment asking you to select the folder containing the label images for both nuclei and tissue.
+        print('''You chose to count blobs in 3D ROI. You will have to provide two sets of label images: \n
+                1. The label images containing the ROI (suffix: _ROI_labels.tif) and \n
+                2. The label images containing the blobs (suffix: _blob_labels.tif). \n
+                Two popups will appear in a moment asking you to select the folders containing the label images.
                 ''')
-        input_folder = popup_input("\nEnter the path to the folder containing nuclei and tissue label image subfolders: ")
-        nuclei_folder = input("\nEnter the name of the folder containing nuclei label images: ")
-        tissue_folder = input("\nEnter the name of the folder containing tissue label images: ")
+        input_folder = popup_input("\nEnter the path to the folder containing blob and ROI label image subfolders: ")
+        nuclei_folder = input("\nEnter the name of the folder containing blob label images: ")
+        tissue_folder = input("\nEnter the name of the folder containing ROI label images: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/3D_count_instances_in_ROIs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/ROI_count_instances_3D.py',
                                         '--input_folder ' + input_folder +
-                                        '--nuclei_folder ' + nuclei_folder + 
-                                        ' --tissue_folder ' + tissue_folder)
+                                        '--blob_folder ' + blob_folder + 
+                                        ' --ROI_folder ' + ROI_folder)
         restart_program()
     if choice == "4":
         os.system('clear')
         print("\n")
         print("------------------------------------------------")
-        print("You chose to colocalize ROIs in different color channels.")
+        print("You chose to colocalize ROI in different color channels.")
         print("------------------------------------------------")
         print("\n")
         print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing a subfolder for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. 
@@ -512,7 +516,7 @@ def ROI_analysis():
         channels = input("\nEnter the names of your color channel subfolders in the abovementioned order (example: FITC DAPI TRITC): ")
         add_intensity = input("\nDo you want to quantify average intensity of C2 in C1 ROI? (y/n): ")
         python_script_environment_setup('tmidas-env', 
-                                    os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_multicolor.py',
+                                    os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_multicolor.py',
                                     '--input ' + input_folder +
                                     #' --label_pattern ' + label_pattern +
                                     ' --channels ' + channels +
