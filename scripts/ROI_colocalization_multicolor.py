@@ -51,7 +51,7 @@ csv_rows = []
  
 
 
-def coloc_3_channels(file_lists, channels, i, csv_rows):
+def coloc_3_channels(file_lists, channels, csv_rows):
 
 
     for i in range(len(file_lists[channels[0]])):
@@ -108,7 +108,7 @@ def coloc_3_channels(file_lists, channels, i, csv_rows):
                             csv_rows.append([C0_filename, C0_prop.label, C0_area, C1_centroid_in_C0_bbox, C2_centroid_in_C1_bbox])
 
 
-def coloc_2_channels(file_lists, channels, i, csv_rows):
+def coloc_2_channels(file_lists, channels, csv_rows):
 
 
     for i in range(len(file_lists[channels[0]])):
@@ -161,9 +161,9 @@ def coloc_2_channels(file_lists, channels, i, csv_rows):
 
 def create_csv(file_lists, channels, csv_rows):
     if len(channels) == 3:
-        coloc_3_channels(file_lists, channels, i, csv_rows)
+        coloc_3_channels(file_lists, channels, csv_rows)
     elif len(channels) == 2:
-        coloc_2_channels(file_lists, channels, i, csv_rows)
+        coloc_2_channels(file_lists, channels, csv_rows)
     else:
         raise ValueError("This script only supports 2 or 3 channels.")
     
