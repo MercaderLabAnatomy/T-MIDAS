@@ -135,7 +135,7 @@ def image_preprocessing():
     print("Image Preprocessing: What would you like to do?\n")
     print("[1] File Conversion to TIFF")
     print("[2] Cropping Largest Objects from Images")
-    print("[3] Extract Blob Region from Images")
+    print("[3] Extract intersecting regions of two images")
     print("[4] Sample Random Image Subregions")
     print("[5] Normalize intensity across single color image (CLAHE)")
     print("[r] Return to Main Menu")
@@ -152,16 +152,16 @@ def image_preprocessing():
         restart_program()
     if choice == "3":
         os.system('clear')
-        print(wrapper.fill("Blob-based Cropping: This script is designed to crop the largest object from a binary image. The largest object is determined by the number of pixels in the object. The script will prompt you to select the folder containing both the label and intensity images and ask you for their tags (rest of filename is supposed to be identical). Example tags: _tissue_labels.tif and _nuclei_intensities.tif. The cropped images will be saved in the same folder."))
-        input_folder = popup_input("\nEnter the path to the folder containing the binary images: ")
-        blobfiles = input("\nEnter tag label images: ")
-        intensityfiles = input("\nEnter tag of your intensity images: ")
-        output_tag = input("\nEnter the tag of the output images: ")
+        print(wrapper.fill("Extract intersecting regions of two images: A popup will appear in a moment asking you to select the folder containing the images. Image sets will be discriminated by unique suffixes. You will be asked to enter the suffixes of the two sets images you want to intersect. The first set of images will be used as a mask to extract the intersecting regions from the second set of images."))
+        input_folder = popup_input("\nEnter the path to the folder containing the images: ")
+        maskfiles = input("\nEnter the suffix of mask images (example: _labels.tif): ")
+        intersectfiles = input("\nEnter suffix of images to be intersected: ")
+        output_tag = input("\nEnter the suffix of the output images: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/blob_based_crop.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/intersection.py',
                                         '--input ' + input_folder + 
-                                        ' --blobfiles ' + blobfiles + 
-                                        ' --intensityfiles ' + intensityfiles +
+                                        ' --maskfiles ' + maskfiles + 
+                                        ' --intersectfiles ' + intersectfiles +
                                         ' --output_tag ' + output_tag)
         restart_program()
     if choice == "4":
