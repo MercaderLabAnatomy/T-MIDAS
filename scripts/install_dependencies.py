@@ -29,7 +29,7 @@ for dependency in dependencies:
 subprocess.call(['mamba', 'install', '-y', 
                  'openslide',
                  'ocl-icd-system',
-                 'pyopencl'])
+                 'pyopencl','cudatoolkit'])
 
 # install napari
 
