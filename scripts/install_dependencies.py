@@ -27,10 +27,10 @@ subprocess.call(['python', '-m', 'pip', 'install', '-U', 'setuptools', 'pip'])
 subprocess.call(['mamba', 'install', '-y', 
                  'openslide',
                  'ocl-icd-system',
-                 'pyopencl','cudatoolkit',
+                 'pyopencl',
                  'cupy']) # if not installed with mamba but pip: gives error with cublas
 
-p
+
 for dependency in dependencies:
     subprocess.call(['pip', 'install', dependency])
 
