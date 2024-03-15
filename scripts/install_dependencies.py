@@ -18,6 +18,7 @@ dependencies = [
     'glob2',
     'pytest',
     'cucim-cu12',
+    'cucim',
     'cupy-cuda12x'
 ]
 
