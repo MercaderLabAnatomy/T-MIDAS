@@ -17,8 +17,7 @@ dependencies = [
     'openslide-python', # for reading .ndpi files 
     'glob2',
     'pytest',
-    'cucim',
-    'cupy-cuda12x' 
+    'cucim-cu12'
 ]
 
 # Install each dependency using pip
