@@ -17,20 +17,23 @@ dependencies = [
     'openslide-python', # for reading .ndpi files 
     'glob2',
     'pytest',
-    'cucim-cu12',
-    'cucim',
-    'cupy-cuda12x'
+    'cucim'
 ]
 
-# Install each dependency using pip
-for dependency in dependencies:
-    subprocess.call(['pip', 'install', dependency])
+
+subprocess.call(['python', '-m', 'pip', 'install', '-U', 'setuptools', 'pip'])
 
 # Additional installations for specific packages
 subprocess.call(['mamba', 'install', '-y', 
                  'openslide',
                  'ocl-icd-system',
-                 'pyopencl','cudatoolkit'])
+                 'pyopencl','cudatoolkit',
+                 'cupy']) # if not installed with mamba but pip: gives error with cublas
+
+p
+for dependency in dependencies:
+    subprocess.call(['pip', 'install', dependency])
+
 
 # install napari
 
