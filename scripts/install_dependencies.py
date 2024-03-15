@@ -16,7 +16,9 @@ dependencies = [
     'SimpleITK',
     'openslide-python', # for reading .ndpi files 
     'glob2',
-    'pytest' 
+    'pytest',
+    'cucim',
+    'cupy-cuda12x' 
 ]
 
 # Install each dependency using pip
