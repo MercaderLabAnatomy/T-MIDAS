@@ -331,7 +331,7 @@ def image_segmentation():
     print("[3] Segment blobs (3D; requires dark background and good SNR)")
     print("[4] Semantic segmentation (2D, fluorescence or brightfield)")
     print("[5] Semantic segmentation (3D; requires dark background and good SNR)")
-    print("[6] Segment CLAHE'd images")
+    print("[6] Improve instance segmentation using CLAHE")
     print("[7] Segment multicolor images of cell cultures (2D)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
@@ -398,19 +398,29 @@ def image_segmentation():
         restart_program()
     if choice == "6":
         os.system('clear')
-        print(wrapper.fill("You chose to segment CLAHE'd images. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
+        print(wrapper.fill("You chose to improve instance segmentations using CLAHE. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
         print("\n")
-        print(wrapper.fill("- min_box: Defines the pixel cube neighborhood. Usually 1-2 pixels, so e.g. (1.0,1.0,0.0) or (2.0,2.0,1.0)"))
+
         print("\n")
         print(wrapper.fill("- outline_sigma: Defines the sigma for the gauss-otsu-labeling. Also typically in the range of 1.0-2.0."))
         print("\n")
+        print(wrapper.fill("- kernel_size: Should correspond to the size of the features that should be enhanced (e.g. 64 for 64x64 pixel tiles or 64x64x64 pixel volumes),"))
+        print("\n")
+        print(wrapper.fill("- nbins <= 256 (corresponds to color depth of 8bit images)"))
+        print("\n")
+        print(wrapper.fill("- clip_limit: 0.01 (> 1/nbins, controls extent of contrast enhancement)"))
+        print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        min_box = input("\nEnter the minimum box size (x,y,z): ")
+        kernel_size = input("\nEnter the kernel size: ")
+        nbins = input("\nEnter the number of bins: ")
+        clip_limit = input("\nEnter the clip limit: ")
         outline_sigma = input("\nEnter the outline sigma: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_clahe.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances_clahe.py',
                                         '--input ' + input_folder +
-                                        ' --min_box ' + min_box +
+                                        ' --kernel_size ' + kernel_size +
+                                        ' --nbins ' + nbins +
+                                        ' --clip_limit ' + clip_limit +
                                         ' --outline_sigma ' + outline_sigma)
         restart_program()
     if choice == "7":

@@ -31,17 +31,6 @@ def parse_arguments():
     return parser.parse_args()
 
 
-# Check if CUDA is available
-#print("CUDA is available:", torch.cuda.is_available())
-
-# Set up mask generator
-# model_type = "vit_h"
-# device = "cuda"
-# sam = sam_model_registry[model_type](checkpoint='/opt/ML_models/sam_vit_h_4b8939.pth')#args.checkpoint)
-# sam.to(device=device)
-# mask_generator = SamAutomaticMaskGenerator(sam)
-
-
 
 def make_output_dirs(input_folder, channel_names):
     output_folder = os.path.join(input_folder, "random_tiles")
@@ -59,10 +48,6 @@ def make_output_dirs(input_folder, channel_names):
 def is_multichannel(image):
     return len(image.shape) > 2
 
-
-
-# the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
-# the following function creates a grid based on image xy shape and tile diagonal and then randomly samples 20% of the available tiles
 def sample_tiles_random(image, tile_diagonal, subset_percentage, random_seed):
     tiles = []
     
@@ -72,7 +57,6 @@ def sample_tiles_random(image, tile_diagonal, subset_percentage, random_seed):
     else:
         height, width = image.shape[0], image.shape[1]
             
-    # print("image shape: ("+str(height)+","+str(width)+")\n")
     tile_size = int(np.sqrt(2) * tile_diagonal)  # Calculate the tile size
     
     step_h = int(tile_size)  # Set step sizes based on the tile size

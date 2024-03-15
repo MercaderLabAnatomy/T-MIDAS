@@ -13,17 +13,11 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-# napari viewer
-# import napari
-# if 'viewer' not in globals():
-#     viewer = napari.Viewer()
-
 
 
 parser = argparse.ArgumentParser(description="Input: Folder with label images containing masks of intact myocardium and injury regions.")
 parser.add_argument("--input", type=str, required=True, help="Path to input label images.")
 parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
-# get intact and injury label ids from the user
 parser.add_argument("--intact_label_id", type=int, required=True, help="Label id of the intact myocardium.")
 parser.add_argument("--injury_label_id", type=int, required=True, help="Label id of the injury region.")
 args = parser.parse_args()
@@ -66,27 +60,14 @@ def get_myocardium_wo_injury(image):
     try:
         myocardium_wo_injury = np.copy(image)
         myocardium_wo_injury[myocardium_wo_injury != INTACT_LABEL_ID] = 0
-        # myocardium_wo_injury[myocardium_wo_injury == INJURY_LABEL_ID] = 0
-        # myocardium_wo_injury = cle.push(myocardium_wo_injury)
-        # myocardium_wo_injury = gpu_processing(myocardium_wo_injury)
-        # myocardium_wo_injury = get_largest_label(myocardium_wo_injury)
-        # return cle.pull(myocardium_wo_injury)
         return myocardium_wo_injury
     except Exception as e:
         print(f"Error processing {image}: {str(e)} while getting myocardium without injury.")
         return None
 
-# def get_injury(myocardium, myocardium_wo_injury):
-#     try:
-#         injury = cle.binary_subtract(myocardium, myocardium_wo_injury)
-#         return cle.pull(injury)
-#     except Exception as e:
-#         print(f"Error processing {image}: {str(e)} while getting injury.")
-#         return None
     
 def get_injury(image):
     try:
-        # get injury by selecting label id 2
         injury = np.copy(image)
         injury[injury != INJURY_LABEL_ID] = 0
         return injury
@@ -94,33 +75,18 @@ def get_injury(image):
         print(f"Error processing {image}: {str(e)} while getting injury.")
         return None
 
-
-
-# image = imread("/media/geffjoldblum/DATA/images_joao/20240205_ntn1a_col1a2_IB4/test_ROIgen/ntn1_KO_7dpi_col_IB4_f1.1 - 2024-02-05 13.54.15-FITC_roi_01_labels.tif")
-
 def get_fibrous_layer(image): 
     try:
         myocardium = cle.merge_touching_labels(image)
-        #viewer.add_labels(myocardium)
         myocardium_dilated = cle.dilate_labels(myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
-        #viewer.add_labels(myocardium_dilated)
         myocardium_dilated = nsitk.binary_fill_holes(myocardium_dilated)
-        #viewer.add_labels(myocardium_dilated)
-        # dilate the myocardium to get the fibrous layer
         myocardium_dilated = get_largest_label(myocardium_dilated)
-        #viewer.add_labels(myocardium_dilated)
         not_myocardium = cle.binary_not(myocardium_dilated)
         not_myocardium_dilated = cle.erode_labels(not_myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
         not_myocardium_dilated = get_largest_label(not_myocardium_dilated)
-        #viewer.add_labels(not_myocardium_dilated)
-        # combine myocardium_dilated and not_myocardium_dilated to get the fibrous layer
-
-        #not_myocardium_dilated = cle.dilate_labels(not_myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
         not_fibrous_layer = cle.combine_labels(not_myocardium_dilated, myocardium_dilated)
         fibrous_layer = cle.binary_not(not_fibrous_layer)
         fibrous_layer = cle.dilate_labels(fibrous_layer, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
-        #viewer.add_labels(fibrous_layer)
-        #fibrous_layer = get_largest_label(fibrous_layer)
         return cle.pull(fibrous_layer)
     except Exception as e:
         print(f"Error processing {image}: {str(e)} while getting fibrous layer.")
@@ -136,7 +102,6 @@ def get_border_zone(injury, myocardium_wo_injury):
         return None
 
 def save_image(image, filename):
-    # Convert image data type to uint32 before saving
     image_uint32 = image.astype(np.uint32)
     imwrite(filename, image_uint32, compression='zlib')
 
@@ -156,15 +121,9 @@ for filename in os.listdir(image_folder):
     
     if myocardium is not None and myocardium_wo_injury is not None:
         
-        #injury = get_injury(myocardium, myocardium_wo_injury)
-        injury = get_injury(image)
-        
-        fibrous_layer = get_fibrous_layer(myocardium)
-        
+        injury = get_injury(image)     
+        fibrous_layer = get_fibrous_layer(myocardium)      
         border_zone = get_border_zone(injury, myocardium_wo_injury)
-
-        # merge all ROIs into one image
-
         ROIs = np.zeros_like(myocardium)
         ROIs[myocardium > 0] = 1
         ROIs[myocardium_wo_injury > 0] = 2
