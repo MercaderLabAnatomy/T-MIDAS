@@ -138,14 +138,23 @@ def coloc_2_channels(file_lists, channels, i, csv_rows):
                     C1_centroid = C1_prop.centroid
                     C1_row, C1_col = int(C1_centroid[0]), int(C1_centroid[1])
                     C1_bbox = C1_prop.bbox
-                    C1_min_row, C1_min_col, C1_max_row, C1_max_col = C1_bbox
+                    #C1_min_row, C1_min_col, C1_max_row, C1_max_col = C1_bbox
 
                     if C0_min_row <= C1_row <= C0_max_row and C0_min_col <= C1_col <= C0_max_col:
                         C1_centroid_in_C0_bbox = True
                         break
+                # Get average intensity of C1 in C0 ROI
+                    mask = np.zeros_like(C0_img, dtype=bool)
+                    mask[C0_prop.coords[:, 0], C0_prop.coords[:, 1]] = True
+                    mean_intensity = np.mean(C1_img[mask])
+
+                    
+
+
+
 
                 if args.add_intensity == 'y':
-                    csv_rows.append([C0_filename, C0_prop.label, C0_area, C1_centroid_in_C0_bbox])
+                    csv_rows.append([C0_filename, C0_prop.label, C0_area, C1_centroid_in_C0_bbox, mean_intensity])
                 else:
                     csv_rows.append([C0_filename, C0_prop.label, C0_area, C1_centroid_in_C0_bbox])
 
@@ -177,7 +186,7 @@ elif len(channels) == 2:
         header = ['Filename', 'C0_label', 'C0_area', 'C1_centroid_in_C0_bbox', 'C1_mean_intensity']
     else:
         header = ['Filename', 'C0_label', 'C0_area', 'C1_centroid_in_C0_bbox']
-        
+
 
 
 
