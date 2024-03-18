@@ -45,6 +45,15 @@ if len(set(lengths)) > 1:
 
 csv_rows = []
 
+def get_coords_mask(prop, shape):
+    # using prop.coords is more efficient than prop.image
+    x_coords, y_coords = prop.coords[:, 0], prop.coords[:, 1]
+    mask = np.zeros(shape, dtype=bool)
+    mask[x_coords, y_coords] = True
+
+    return mask
+
+
 def coloc_channels(file_lists, channels, csv_rows, add_intensity=False):
     num_channels = len(channels)
     
@@ -54,16 +63,16 @@ def coloc_channels(file_lists, channels, csv_rows, add_intensity=False):
         
         filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
 
-        for prop0 in props[0]:
+        for prop0 in props[0]: # this is the first channel
             area = prop0.area
-            if 100 < area < 100000:
-                mask0 = prop0.get_coords_mask(images[0].shape)
+            if 100 < area:# < 100000:
+                mask0 = get_coords_mask(prop0, images[0].shape)
 
                 centroid_in_regions = [False] * num_channels
                 mean_intensities = [None] * num_channels
 
                 for idx, (prop, img) in enumerate(zip(props[1:], images[1:])):
-                    mask = prop.get_coords_mask(img.shape)
+                    mask = get_coords_mask(prop[0], img.shape)
                     centroid = prop.centroid
                     row, col = int(centroid[0]), int(centroid[1])
 
