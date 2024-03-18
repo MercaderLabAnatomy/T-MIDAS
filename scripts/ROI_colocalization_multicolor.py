@@ -130,7 +130,7 @@ def coloc_2_channels(file_lists, channels, csv_rows):
 
 
 
-        # Loop through each region in C0_props and check for C1 and C2 centroids
+        # Loop through each region in C0_props and check for C1 centroids
         for C0_prop in C0_props:
             C0_area = C0_prop.area
             if 100 < C0_area:# < 100000:
@@ -143,7 +143,7 @@ def coloc_2_channels(file_lists, channels, csv_rows):
                 for C1_prop in C1_props:
                     C1_centroid = C1_prop.centroid
                     C1_row, C1_col = int(C1_centroid[0]), int(C1_centroid[1])
-                    C1_bbox = C1_prop.bbox
+                    #C1_bbox = C1_prop.bbox
                     #C1_min_row, C1_min_col, C1_max_row, C1_max_col = C1_bbox
 
                     if C0_min_row <= C1_row <= C0_max_row and C0_min_col <= C1_col <= C0_max_col:

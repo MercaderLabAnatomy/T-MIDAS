@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 PIXEL_RESOLUTION = args.pixel_resolution
 
-FIBROUS_LAYER_MEDIAN_DIAMETER_PX = 16
+FIBROUS_LAYER_MEDIAN_DIAMETER_PX = 43
 INJURY_LABEL_ID = args.injury_label_id
 INTACT_LABEL_ID = args.intact_label_id
 BORDER_ZONE_DIAMETER_UM = 100.0
@@ -80,9 +80,11 @@ def get_fibrous_layer(image):
         myocardium = cle.merge_touching_labels(image)
         myocardium_dilated = cle.dilate_labels(myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
         myocardium_dilated = nsitk.binary_fill_holes(myocardium_dilated)
+        myocardium_dilated = cle.connected_components_labeling_box(myocardium_dilated)
         myocardium_dilated = get_largest_label(myocardium_dilated)
         not_myocardium = cle.binary_not(myocardium_dilated)
         not_myocardium_dilated = cle.erode_labels(not_myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
+        not_myocardium_dilated = cle.connected_components_labeling_box(not_myocardium_dilated)
         not_myocardium_dilated = get_largest_label(not_myocardium_dilated)
         not_fibrous_layer = cle.combine_labels(not_myocardium_dilated, myocardium_dilated)
         fibrous_layer = cle.binary_not(not_fibrous_layer)
