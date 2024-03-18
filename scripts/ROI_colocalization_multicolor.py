@@ -44,7 +44,7 @@ if len(set(channels)) < len(channels) or len(channels) < 2:
 def get_file_list(parent_dir, channels, label_patterns):
     file_lists = {}  # Dictionary to store lists with channel names as keys
     
-    for channel, label_pattern in zip(channels, label_patterns.split()):
+    for channel, label_pattern in zip(channels, label_patterns):
         labels = sorted(glob.glob(os.path.join(parent_dir, channel + '/', label_pattern)))
         file_lists[channel] = labels
         
