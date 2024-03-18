@@ -21,6 +21,7 @@ args = parse_arguments()
 #label_pattern = '*_labels.tif'
 parent_dir = args.input +'/'
 channels = [c.upper() for c in args.channels]
+label_patterns = [p for p in args.label_patterns]
 
 # give error if channel names are not unique or smaller than 2
 if len(set(channels)) < len(channels) or len(channels) < 2:
@@ -50,7 +51,7 @@ def get_file_list(parent_dir, channels, label_patterns):
     return file_lists
 
 
-file_lists = get_file_list(parent_dir, channels, args.label_patterns)
+file_lists = get_file_list(parent_dir, channels, label_patterns)
 
 
 # check if length of all file lists is the same
