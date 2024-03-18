@@ -12,7 +12,7 @@ def parse_arguments():
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
     parser.add_argument('--channels',  nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--add_intensity', type=str, help='Do you want to quantify average intensity of C2 in C1 ROI? (y/n)')
-    parser.add_argument('--label_patterns', nargs='+', type=str, help='Label pattern for each channel. Example: "_labels.tif _labels.tif _labels.tif"')
+    parser.add_argument('--label_patterns', nargs='+', type=str, help='Label pattern for each channel. Example: "*_labels.tif *_labels.tif *_labels.tif"')
     return parser.parse_args()
 
 
@@ -28,19 +28,6 @@ if len(set(channels)) < len(channels) or len(channels) < 2:
     raise ValueError("Channel names must be unique and at least two channels must be provided.")
 
 
-
-# def get_file_list(parent_dir, channels, label_pattern):
-#     file_lists = {}  # Dictionary to store lists with channel names as keys
-
-#     for channel in channels:
-#         labels = sorted(glob.glob(os.path.join(parent_dir, channel + '/', label_pattern)))
-#         file_lists[channel] = labels
-
-#     return file_lists
-
-# file_lists = get_file_list(parent_dir, channels, label_pattern)
-
-
 def get_file_list(parent_dir, channels, label_patterns):
     file_lists = {}  # Dictionary to store lists with channel names as keys
     
@@ -53,6 +40,10 @@ def get_file_list(parent_dir, channels, label_patterns):
 
 file_lists = get_file_list(parent_dir, channels, label_patterns)
 
+print("Number of label files in each channel:")
+for channel in file_lists.keys():
+    print(channel, ":", len(file_lists[channel]))
+    
 
 # check if length of all file lists is the same
 # if not, print a warning
