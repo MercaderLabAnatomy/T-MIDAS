@@ -178,16 +178,16 @@ output_csv = os.path.join(parent_dir, 'colocalization.csv')
     
 if len(channels) == 3:
     if args.add_intensity == 'y':
-        header = ['Filename', 'C0_label', 'C0_area', 'C1_centroid_in_C0_bbox', 'C2_centroid_in_C1_bbox', 'C2_mean_intensity']
+        header = ['Filename', 
+                  f'{channels[0]}_label', f'{channels[0]}_area', 
+                  f'{channels[1]}_centroid_in_{channels[0]}_bbox', 
+                  f'{channels[2]}_centroid_in_{channels[1]}_bbox', 
+                  f'{channels[2]}_mean_intensity']
     else:
-        header = ['Filename', 'C0_label', 'C0_area', 'C1_centroid_in_C0_bbox', 'C2_centroid_in_C1_bbox']
-elif len(channels) == 2:
-    if args.add_intensity == 'y':
-        header = ['Filename', 'C0_label', 'C0_area', 'C1_centroid_in_C0_bbox', 'C1_mean_intensity']
-    else:
-        header = ['Filename', 'C0_label', 'C0_area', 'C1_centroid_in_C0_bbox']
-
-
+        header = ['Filename', 
+                  f'{channels[0]}_label', f'{channels[0]}_area', 
+                  f'{channels[1]}_centroid_in_{channels[0]}_bbox', 
+                  f'{channels[2]}_centroid_in_{channels[1]}_bbox']
 
 
 
