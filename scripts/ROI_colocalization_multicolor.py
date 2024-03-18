@@ -12,12 +12,13 @@ def parse_arguments():
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
     parser.add_argument('--channels',  nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--add_intensity', type=str, help='Do you want to quantify average intensity of C2 in C1 ROI? (y/n)')
+    parser.add_argument('--label_patterns', type=str, help='Label pattern for each channel. Example: "_labels.tif _labels.tif _labels.tif"')
     return parser.parse_args()
 
 
 args = parse_arguments()
 
-label_pattern = '*_labels.tif'
+#label_pattern = '*_labels.tif'
 parent_dir = args.input +'/'
 channels = [c.upper() for c in args.channels]
 
@@ -27,16 +28,29 @@ if len(set(channels)) < len(channels) or len(channels) < 2:
 
 
 
-def get_file_list(parent_dir, channels, label_pattern):
-    file_lists = {}  # Dictionary to store lists with channel names as keys
+# def get_file_list(parent_dir, channels, label_pattern):
+#     file_lists = {}  # Dictionary to store lists with channel names as keys
 
-    for channel in channels:
+#     for channel in channels:
+#         labels = sorted(glob.glob(os.path.join(parent_dir, channel + '/', label_pattern)))
+#         file_lists[channel] = labels
+
+#     return file_lists
+
+# file_lists = get_file_list(parent_dir, channels, label_pattern)
+
+
+def get_file_list(parent_dir, channels, label_patterns):
+    file_lists = {}  # Dictionary to store lists with channel names as keys
+    
+    for channel, label_pattern in zip(channels, label_patterns.split()):
         labels = sorted(glob.glob(os.path.join(parent_dir, channel + '/', label_pattern)))
         file_lists[channel] = labels
-
+        
     return file_lists
 
-file_lists = get_file_list(parent_dir, channels, label_pattern)
+
+
 
 
 # check if length of all file lists is the same
