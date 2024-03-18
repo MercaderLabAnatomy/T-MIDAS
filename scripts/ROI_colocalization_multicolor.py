@@ -46,13 +46,11 @@ if len(set(lengths)) > 1:
 csv_rows = []
 
 def get_coords_mask(prop, shape):
-    # using prop.coords is more efficient than prop.image
     x_coords, y_coords = prop.coords[:, 0], prop.coords[:, 1]
     mask = np.zeros(shape, dtype=bool)
     mask[x_coords, y_coords] = True
 
     return mask
-
 
 def coloc_channels(file_lists, channels, csv_rows, add_intensity=False):
     num_channels = len(channels)
@@ -63,9 +61,9 @@ def coloc_channels(file_lists, channels, csv_rows, add_intensity=False):
         
         filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
 
-        for prop0 in props[0]: # this is the first channel
+        for prop0 in props[0]:
             area = prop0.area
-            if 100 < area:# < 100000:
+            if 100 < area:
                 mask0 = get_coords_mask(prop0, images[0].shape)
 
                 centroid_in_regions = [False] * num_channels
@@ -93,15 +91,17 @@ header_intensities = [f'{channel}_mean_intensity_in_{channels[0]}_region' for ch
 
 header = header_base + header_cols + header_intensities if args.add_intensity == 'y' else header_base + header_cols
 
+try:
+    if os.path.exists(output_csv):
+        os.remove(output_csv)
 
+    with open(output_csv, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(header)
+        writer.writerows(csv_rows)
 
-if os.path.exists(output_csv):
-    os.remove(output_csv)
+    print("Colocalization data saved to", output_csv)
+except Exception as e:
+    print("An error occurred while saving the colocalization data:", e)
 
-with open(output_csv, 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(header)
-    writer.writerows(csv_rows)
-
-print("Colocalization data saved to", output_csv)
 print("Done.")
