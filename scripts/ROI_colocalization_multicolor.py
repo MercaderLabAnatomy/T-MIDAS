@@ -195,7 +195,10 @@ if len(channels) == 3:
                   f'{channels[1]}_centroid_in_{channels[0]}_bbox', 
                   f'{channels[2]}_centroid_in_{channels[1]}_bbox']
 
-
+# check it csv already exists, if so, delete it
+if os.path.exists(output_csv):
+    os.remove(output_csv)
+    
 
 with open(output_csv, 'w', newline='') as file:
     writer = csv.writer(file)
