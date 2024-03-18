@@ -12,7 +12,7 @@ def parse_arguments():
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
     parser.add_argument('--channels',  nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--add_intensity', type=str, help='Do you want to quantify average intensity of C2 in C1 ROI? (y/n)')
-    parser.add_argument('--label_patterns', type=str, help='Label pattern for each channel. Example: "_labels.tif _labels.tif _labels.tif"')
+    parser.add_argument('--label_patterns', nargs='+', type=str, help='Label pattern for each channel. Example: "_labels.tif _labels.tif _labels.tif"')
     return parser.parse_args()
 
 
