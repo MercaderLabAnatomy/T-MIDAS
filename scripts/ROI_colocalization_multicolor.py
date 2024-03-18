@@ -93,6 +93,8 @@ header_intensities = [f'{channel}_mean_intensity_in_{channels[0]}_region' for ch
 
 header = header_base + header_cols + header_intensities if args.add_intensity == 'y' else header_base + header_cols
 
+
+
 if os.path.exists(output_csv):
     os.remove(output_csv)
 
