@@ -13,8 +13,8 @@ args = parser.parse_args()
 folder = args.input
 scale_factor = args.scale_factor
 
-filepath = "/home/marco/Pictures/ImagesBene/20221219__94.czi"
-scale_factor = 0.5
+# filepath = "/home/marco/Pictures/ImagesBene/20221219__94.czi"
+# scale_factor = 0.5
 
 def czi_scenes_to_tifs(filepath):
 
@@ -30,7 +30,7 @@ def czi_scenes_to_tifs(filepath):
                                            scale_factor*25400.0/aics_img.physical_pixel_sizes[1]),
                                     compression="tiff_deflate")
 
-czi_scenes_to_tifs(filepath)
+#czi_scenes_to_tifs(filepath)
 
 for file in os.listdir(folder):
     if file.endswith(".czi"):
