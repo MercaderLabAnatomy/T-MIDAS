@@ -17,7 +17,9 @@ dependencies = [
     'openslide-python', # for reading .ndpi files 
     'glob2',
     'pytest',
-    'cucim'
+    'cucim',
+    'aicspylibczi'
+    
 ]
 
 
