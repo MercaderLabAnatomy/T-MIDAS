@@ -518,20 +518,20 @@ def ROI_analysis():
         print("You chose to colocalize ROI in different color channels.")
         print("------------------------------------------------")
         print("\n")
-        print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing a subfolder for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. Then enter the suffix of the label images of each channel in the same order. Example: _labels.tif _labels.tif _labels.tif. You will also be asked if you want to quantify average intensity of the last channel in the ROI of the second last channel.
+        print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing a subfolder for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. Then enter the suffix of the label images of each channel in the same order. Example: *_labels.tif *_labels.tif *_labels.tif. 
                            """))
         print("\n")
 
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         channels = input("\nEnter the names of your color channel subfolders in the abovementioned order (example: FITC DAPI TRITC): ")
         label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif *_labels.tif): ")
-        add_intensity = input("\nDo you want to quantify average intensity of the last channel in the ROI of the second last channel? (y/n): ")
+        #add_intensity = input("\nDo you want to quantify average intensity of the last channel in the ROI of the second last channel? (y/n): ")
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_multicolor.py',
                                     '--input ' + input_folder +
                                     ' --channels ' + channels +
-                                    ' --label_patterns ' + label_patterns +
-                                    ' --add_intensity ' + add_intensity
+                                    ' --label_patterns ' + label_patterns #+
+                                    #' --add_intensity ' + add_intensity
                                     )
         restart_program()
     if choice == "r" or choice == "R":

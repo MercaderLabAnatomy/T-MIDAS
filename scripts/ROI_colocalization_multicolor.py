@@ -2,106 +2,114 @@ import os
 import glob
 import csv
 from skimage import io
-from skimage.measure import regionprops
 import argparse
 import numpy as np
+import cupy as cp
+from cucim.skimage.measure import label
+from tifffile import imwrite
 
+# Parse command line arguments
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Script for colocalization analysis of images.')
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
     parser.add_argument('--channels', nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
-    parser.add_argument('--add_intensity', type=str, help='Do you want to quantify average intensity of C2 in C1 ROI? (y/n)')
     parser.add_argument('--label_patterns', nargs='+', type=str, help='Label pattern for each channel. Example: "*_labels.tif *_labels.tif *_labels.tif"')
     return parser.parse_args()
 
 args = parse_arguments()
 
+
 parent_dir = args.input + '/'
 channels = [c.upper() for c in args.channels]
-label_patterns = [p for p in args.label_patterns]
+label_patterns = args.label_patterns
+
+# parent_dir = "/media/geffjoldblum/DATA/ImagesJoao"
+# channels = ["FITC", "CY5"]
+# label_patterns = ["*_labels.tif", "*_labels.tif"]
+
+
+
+# Get a list of files for each channel
+file_lists = {channel: sorted(glob.glob(os.path.join(parent_dir, channel + '/', label_pattern))) for channel, label_pattern in zip(channels, label_patterns)}
 
 if len(set(channels)) < len(channels) or len(channels) < 2:
     raise ValueError("Channel names must be unique and at least two channels must be provided.")
 
-def get_file_list(parent_dir, channels, label_patterns):
-    file_lists = {}
-    
-    for channel, label_pattern in zip(channels, label_patterns):
-        labels = sorted(glob.glob(os.path.join(parent_dir, channel + '/', label_pattern)))
-        file_lists[channel] = labels
-        
-    return file_lists
-
-file_lists = get_file_list(parent_dir, channels, label_patterns)
-
 print("Number of label files in each channel:")
-for channel in file_lists.keys():
-    print(channel, ":", len(file_lists[channel]))
+{print(channel, ":", len(file_lists[channel])) for channel in file_lists}
 
-lengths = [len(file_lists[channel]) for channel in file_lists.keys()]
-if len(set(lengths)) > 1:
-    print("Warning: The number of label files in the different channels is not the same.")
-    print("Number of label files in each channel:", lengths)
-
-csv_rows = []
-
-def get_coords_mask(prop, shape):
-    x_coords, y_coords = prop.coords[:, 0], prop.coords[:, 1]
-    mask = np.zeros(shape, dtype=bool)
-    mask[x_coords, y_coords] = True
-
-    return mask
-
-def coloc_channels(file_lists, channels, csv_rows, add_intensity=False):
-    num_channels = len(channels)
+# Perform colocalization analysis for specified channels
+def coloc_channels(file_lists, channels):
+    csv_rows = []
     
     for i in range(len(file_lists[channels[0]])):
-        images = [io.imread(file_lists[channel][i]) for channel in channels]
-        props = [regionprops(img) for img in images]
+        images = {channel: cp.asarray(io.imread(file_lists[channel][i])) for channel in channels}
+        
+        ROI_masks = {label_id.item(): images[channels[0]] == label_id for label_id in cp.unique(images[channels[0]]) if label_id != 0}
+        
+        overlaps = {channel: {} for channel in channels}
+        unique_labels = {channel: {} for channel in channels} #
+        
+        for idx, channel in enumerate(channels):
+            other_channels = [c for c in channels if c != channel]
+            for label_id in ROI_masks.keys():
+                if ROI_masks[label_id] is not None: # binary mask of reference channel
+                    overlaps[channel][label_id] = ROI_masks[label_id] & (images[other_channels[0]] > 0)
+                    unique_labels[channel][label_id] = cp.max(cp.unique(label(overlaps[channel][label_id]))).item()
+                    
+                    if len(channels) > 2:
+                        for other_channel in other_channels[1:]:
+                            overlaps[channel][label_id] &= (images[other_channel] > 0)
+                            unique_labels[channel][label_id] += cp.max(cp.unique(label(overlaps[channel][label_id]))).item()
         
         filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
+        
+                # if only two channels are provided, save the colocalization images
+        if len(channels) == 2:
+            for label_id in unique_labels[channels[0]].keys():
+                colocalization_image = label(cp.asarray(overlaps[channels[0]][label_id]))
+                #colocalization_image = cp.where(colocalization_image, 255, 0).astype(cp.uint8) # this is to
+                imwrite(parent_dir + f"/{filename}_{channels[1]}_in_{channels[0]}_ROI_{label_id}.tif", cp.asnumpy(colocalization_image), compression='zlib')
+        elif len(channels) == 3:
+            for label_id in unique_labels[channels[0]].keys():
+                colocalization_image = label(cp.asarray(overlaps[channels[0]][label_id]))
+                #colocalization_image = cp.where(colocalization_image, 255, 0).astype(cp.uint8)
+                imwrite(parent_dir + f"/{filename}_{channels[1]}_{channels[2]}_coloc_in_{channels[0]}_ROI_{label_id}.tif", cp.asnumpy(colocalization_image), compression='zlib')
+        else:
+            raise ValueError("Only two or three channels are supported for saving colocalization images.")
 
-        for prop0 in props[0]:
-            area = prop0.area
-            if 100 < area:
-                mask0 = get_coords_mask(prop0, images[0].shape)
+        
+        
 
-                centroid_in_regions = [False] * num_channels
-                mean_intensities = [None] * num_channels
+        # if two channels are provided, save a row for each first channel ROI that contains filename, first channel ROI id and colocalization count
+        if len(channels) == 2:
+            for label_id in unique_labels[channels[0]].keys():
+                csv_rows.append([filename, label_id, unique_labels[channels[0]][label_id]])
+        elif len(channels) == 3:
+            for label_id in unique_labels[channels[0]].keys():
+                csv_rows.append([filename, label_id, *[unique_labels[channel][label_id] for channel in channels[1:]], unique_labels[channels[0]][label_id]])
 
-                for idx, (prop, img) in enumerate(zip(props[1:], images[1:])):
-                    mask = get_coords_mask(prop[0], img.shape)
-                    centroid = prop.centroid
-                    row, col = int(centroid[0]), int(centroid[1])
+        
+        cp.get_default_memory_pool().free_all_blocks()
+    
+    return csv_rows
 
-                    mean_intensity_in_region = np.mean(img[mask])
-                    if mask0[row, col]:
-                        centroid_in_regions[idx + 1] = True
-                        mean_intensities[idx + 1] = mean_intensity_in_region
+# Check the number of channels and perform colocalization analysis accordingly
+csv_rows = coloc_channels(file_lists, channels)
 
-                row_data = [filename, prop0.label, area] + centroid_in_regions + mean_intensities
-                csv_rows.append(row_data)
+csv_file = parent_dir + '/colocalization.csv'
 
-args.add_intensity = args.add_intensity.lower()
-output_csv = os.path.join(parent_dir, 'colocalization.csv')
+# Write results to a CSV file
+with open(csv_file, 'w', newline='') as file:
+    writer = csv.writer(file)
+    if len(channels) == 2:
+        writer.writerow(['Filename', f"{channels[0]} ROI", 
+                         *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
+    elif len(channels) == 3:
+        writer.writerow(['Filename', f"{channels[0]} ROI", 
+                         *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
+                         f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
+    writer.writerows(csv_rows)
 
-header_base = ['Filename', f'{channels[0]}_label', f'{channels[0]}_area']
-header_cols = [f'{channel}_centroid_in_{channels[0]}_region' for channel in channels[1:]]
-header_intensities = [f'{channel}_mean_intensity_in_{channels[0]}_region' for channel in channels[1:]]
-
-header = header_base + header_cols + header_intensities if args.add_intensity == 'y' else header_base + header_cols
-
-try:
-    if os.path.exists(output_csv):
-        os.remove(output_csv)
-
-    with open(output_csv, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(header)
-        writer.writerows(csv_rows)
-
-    print("Colocalization data saved to", output_csv)
-except Exception as e:
-    print("An error occurred while saving the colocalization data:", e)
-
-print("Done.")
+print(f"Colocalization results saved to {csv_file}")
+print("Done!")
