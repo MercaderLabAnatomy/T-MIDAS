@@ -255,7 +255,7 @@ def file_conversion():
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/czi_to_tif_brightfield.py',
                                         '--input ' + input_folder + 
-                                        '--scale_factor ' + scale_factor)
+                                        ' --scale_factor ' + scale_factor) # whitespace is important here
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
