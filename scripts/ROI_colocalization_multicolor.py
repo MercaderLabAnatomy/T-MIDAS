@@ -5,7 +5,7 @@ from skimage import io
 import argparse
 import numpy as np
 import cupy as cp
-from cucim.skimage.measure import label
+from cucim.skimage.measure import label, regionprops
 from tifffile import imwrite
 
 # Parse command line arguments
@@ -50,6 +50,8 @@ def coloc_channels(file_lists, channels):
         
         overlaps = {channel: {} for channel in channels}
         unique_labels = {channel: {} for channel in channels} #
+
+        area = {label_id: regionprops(ROI_masks[label_id].astype(np.int32))[0].area for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
         
         for idx, channel in enumerate(channels):
             other_channels = [c for c in channels if c != channel]
@@ -59,6 +61,8 @@ def coloc_channels(file_lists, channels):
                     # get shapes of ROI_masks[label_id] and images[other_channels[0]]
                     # if they do not match, print filename  
                     # if they do match, continue with the rest of the code
+                    # get the regionprops area of the ROI_masks[label_id]
+                    
                     if ROI_masks[label_id].shape != images[other_channels[0]].shape:
                         print(f"Shapes do not match for {file_lists[channels[0]][i]}")
                         continue
@@ -97,10 +101,10 @@ def coloc_channels(file_lists, channels):
         # if two channels are provided, save a row for each first channel ROI that contains filename, first channel ROI id and colocalization count
         if len(channels) == 2:
             for label_id in unique_labels[channels[0]].keys():
-                csv_rows.append([filename, label_id, unique_labels[channels[0]][label_id]])
+                csv_rows.append([filename, label_id, area[label_id], unique_labels[channels[0]][label_id]])
         elif len(channels) == 3:
             for label_id in unique_labels[channels[0]].keys():
-                csv_rows.append([filename, label_id, *[unique_labels[channel][label_id] for channel in channels[1:]], unique_labels[channels[0]][label_id]])
+                csv_rows.append([filename, label_id, area[label_id], *[unique_labels[channel][label_id] for channel in channels[1:]], unique_labels[channels[0]][label_id]])
 
         
         cp.get_default_memory_pool().free_all_blocks()
@@ -116,10 +120,10 @@ csv_file = parent_dir + '/colocalization.csv'
 with open(csv_file, 'w', newline='') as file:
     writer = csv.writer(file)
     if len(channels) == 2:
-        writer.writerow(['Filename', f"{channels[0]} ROI", 
+        writer.writerow(['Filename', f"{channels[0]} ROI", "Area (sq. px)", 
                          *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
     elif len(channels) == 3:
-        writer.writerow(['Filename', f"{channels[0]} ROI", 
+        writer.writerow(['Filename', f"{channels[0]} ROI", "Area (sq. px)", 
                          *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
                          f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
     writer.writerows(csv_rows)
