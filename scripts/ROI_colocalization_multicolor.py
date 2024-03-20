@@ -24,9 +24,9 @@ parent_dir = args.input + '/'
 channels = [c.upper() for c in args.channels]
 label_patterns = args.label_patterns
 
-parent_dir = "/mnt/TEST/20240205_ntn1a_col1a2_IB4"
-channels = ["FITC", "TRITC", "CY5"]
-label_patterns = ["*_labels.tif", "*_labels.tif", "*_labels.tif"]
+# parent_dir = "/mnt/TEST/20240205_ntn1a_col1a2_IB4"
+# channels = ["FITC", "TRITC", "CY5"]
+# label_patterns = ["*_labels.tif", "*_labels.tif", "*_labels.tif"]
 
 
 
