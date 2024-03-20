@@ -526,11 +526,13 @@ def ROI_analysis():
         channels = input("\nEnter the names of your color channel subfolders in the abovementioned order (example: FITC DAPI TRITC): ")
         label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif *_labels.tif): ")
         #add_intensity = input("\nDo you want to quantify average intensity of the last channel in the ROI of the second last channel? (y/n): ")
+        output_images = input("\nDo you want to save colocalization images? (y/n): ")
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_multicolor.py',
                                     '--input ' + input_folder +
                                     ' --channels ' + channels +
-                                    ' --label_patterns ' + label_patterns #+
+                                    ' --label_patterns ' + label_patterns +
+                                    ' --output_images ' + output_images
                                     #' --add_intensity ' + add_intensity
                                     )
         restart_program()

@@ -14,6 +14,7 @@ def parse_arguments():
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
     parser.add_argument('--channels', nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--label_patterns', nargs='+', type=str, help='Label pattern for each channel. Example: "*_labels.tif *_labels.tif *_labels.tif"')
+    parser.add_argument('--output_images', type=str, help='Do you want to save colocalization images? (y/n)')
     return parser.parse_args()
 
 args = parse_arguments()
@@ -54,6 +55,16 @@ def coloc_channels(file_lists, channels):
             other_channels = [c for c in channels if c != channel]
             for label_id in ROI_masks.keys():
                 if ROI_masks[label_id] is not None: # binary mask of reference channel
+                    # try catch if shapes do not match
+                    # get shapes of ROI_masks[label_id] and images[other_channels[0]]
+                    # if they do not match, print filename  
+                    # if they do match, continue with the rest of the code
+                    if ROI_masks[label_id].shape != images[other_channels[0]].shape:
+                        print(f"Shapes do not match for {file_lists[channels[0]][i]}")
+                        continue
+                    else:
+                        pass
+                    
                     overlaps[channel][label_id] = ROI_masks[label_id] & (images[other_channels[0]] > 0)
                     unique_labels[channel][label_id] = cp.max(cp.unique(label(overlaps[channel][label_id]))).item()
                     
@@ -64,19 +75,21 @@ def coloc_channels(file_lists, channels):
         
         filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
         
-                # if only two channels are provided, save the colocalization images
-        if len(channels) == 2:
-            for label_id in unique_labels[channels[0]].keys():
-                colocalization_image = label(cp.asarray(overlaps[channels[0]][label_id]))
-                #colocalization_image = cp.where(colocalization_image, 255, 0).astype(cp.uint8) # this is to
-                imwrite(parent_dir + f"/{filename}_{channels[1]}_in_{channels[0]}_ROI_{label_id}.tif", cp.asnumpy(colocalization_image), compression='zlib')
-        elif len(channels) == 3:
-            for label_id in unique_labels[channels[0]].keys():
-                colocalization_image = label(cp.asarray(overlaps[channels[0]][label_id]))
-                #colocalization_image = cp.where(colocalization_image, 255, 0).astype(cp.uint8)
-                imwrite(parent_dir + f"/{filename}_{channels[1]}_{channels[2]}_coloc_in_{channels[0]}_ROI_{label_id}.tif", cp.asnumpy(colocalization_image), compression='zlib')
-        else:
-            raise ValueError("Only two or three channels are supported for saving colocalization images.")
+        if args.output_images.lower() == 'y':
+            if len(channels) == 2:
+                for label_id in unique_labels[channels[0]].keys():
+                    colocalization_image = label(cp.asarray(overlaps[channels[0]][label_id]))
+                    #colocalization_image = cp.where(colocalization_image, 255, 0).astype(cp.uint8) # this is to
+                    imwrite(parent_dir + f"/{filename}_{channels[1]}_in_{channels[0]}_ROI_{label_id}.tif", cp.asnumpy(colocalization_image), compression='zlib')
+            elif len(channels) == 3:
+                for label_id in unique_labels[channels[0]].keys():
+                    colocalization_image = label(cp.asarray(overlaps[channels[0]][label_id]))
+                    #colocalization_image = cp.where(colocalization_image, 255, 0).astype(cp.uint8)
+                    imwrite(parent_dir + f"/{filename}_{channels[1]}_{channels[2]}_coloc_in_{channels[0]}_ROI_{label_id}.tif", cp.asnumpy(colocalization_image), compression='zlib')
+            else:
+                raise ValueError("Only two or three channels are supported for saving colocalization images.")
+
+                
 
         
         
