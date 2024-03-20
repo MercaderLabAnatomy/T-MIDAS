@@ -24,9 +24,9 @@ parent_dir = args.input + '/'
 channels = [c.upper() for c in args.channels]
 label_patterns = args.label_patterns
 
-# parent_dir = "/media/geffjoldblum/DATA/ImagesJoao"
-# channels = ["FITC", "CY5"]
-# label_patterns = ["*_labels.tif", "*_labels.tif"]
+parent_dir = "/mnt/TEST/20240205_ntn1a_col1a2_IB4"
+channels = ["FITC", "TRITC", "CY5"]
+label_patterns = ["*_labels.tif", "*_labels.tif", "*_labels.tif"]
 
 
 
@@ -48,63 +48,54 @@ def coloc_channels(file_lists, channels):
         
         ROI_masks = {label_id.item(): images[channels[0]] == label_id for label_id in cp.unique(images[channels[0]]) if label_id != 0}
         
-        overlaps = {channel: {} for channel in channels}
-        unique_labels = {channel: {} for channel in channels} #
-
+        coloc_01 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
+        coloc_02 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
+        coloc_all = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
+        unique_labels_01 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
+        unique_labels_02 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
+        unique_labels_all = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}  
         area = {label_id: regionprops(ROI_masks[label_id].astype(np.int32))[0].area for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
         
-        for idx, channel in enumerate(channels):
-            other_channels = [c for c in channels if c != channel]
-            for label_id in ROI_masks.keys():
-                if ROI_masks[label_id] is not None: # binary mask of reference channel
-                    # try catch if shapes do not match
-                    # get shapes of ROI_masks[label_id] and images[other_channels[0]]
-                    # if they do not match, print filename  
-                    # if they do match, continue with the rest of the code
-                    # get the regionprops area of the ROI_masks[label_id]
+        for label_id in ROI_masks.keys():
+            if ROI_masks[label_id] is not None: 
+                
+                coloc_01[label_id] = ROI_masks[label_id] & (images[channels[1]] > 0)                
+                unique_labels_01[label_id] = cp.max(cp.unique(label(coloc_01[label_id]))).item()
+                
+                if len(channels) == 3:
                     
-                    if ROI_masks[label_id].shape != images[other_channels[0]].shape:
-                        print(f"Shapes do not match for {file_lists[channels[0]][i]}")
-                        continue
-                    else:
-                        pass
-                    
-                    overlaps[channel][label_id] = ROI_masks[label_id] & (images[other_channels[0]] > 0)
-                    unique_labels[channel][label_id] = cp.max(cp.unique(label(overlaps[channel][label_id]))).item()
-                    
-                    if len(channels) > 2:
-                        for other_channel in other_channels[1:]:
-                            overlaps[channel][label_id] &= (images[other_channel] > 0)
-                            unique_labels[channel][label_id] += cp.max(cp.unique(label(overlaps[channel][label_id]))).item()
+                    coloc_02[label_id] = ROI_masks[label_id] & (images[channels[2]] > 0)
+                    coloc_all[label_id] = ROI_masks[label_id] & (images[channels[1]] > 0) & (images[channels[2]] > 0)
+                    unique_labels_02[label_id] = cp.max(cp.unique(label(coloc_02[label_id]))).item()
+                    unique_labels_all[label_id] = cp.max(cp.unique(label(coloc_all[label_id]))).item()
         
         filename = os.path.splitext(os.path.basename(file_lists[channels[0]][i]))[0]
         
         if args.output_images.lower() == 'y':
             if len(channels) == 2:
-                for label_id in unique_labels[channels[0]].keys():
-                    colocalization_image = label(cp.asarray(overlaps[channels[0]][label_id]))
-                    #colocalization_image = cp.where(colocalization_image, 255, 0).astype(cp.uint8) # this is to
-                    imwrite(parent_dir + f"/{filename}_{channels[1]}_in_{channels[0]}_ROI_{label_id}.tif", cp.asnumpy(colocalization_image), compression='zlib')
+                for label_id in unique_labels_01.keys():
+                    coloc_01_image = label(cp.asarray(coloc_01[label_id]))
+                    imwrite(parent_dir + f"/{filename}_{channels[1]}_in_{channels[0]}_ROI_{label_id}.tif", 
+                            cp.asnumpy(coloc_01_image), compression='zlib')
+                    
             elif len(channels) == 3:
-                for label_id in unique_labels[channels[0]].keys():
-                    colocalization_image = label(cp.asarray(overlaps[channels[0]][label_id]))
-                    #colocalization_image = cp.where(colocalization_image, 255, 0).astype(cp.uint8)
-                    imwrite(parent_dir + f"/{filename}_{channels[1]}_{channels[2]}_coloc_in_{channels[0]}_ROI_{label_id}.tif", cp.asnumpy(colocalization_image), compression='zlib')
+                for label_id in unique_labels_02.keys():
+                    coloc_02_image = label(cp.asarray(coloc_02[label_id]))
+                    imwrite(parent_dir + f"/{filename}_{channels[2]}_in_{channels[0]}_ROI_{label_id}.tif", 
+                            cp.asnumpy(coloc_02_image), compression='zlib')
+                for label_id in unique_labels_all.keys():
+                    coloc_all_image = label(cp.asarray(coloc_all[label_id]))
+                    imwrite(parent_dir + f"/{filename}_{channels[1]}_{channels[2]}_coloc_in_{channels[0]}_ROI_{label_id}.tif", 
+                            cp.asnumpy(coloc_all_image), compression='zlib')
             else:
                 raise ValueError("Only two or three channels are supported for saving colocalization images.")
 
-                
-
-        
-        
-
-        # if two channels are provided, save a row for each first channel ROI that contains filename, first channel ROI id and colocalization count
         if len(channels) == 2:
-            for label_id in unique_labels[channels[0]].keys():
-                csv_rows.append([filename, label_id, area[label_id], unique_labels[channels[0]][label_id]])
+            for label_id in unique_labels_01.keys():
+                csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id]])
         elif len(channels) == 3:
-            for label_id in unique_labels[channels[0]].keys():
-                csv_rows.append([filename, label_id, area[label_id], *[unique_labels[channel][label_id] for channel in channels[1:]], unique_labels[channels[0]][label_id]])
+            for label_id in unique_labels_all.keys():
+                csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id], unique_labels_02[label_id], unique_labels_all[label_id]])
 
         
         cp.get_default_memory_pool().free_all_blocks()
