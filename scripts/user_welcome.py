@@ -412,7 +412,7 @@ def image_segmentation():
         print(wrapper.fill("- clip_limit: 0.01 (> 1/nbins, controls extent of contrast enhancement)"))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        mask_folder = input("\nEnter the path to the folder containing the label images: ")
+        mask_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         label_pattern = input("\nEnter the label image suffix. Example: *_labels.tif: ")
         kernel_size = input("\nEnter the kernel size: ")
         nbins = input("\nEnter the number of bins: ")
