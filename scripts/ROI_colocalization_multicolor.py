@@ -24,12 +24,6 @@ parent_dir = args.input + '/'
 channels = [c.upper() for c in args.channels]
 label_patterns = args.label_patterns
 
-# parent_dir = "/mnt/TEST/20240205_ntn1a_col1a2_IB4"
-# channels = ["FITC", "TRITC", "CY5"]
-# label_patterns = ["*_labels.tif", "*_labels.tif", "*_labels.tif"]
-
-
-
 # Get a list of files for each channel
 file_lists = {channel: sorted(glob.glob(os.path.join(parent_dir, channel + '/', label_pattern))) for channel, label_pattern in zip(channels, label_patterns)}
 
@@ -46,8 +40,14 @@ def coloc_channels(file_lists, channels):
     for i in range(len(file_lists[channels[0]])):
         images = {channel: cp.asarray(io.imread(file_lists[channel][i])) for channel in channels}
         
-        ROI_masks = {label_id.item(): images[channels[0]] == label_id for label_id in cp.unique(images[channels[0]]) if label_id != 0}
-        
+        label_ids = cp.unique(images[channels[0]])
+        if len(label_ids) <= 8:
+            print(f"Unique labels in {channels[0]}: {label_ids}")
+            ROI_masks = {label_id.item(): images[channels[0]] == label_id for label_id in cp.unique(images[channels[0]]) if label_id != 0}
+        else:
+            print(f"Too many unique labels in {channels[0]}: {len(label_ids)}")            
+            ROI_masks = {1: cp.where(images[channels[0]] > 0, 1, 0)} # sets all non-zero pixels to 1
+  
         coloc_01 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
         coloc_02 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
         coloc_all = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}

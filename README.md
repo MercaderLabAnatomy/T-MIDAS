@@ -48,7 +48,7 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
     [1] Heart slices: Generate ROI from [intact+injured] ventricle masks
     [2] Count spots within ROI (2D)
     [3] Count blobs within ROI (3D)
-    [4] Colocalize ROI in different color chammels
+    [4] Colocalize ROI in different color channels
 [4] Image Segmentation Validation
     [1] Validate spot counts (2D)
     [2] Validate blob intersections (2D or 3D)   
