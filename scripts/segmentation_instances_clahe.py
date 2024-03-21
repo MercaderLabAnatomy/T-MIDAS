@@ -1,4 +1,5 @@
 import os
+import glob
 import tifffile as tf
 import argparse
 from skimage import exposure
@@ -22,15 +23,17 @@ args = parser.parse_args()
 input_folder = args.input
 label_pattern = args.label_pattern
 
-intensity_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith(label_pattern)]
-mask_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
-
+intensity_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
+#mask_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
+mask_files = glob.glob(os.path.join(input_folder, label_pattern))
 
 mask_files.sort()
 intensity_files.sort()
 
 # compare number of files
 if len(mask_files) != len(intensity_files):
+    print(f"Number of mask files: {len(mask_files)}\n")
+    print(f"Number of intensity files: {len(intensity_files)}\n")
     raise ValueError("Number of mask files and intensity files do not match.")
 
 # check if filenames contain a small matching pattern in the middle of the filename
