@@ -19,6 +19,9 @@ def main():
     for filename in os.listdir(image_folder):
         if not filename.endswith(".tif"):
             continue
+        # also exclude images that end with _labels.tif
+        if filename.endswith("_labels.tif"):
+            continue
         print(f"Processing image: {filename}")
         image_path = os.path.join(image_folder, filename)
         image = tf.imread(image_path)
