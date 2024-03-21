@@ -11,6 +11,8 @@ from cucim.skimage.measure import label
 # Argument Parsing
 parser = argparse.ArgumentParser(description="Segments CLAHE images.")
 parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+parser.add_argument("--masks", type=str, required=True, help="Path to label images.")
+parser.add_argument('--label_pattern', type=str, help='Label image suffix. Example: "*_labels.tif"')
 parser.add_argument("--kernel_size", type=int, required=True, help="Defines the shape of contextual regions.")
 parser.add_argument("--clip_limit", type=float, required=True, help="Defines the contrast limit for localised histogram equalisation.")
 parser.add_argument("--nbins", type=int, required=True, help="Number of bins for the histogram.")
@@ -18,12 +20,25 @@ parser.add_argument("--outline_sigma", type=float, default=1.0, help="Defines th
 args = parser.parse_args()
 
 input_folder = args.input
+label_pattern = args.label_pattern
 
-mask_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('_labels.tif')]
-intensity_files = [f.replace('_labels.tif', '.tif') for f in mask_files]
+intensity_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif')]
+mask_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
+
+
 mask_files.sort()
 intensity_files.sort()
 
+# compare number of files
+if len(mask_files) != len(intensity_files):
+    raise ValueError("Number of mask files and intensity files do not match.")
+
+# check if filenames contain a small matching pattern in the middle of the filename
+for mask_file, intensity_file in zip(mask_files, intensity_files):
+    mask_name = os.path.basename(mask_file)
+    intensity_name = os.path.basename(intensity_file)
+    if mask_name.split('-')[1] != intensity_name.split('-')[1]: # 
+        raise ValueError("Mask and intensity files do not match.")
 
 def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma):
     mask = cp.asarray(tf.imread(mask))

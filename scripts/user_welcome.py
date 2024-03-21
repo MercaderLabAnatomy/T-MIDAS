@@ -412,6 +412,8 @@ def image_segmentation():
         print(wrapper.fill("- clip_limit: 0.01 (> 1/nbins, controls extent of contrast enhancement)"))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+        mask_folder = input("\nEnter the path to the folder containing the label images: ")
+        label_pattern = input("\nEnter the label image suffix. Example: *_labels.tif: ")
         kernel_size = input("\nEnter the kernel size: ")
         nbins = input("\nEnter the number of bins: ")
         clip_limit = input("\nEnter the clip limit: ")
@@ -419,6 +421,8 @@ def image_segmentation():
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances_clahe.py',
                                         '--input ' + input_folder +
+                                        ' --masks ' + mask_folder +
+                                        ' --label_pattern ' + label_pattern +
                                         ' --kernel_size ' + kernel_size +
                                         ' --nbins ' + nbins +
                                         ' --clip_limit ' + clip_limit +
