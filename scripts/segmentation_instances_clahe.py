@@ -22,7 +22,7 @@ args = parser.parse_args()
 input_folder = args.input
 label_pattern = args.label_pattern
 
-intensity_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif')]
+intensity_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith(label_pattern)]
 mask_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
 
 
