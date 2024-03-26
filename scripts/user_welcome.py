@@ -357,11 +357,15 @@ def image_segmentation():
                 A popup will appear in a moment asking you to select the folder containing the single color .tif images.
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+        sigma = input("\nEnter the sigma for the gauss-otsu-labeling (example: 1.0): ")
         exclude_small = input("\nLower size threshold to exclude small objects: ")
         exclude_large = input("\nUpper size threshold to exclude large objects: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_2D.py',
-                                        '--input ' + input_folder + ' --exclude_small ' + exclude_small + ' --exclude_large ' + exclude_large)
+                                        '--input ' + input_folder + 
+                                        ' --sigma ' + sigma +
+                                        ' --exclude_small ' + exclude_small + 
+                                        ' --exclude_large ' + exclude_large)
         restart_program()
         
     

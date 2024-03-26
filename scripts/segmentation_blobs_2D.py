@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser(description="Runs automatic mask generation on 
 parser.add_argument("--input", type=str, required=True, help="Path to input images.")
 parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
 parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
+parser.add_argument("--sigma", type=float, default=1.0, help="Defines the sigma for the gauss-otsu-labeling.")
 args = parser.parse_args()
 
 
@@ -20,11 +21,11 @@ def process_image(image_path):
     """Process a single image and return labeled image."""
     try:
         image = imread(image_path)
-        image_gb = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
-        image_to = cle.threshold_otsu(image_gb)
+        image_to = cle.gauss_otsu_labeling(image, None, args.sigma)
         image_labeled = cle.connected_components_labeling_box(image_to)
         image_labeled = cle.exclude_small_labels(image_labeled, None, LOWER_THRESHOLD)
         image_labeled = cle.exclude_large_labels(image_labeled, None, UPPER_THRESHOLD)
+        image_labeled = cle.closing_labels(image_labeled, None, 10.0)
         #image_S = nsbatwm.split_touching_objects(image_l, 9.0)
         #image_labeled = cle.connected_components_labeling_box(image_S)
         
