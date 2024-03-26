@@ -75,17 +75,17 @@ def coloc_channels(file_lists, channels):
         
         if args.output_images.lower() == 'y' and len(label_ids) <= 8:
             if len(channels) == 2:
-                for label_id in unique_labels_01.keys():
+                for label_id in ROI_masks.keys():
                     coloc_01_image = label(cp.asarray(coloc_01[label_id]))
                     imwrite(parent_dir + f"/{filename}_{channels[1]}_in_{channels[0]}_ROI_{label_id}.tif", 
                             cp.asnumpy(coloc_01_image), compression='zlib')
                     
             elif len(channels) == 3 and len(label_ids) <= 8:
-                for label_id in unique_labels_02.keys():
+                for label_id in ROI_masks.keys():
                     coloc_02_image = label(cp.asarray(coloc_02[label_id]))
                     imwrite(parent_dir + f"/{filename}_{channels[2]}_in_{channels[0]}_ROI_{label_id}.tif", 
                             cp.asnumpy(coloc_02_image), compression='zlib')
-                for label_id in unique_labels_all.keys():
+                for label_id in ROI_masks.keys():
                     coloc_all_image = label(cp.asarray(coloc_all[label_id]))
                     imwrite(parent_dir + f"/{filename}_{channels[1]}_{channels[2]}_coloc_in_{channels[0]}_ROI_{label_id}.tif", 
                             cp.asnumpy(coloc_all_image), compression='zlib')
@@ -93,10 +93,10 @@ def coloc_channels(file_lists, channels):
                 raise ValueError("Only two or three channels are supported for saving colocalization images.")
 
         if len(channels) == 2:
-            for label_id in unique_labels_01.keys():
+            for label_id in ROI_masks.keys():
                 csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id]])
         elif len(channels) == 3:
-            for label_id in unique_labels_all.keys():
+            for label_id in ROI_masks.keys():
                 csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id], unique_labels_02[label_id], unique_labels_all[label_id]])
 
         cp.get_default_memory_pool().free_all_blocks()
