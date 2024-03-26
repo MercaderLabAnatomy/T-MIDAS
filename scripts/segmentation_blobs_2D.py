@@ -27,7 +27,7 @@ def process_image(image_path):
         image_labeled = cle.exclude_small_labels(image_labeled, None, LOWER_THRESHOLD)
         image_labeled = cle.exclude_large_labels(image_labeled, None, UPPER_THRESHOLD)
         image_labeled = cle.closing_labels(image_labeled, None, 10.0)
-        image_labeled = nsitk.fill_holes(image_labeled)
+        image_labeled = nsitk.binary_fill_holes(image_labeled)
         #image_S = nsbatwm.split_touching_objects(image_l, 9.0)
         #image_labeled = cle.connected_components_labeling_box(image_S)
         
