@@ -23,11 +23,15 @@ parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude 
 parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
 args = parser.parse_args()
 
+
+
+
 input_folder = args.input
 label_pattern = args.label_pattern
 
 LOWER_THRESHOLD = args.exclude_small
 UPPER_THRESHOLD = args.exclude_large
+
 
 intensity_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
 #mask_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
@@ -49,7 +53,7 @@ for mask_file, intensity_file in zip(mask_files, intensity_files):
     if mask_name.split('-')[1] != intensity_name.split('-')[1]: # 
         raise ValueError("Mask and intensity files do not match.")
 
-def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma):
+def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma, LOWER_THRESHOLD=250.0, UPPER_THRESHOLD=50000.0):
     mask = cp.asarray(tf.imread(mask))
     image = cp.asarray(tf.imread(image))
     image[mask == 0] = 0    
