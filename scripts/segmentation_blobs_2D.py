@@ -8,9 +8,13 @@ import pyclesperanto_prototype as cle
 # Argument Parsing
 parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
 parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
+parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
 args = parser.parse_args()
 
-SIZE_THRESHOLD = 100.0  # square pixels
+
+LOWER_THRESHOLD = args.exclude_small
+UPPER_THRESHOLD = args.exclude_large
 
 def process_image(image_path):
     """Process a single image and return labeled image."""
@@ -19,8 +23,8 @@ def process_image(image_path):
         image_gb = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
         image_to = cle.threshold_otsu(image_gb)
         image_labeled = cle.connected_components_labeling_box(image_to)
-        image_labeled = cle.exclude_small_labels(image_labeled, None, SIZE_THRESHOLD)
-        image_labeled = cle.exclude_large_labels(image_labeled, None, 50000.0)
+        image_labeled = cle.exclude_small_labels(image_labeled, None, LOWER_THRESHOLD)
+        image_labeled = cle.exclude_large_labels(image_labeled, None, UPPER_THRESHOLD)
         #image_S = nsbatwm.split_touching_objects(image_l, 9.0)
         #image_labeled = cle.connected_components_labeling_box(image_S)
         
