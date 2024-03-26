@@ -18,10 +18,15 @@ parser.add_argument("--kernel_size", type=int, required=True, help="Defines the 
 parser.add_argument("--clip_limit", type=float, required=True, help="Defines the contrast limit for localised histogram equalisation.")
 parser.add_argument("--nbins", type=int, required=True, help="Number of bins for the histogram.")
 parser.add_argument("--outline_sigma", type=float, default=1.0, help="Defines the sigma for the gauss-otsu-labeling.")
+parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
+parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
 args = parser.parse_args()
 
 input_folder = args.input
 label_pattern = args.label_pattern
+
+LOWER_THRESHOLD = args.exclude_small
+UPPER_THRESHOLD = args.exclude_large
 
 intensity_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
 #mask_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
@@ -53,6 +58,8 @@ def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma
     binary = image_gol >= threshold
     image_fh = morphology.remove_small_holes(binary, area_threshold=10000)
     label_image = label(image_fh)
+    label_image = cle.exclude_small_labels(label_image, None, LOWER_THRESHOLD)
+    label_image = cle.exclude_large_labels(label_image, None, UPPER_THRESHOLD)
     label_image = cp.asnumpy(label_image)
     return label_image
 

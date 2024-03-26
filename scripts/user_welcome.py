@@ -420,6 +420,8 @@ def image_segmentation():
         nbins = input("\nEnter the number of bins: ")
         clip_limit = input("\nEnter the clip limit: ")
         outline_sigma = input("\nEnter the outline sigma: ")
+        exclude_small = input("\nLower size threshold to exclude small objects: ")
+        exclude_large = input("\nUpper size threshold to exclude large objects: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances_clahe.py',
                                         '--input ' + input_folder +
@@ -428,7 +430,10 @@ def image_segmentation():
                                         ' --kernel_size ' + kernel_size +
                                         ' --nbins ' + nbins +
                                         ' --clip_limit ' + clip_limit +
-                                        ' --outline_sigma ' + outline_sigma)
+                                        ' --outline_sigma ' + outline_sigma +
+                                        ' --exclude_small ' + exclude_small +
+                                        ' --exclude_large ' + exclude_large
+                                        )
         restart_program()
     if choice == "7":
         os.system('clear')
