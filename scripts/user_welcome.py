@@ -545,14 +545,17 @@ def ROI_analysis():
         label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif *_labels.tif): ")
         #add_intensity = input("\nDo you want to quantify average intensity of the last channel in the ROI of the second last channel? (y/n): ")
         output_images = input("\nDo you want to save colocalization images? (y/n): ")
+        get_area = input("\nDo you want to get the area of the ROI of the first channel? (y/n): ")
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_multicolor.py',
                                     '--input ' + input_folder +
                                     ' --channels ' + channels +
                                     ' --label_patterns ' + label_patterns +
-                                    ' --output_images ' + output_images
-                                    #' --add_intensity ' + add_intensity
+                                    ' --output_images ' + output_images +
+                                    ' --get_area ' + get_area
                                     )
+                                    #' --add_intensity ' + add_intensity
+                                    
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()

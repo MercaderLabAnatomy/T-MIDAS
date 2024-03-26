@@ -15,6 +15,8 @@ def parse_arguments():
     parser.add_argument('--channels', nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--label_patterns', nargs='+', type=str, help='Label pattern for each channel. Example: "*_labels.tif *_labels.tif *_labels.tif"')
     parser.add_argument('--output_images', type=str, help='Do you want to save colocalization images? (y/n)')
+    # ask whether user wants to get areas of first channel ROIs
+    parser.add_argument('--get_areas', type=str, help='Do you want to get areas of ROIs in the first channel? (y/n)')
     return parser.parse_args()
 
 args = parse_arguments()
@@ -44,11 +46,9 @@ def coloc_channels(file_lists, channels):
         label_ids = cp.unique(images[channels[0]])
         ROI_masks = {}
 
-        for label_id in label_ids:
-            if label_id != 0:
-                ROI_masks[label_id.item()] = csr_matrix(images[channels[0]] == label_id)
-            else:
-                continue
+
+        ROI_masks[label_id.item()] = csr_matrix(images[channels[0]] == label_id)
+
         
 
 
@@ -93,11 +93,24 @@ def coloc_channels(file_lists, channels):
                 raise ValueError("Only two or three channels are supported for saving colocalization images.")
 
         if len(channels) == 2:
-            for label_id in ROI_masks.keys():
-                csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id]])
+            if args.get_areas.lower() == 'y':
+                for label_id in ROI_masks.keys():
+                    csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id]])
+            elif args.get_areas.lower() == 'n':
+                for label_id in ROI_masks.keys():
+                    csv_rows.append([filename, unique_labels_01[0]])
+            else:
+                raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.") 
+
         elif len(channels) == 3:
-            for label_id in ROI_masks.keys():
-                csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id], unique_labels_02[label_id], unique_labels_all[label_id]])
+            if args.get_areas.lower() == 'y':
+                for label_id in ROI_masks.keys():
+                    csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id], unique_labels_02[label_id], unique_labels_all[label_id]])
+            elif args.get_areas.lower() == 'n':
+                for label_id in ROI_masks.keys():
+                    csv_rows.append([filename, unique_labels_01[0], unique_labels_02[0], unique_labels_all[0]])
+            else:
+                raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.") 
 
         cp.get_default_memory_pool().free_all_blocks()
     
