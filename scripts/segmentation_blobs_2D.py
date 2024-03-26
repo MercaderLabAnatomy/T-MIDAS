@@ -20,6 +20,7 @@ def process_image(image_path):
         image_to = cle.threshold_otsu(image_gb)
         image_labeled = cle.connected_components_labeling_box(image_to)
         image_labeled = cle.exclude_small_labels(image_labeled, None, SIZE_THRESHOLD)
+        image_labeled = cle.exclude_large_labels(image_labeled, None, 50000.0)
         #image_S = nsbatwm.split_touching_objects(image_l, 9.0)
         #image_labeled = cle.connected_components_labeling_box(image_S)
         
