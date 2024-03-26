@@ -119,6 +119,12 @@ def coloc_channels(file_lists, channels):
 
 csv_rows = coloc_channels(file_lists, channels)
 
+# reove duplicate rows
+csv_rows = list(set(map(tuple, csv_rows)))
+
+
+
+
 csv_file = parent_dir + '/colocalization.csv'
 
 # Write results to a CSV file
