@@ -45,7 +45,13 @@ def coloc_channels(file_lists, channels):
         ROI_masks = {}
 
         for label_id in label_ids:
-            ROI_masks[label_id.item()] = csr_matrix(images[channels[0]] == label_id)
+            if label_id != 0:
+                ROI_masks[label_id.item()] = csr_matrix(images[channels[0]] == label_id)
+            else:
+                continue
+        
+
+
         coloc_01 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
         coloc_02 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
         coloc_all = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
