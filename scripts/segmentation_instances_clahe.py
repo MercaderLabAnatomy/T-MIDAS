@@ -27,6 +27,7 @@ args = parser.parse_args()
 
 
 input_folder = args.input
+mask_folder = args.masks
 label_pattern = args.label_pattern
 
 LOWER_THRESHOLD = args.exclude_small
@@ -39,7 +40,7 @@ intensity_files.sort()
 if '*' not in label_pattern:
     label_pattern = '*' + label_pattern
     
-mask_files = glob.glob(os.path.join(input_folder, label_pattern))
+mask_files = glob.glob(os.path.join(mask_folder, label_pattern))
 mask_files.sort()
 
 
