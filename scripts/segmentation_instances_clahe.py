@@ -34,8 +34,11 @@ UPPER_THRESHOLD = args.exclude_large
 
 
 intensity_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
+print(len(intensity_files))
+
 #mask_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
 mask_files = glob.glob(os.path.join(input_folder, label_pattern))
+print(len(mask_files))
 
 mask_files.sort()
 intensity_files.sort()
