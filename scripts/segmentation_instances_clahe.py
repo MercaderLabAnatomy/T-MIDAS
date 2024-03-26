@@ -8,6 +8,7 @@ from cucim.skimage import morphology
 from cucim.skimage.filters import gaussian
 from cucim.skimage.filters.thresholding import threshold_otsu
 from cucim.skimage.measure import label
+import pyclesperanto_prototype as cle
 
 # Argument Parsing
 parser = argparse.ArgumentParser(description="Segments CLAHE images.")
