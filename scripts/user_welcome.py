@@ -9,7 +9,10 @@ import textwrap
 wrapper = textwrap.TextWrapper(width=80)
 date = now.strftime("%Y-%m-%d %H:%M:%S")
 
+import warnings
 
+# Ignore all warnings
+warnings.simplefilter('ignore')
 
 
 # if T-MIDAS is not in /opt, ask user where it is
