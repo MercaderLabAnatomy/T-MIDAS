@@ -66,6 +66,7 @@ def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma
     binary = image_gol >= threshold
     image_fh = morphology.remove_small_holes(binary, area_threshold=10000)
     label_image = label(image_fh)
+    label_image = cle.push(cp.asarray(label_image))
     label_image = cle.exclude_small_labels(label_image, None, LOWER_THRESHOLD)
     label_image = cle.exclude_large_labels(label_image, None, UPPER_THRESHOLD)
     label_image = cp.asnumpy(label_image)
