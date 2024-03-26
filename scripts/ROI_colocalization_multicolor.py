@@ -47,7 +47,8 @@ def coloc_channels(file_lists, channels):
         ROI_masks = {}
 
 
-        ROI_masks[label_id.item()] = csr_matrix(images[channels[0]] == label_id)
+        for label_id in label_ids:
+            ROI_masks[label_id.item()] = csr_matrix(images[channels[0]] == label_id)
 
         
 
