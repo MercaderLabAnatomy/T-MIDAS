@@ -65,7 +65,7 @@ def create_metadata(scene):
 
 def save_image(image,res_meta,path):
     # save the image stack
-    tf.imwrite(path, image,resolution = res_meta[0], metadata=res_meta[1], imagej=True) 
+    tf.imwrite(path, image,resolution = res_meta[0], metadata=res_meta[1], imagej=True, compression='zlib') 
 
 def process_scene(scene,path):
     multichannel_stack = scene_to_stack(scene)
