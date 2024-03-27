@@ -15,7 +15,7 @@
 - [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation-ubuntu)
 
   
-T-MIDAS is built on established image processing libraries such as [scikit-image](https://github.com/scikit-image/scikit-image) or [py-clesperanto](https://github.com/clEsperanto/pyclesperanto_prototype). 
+T-MIDAS is built on established image processing libraries such as [scikit-image](https://github.com/scikit-image/scikit-image), [py-clesperanto](https://github.com/clEsperanto/pyclesperanto_prototype) and [CuPy](https://github.com/cupy/cupy). 
 
 All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS/blob/main/scripts/install_dependencies.py). 
 
