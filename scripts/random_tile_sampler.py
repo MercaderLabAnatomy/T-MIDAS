@@ -11,7 +11,6 @@ def parse_arguments():
     parser.add_argument('--input', type=str, help='Folder containing the .tif images.')
     parser.add_argument('--tile_diagonal', type=int, help='Enter the tile diagonal in pixels.')
     parser.add_argument('--percentage', type=int, help='Enter the percentage of random tiles to be picked from the entire image (20-100).')
-    # add random seed
     parser.add_argument('--random_seed', type=int, help='Enter a random seed for reproducibility (integer): ')
     return parser.parse_args()
 
@@ -74,7 +73,7 @@ def save_tiles(tiles, path, output_dir):
 
 
 
-def process_image(path, tile_diagonal, output_dir, subset_percentage):
+def process_image(path, tile_diagonal, output_dir, subset_percentage, random_seed):
     image = load_tiff_image(path)
     tiles = sample_tiles_random(image, tile_diagonal, subset_percentage, random_seed)
     save_tiles(tiles, path, output_dir)

@@ -143,6 +143,7 @@ def image_preprocessing():
     print("[3] Extract intersecting regions of two images")
     print("[4] Sample Random Image Subregions")
     print("[5] Normalize intensity across single color image (CLAHE)")
+    print("[6] Split color channels of multicolor images")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -203,6 +204,18 @@ def image_preprocessing():
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/deep_tissue_clahe.py',
                                         '--input ' + input_folder + ' --kernel_size ' + kernel_size + ' --clip_limit ' + clip_limit + ' --nbins ' + nbins)
+        restart_program()
+
+    if choice == "6":
+        os.system('clear')
+        print(wrapper.fill("You chose to split the color channels of multicolor images. A popup will appear in a moment asking you to select the folder containing the multicolor images. You will be asked to enter the dimension order of the images and the names of the color channel output folders."))
+        print("\n")
+        input_folder = popup_input("\nEnter the path to the folder containing the multicolor images: ")
+        dim_order = input("\nEnter the dimension order of the images (example: XYZCT): ")
+        channel_names = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/split_color_channels.py',
+                                        '--input ' + input_folder + ' --dim_order ' + dim_order + ' --channel_names ' + channel_names)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
@@ -463,13 +476,13 @@ def image_segmentation():
     #                                     ' --random_seed ' + random_seed
     #                                     )                                       
     #     restart_program()
-    # if choice == "r" or choice == "R":
-    #     welcome_message()
-    # if choice == "x" or choice == "X":
-    #     exit_program()
-    # else:
-    #     print("Invalid choice")
-    #     restart_program()
+    if choice == "r" or choice == "R":
+        welcome_message()
+    if choice == "x" or choice == "X":
+        exit_program()
+    else:
+        print("Invalid choice")
+        restart_program()
 
 
 
