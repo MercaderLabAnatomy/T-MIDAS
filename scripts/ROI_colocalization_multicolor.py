@@ -131,12 +131,24 @@ csv_file = parent_dir + '/colocalization.csv'
 with open(csv_file, 'w', newline='') as file:
     writer = csv.writer(file)
     if len(channels) == 2:
-        writer.writerow(['Filename', f"{channels[0]} ROI", "Area (sq. px)", 
-                         *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
+        if args.get_areas.lower() == 'y':
+            writer.writerow(['Filename', f"{channels[0]} ROI", "Area (sq. px)", 
+                             *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
+        elif args.get_areas.lower() == 'n':
+            writer.writerow(['Filename', f"{channels[0]} ROI", *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
+        else:
+            raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.")
+
     elif len(channels) == 3:
-        writer.writerow(['Filename', f"{channels[0]} ROI", "Area (sq. px)", 
-                         *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
-                         f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
+        if args.get_areas.lower() == 'y':
+            writer.writerow(['Filename', f"{channels[0]} ROI", "Area (sq. px)", 
+                             *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
+                             f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
+        elif args.get_areas.lower() == 'n':
+            writer.writerow(['Filename', f"{channels[0]} ROI", *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
+                             f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
+        else:
+            raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.")
     writer.writerows(csv_rows)
 
 print(f"Colocalization results saved to {csv_file}")
