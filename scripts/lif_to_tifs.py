@@ -1,6 +1,7 @@
 import os
 import argparse
 import numpy as np
+import cupy as cp
 import tifffile as tf
 from readlif.reader import LifFile
 
@@ -30,14 +31,14 @@ def scene_to_stack(scene):
             for t in range(scene.nt):    
                 frame = scene.get_frame(t=t,c=i,z=j)
                 # convert frame to numpy array
-                frame = np.array(frame)
+                frame = cp.array(frame)
                 frames.append(frame)
-        frames = np.array(frames)
+        frames = cp.array(frames)
         array_list.append(frames)
 
-    multichannel_stack = np.array(array_list)
+    multichannel_stack = cp.array(array_list)
     if len(multichannel_stack.shape) < 5:
-         multichannel_stack = np.expand_dims(multichannel_stack, axis=0)
+         multichannel_stack = cp.expand_dims(multichannel_stack, axis=0)
     else:
         pass    
 
@@ -68,7 +69,7 @@ def save_image(image,res_meta,path):
     tf.imwrite(path, image,resolution = res_meta[0], metadata=res_meta[1], imagej=True, compression='zlib') 
 
 def process_scene(scene,path):
-    multichannel_stack = scene_to_stack(scene)
+    multichannel_stack = cp.asnumpy(scene_to_stack(scene))
     
     # create metadata
     res_meta = create_metadata(scene)
