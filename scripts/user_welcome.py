@@ -86,8 +86,10 @@ def logging(env_name, script_name, input_parameters=None, user_name=None):
 
 
 def python_script_environment_setup(env_name, script_name, input_parameters=None):
+    print(f"\nRunning chosen pipeline with the following parameters: {input_parameters}")
     subprocess.run(f"mamba run -n {env_name} python {script_name} {input_parameters}".split(),
                    capture_output=False,text=True,cwd="/mnt/")
+    print("\nDone.")
     logging(env_name, script_name, input_parameters, user_name)
     restart_program()
     
