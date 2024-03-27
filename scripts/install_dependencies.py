@@ -23,6 +23,13 @@ dependencies = [
 ]
 
 
+# first create and activate mamba environment
+subprocess.call(['mamba', 'create', '-y', '-n', 'tmidas-env', 'python=3.8'])
+subprocess.call(['mamba', 'activate', 'tmidas-env'])
+
+
+# proceed with installation of dependencies
+
 subprocess.call(['python', '-m', 'pip', 'install', '-U', 'setuptools', 'pip'])
 
 # Additional installations for specific packages
@@ -40,5 +47,10 @@ for dependency in dependencies:
 # install napari
 
 subprocess.call(['python', '-m', 'pip', 'install', 'napari[all]'])
+
+# deactivate mamba environment
+subprocess.call(['mamba', 'deactivate'])
+
+
 
 print("All dependencies installed successfully.")

@@ -63,13 +63,7 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
 ## Installation (Ubuntu)
 A prerequisite is the [Conda](https://en.wikipedia.org/wiki/Conda_(package_manager)) package and environment management system. 
 The minimal Conda installer [miniforge](https://github.com/conda-forge/miniforge) is preferable for its simplicity and speed. 
-After installing miniforge, you can use `mamba` in the Linux terminal.
-In the terminal, run the following commands to create and activate a conda environment for T-MIDAS:
-```
-mamba create -y -n tmidas-env python=3.9
-mamba activate tmidas-env
-```
-Now you need to download the T-MIDAS repository either using 
+After installing miniforge, you can use `mamba` in the Linux terminal. Now you need to download the T-MIDAS repository either using 
 ```
 git clone https://github.com/MercaderLabAnatomy/T-MIDAS.git
 ```
@@ -77,6 +71,7 @@ or by downloading and unpacking the [ZIP](https://github.com/MercaderLabAnatomy/
 ```
 python ./scripts/install_dependencies.py
 ```
+This will create the T-MIDAS environment and install all its dependencies.
 ## Usage
 To start the text-based user interface in your terminal, change directory to the T-MIDAS folder and type 
 ```
