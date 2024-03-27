@@ -43,7 +43,6 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
     [4] Semantic segmentation (2D; fluorescence or brightfield)
     [5] Semantic segmentation (3D; requires dark background and good SNR)
     [6] Improve instance segmentation using CLAHE
-    [7] Segment multicolor images of cell cultures (2D)
 [3] Regions of Interest (ROI) Analysis
     [1] Heart slices: Generate ROI from [intact+injured] ventricle masks
     [2] Count spots within ROI (2D)

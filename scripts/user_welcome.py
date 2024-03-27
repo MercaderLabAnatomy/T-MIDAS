@@ -338,7 +338,7 @@ def image_segmentation():
     print("[4] Semantic segmentation (2D, fluorescence or brightfield)")
     print("[5] Semantic segmentation (3D; requires dark background and good SNR)")
     print("[6] Improve instance segmentation using CLAHE")
-    print("[7] Segment multicolor images of cell cultures (2D)")
+    # print("[7] Segment multicolor images of cell cultures (2D)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -444,32 +444,32 @@ def image_segmentation():
                                         ' --exclude_large ' + exclude_large
                                         )
         restart_program()
-    if choice == "7":
-        os.system('clear')
-        print('''You chose to segment multicolor images of cell cultures in 2D. \n
-                A popup will appear in a moment asking you to select the folder containing the .tif images.
-                ''')
-        input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        channels = input("\nEnter the names of the channels in the order they appear in the multicolor image (example: DAPI GFP RFP): ")
-        tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
-        percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
-        random_seed = input("\nEnter a random seed for reproducibility (integer): ")
-        python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_multicolor_cell_culture_2D.py',
-                                        '--input ' + input_folder +
-                                        ' --channels ' + channels +
-                                        ' --tile_diagonal ' + tile_diagonal +
-                                        ' --percentage ' + percentage +
-                                        ' --random_seed ' + random_seed
-                                        )                                       
-        restart_program()
-    if choice == "r" or choice == "R":
-        welcome_message()
-    if choice == "x" or choice == "X":
-        exit_program()
-    else:
-        print("Invalid choice")
-        restart_program()
+    # if choice == "7":
+    #     os.system('clear')
+    #     print('''You chose to segment multicolor images of cell cultures in 2D. \n
+    #             A popup will appear in a moment asking you to select the folder containing the .tif images.
+    #             ''')
+    #     input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+    #     channels = input("\nEnter the names of the channels in the order they appear in the multicolor image (example: DAPI GFP RFP): ")
+    #     tile_diagonal = input("\nEnter the tile diagonal in pixels: ")
+    #     percentage = input("\nEnter the percentage of random tiles to be picked from the entire image (20-100): ")
+    #     random_seed = input("\nEnter a random seed for reproducibility (integer): ")
+    #     python_script_environment_setup('tmidas-env', 
+    #                                     os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_multicolor_cell_culture_2D.py',
+    #                                     '--input ' + input_folder +
+    #                                     ' --channels ' + channels +
+    #                                     ' --tile_diagonal ' + tile_diagonal +
+    #                                     ' --percentage ' + percentage +
+    #                                     ' --random_seed ' + random_seed
+    #                                     )                                       
+    #     restart_program()
+    # if choice == "r" or choice == "R":
+    #     welcome_message()
+    # if choice == "x" or choice == "X":
+    #     exit_program()
+    # else:
+    #     print("Invalid choice")
+    #     restart_program()
 
 
 
