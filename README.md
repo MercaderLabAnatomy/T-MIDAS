@@ -4,7 +4,7 @@
 # Tissue Microscopy Image Data Analysis Suite
 
 
-#### T-MIDAS was created with a focus on the reproducibility of batch image processing 
+#### T-MIDAS was created with a focus on the reproducibility of batch image processing and quantification 
 - Batch processing pipelines for image format conversion, preprocessing, segmentation, ROI analysis
 - Executable with a simple, text-based user interface
 - Runs on any low-grade workstation with a single GPU
