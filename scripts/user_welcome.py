@@ -493,6 +493,7 @@ def ROI_analysis():
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
     print("[4] Colocalize ROI in different color channels")
+    print("[5] Get basic ROI properties (size, shape)")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -571,6 +572,17 @@ def ROI_analysis():
                                     )
                                     #' --add_intensity ' + add_intensity
                                     
+        restart_program()
+
+    if choice == "5":
+        os.system('clear')
+        print('''You chose to get basic ROI properties (size, shape). \n
+                A popup will appear in a moment asking you to select the folder containing the label images.
+                ''')
+        input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/get_basic_regionprops.py',
+                                        '--input ' + input_folder)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()

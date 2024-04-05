@@ -49,6 +49,7 @@ All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS
     [2] Count spots within ROI (2D)
     [3] Count blobs within ROI (3D)
     [4] Colocalize ROI in different color channels
+    [5] Get basic ROI properties (size, shape)
 [4] Image Segmentation Validation
     [1] Validate spot counts (2D)
     [2] Validate blob intersections (2D or 3D)   
