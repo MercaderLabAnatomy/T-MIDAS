@@ -34,8 +34,6 @@ def get_regionprops(tif):
         df.loc[i, 'Eccentricity'] = prop.eccentricity
         df.loc[i, 'MajorAxisLength'] = prop.major_axis_length
         df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
-    # empty gpu memory
-    cp.cuda.Device(0).free_memory()
 
     return df
 
