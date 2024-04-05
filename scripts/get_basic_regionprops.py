@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 input_folder = args.input
 
-input_folder = "/mnt/disk2/Joao/apoeb/20230130_apoeb_30dpi_afog/tif_files/predictions_orig_scale"
+
 
 def get_regionprops(tif):
 
