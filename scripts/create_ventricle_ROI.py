@@ -132,7 +132,8 @@ for filename in os.listdir(image_folder):
         ROIs[injury > 0] = 3
         ROIs[fibrous_layer > 0] = 4
         ROIs[border_zone > 0] = 5
-
+        # could maybe use https://github.com/seung-lab/fastremap here
+        
         save_image(ROIs, os.path.join(image_folder, filename.replace(".tif", "_labels.tif")))
 
 
