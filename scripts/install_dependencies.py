@@ -48,6 +48,9 @@ for dependency in dependencies:
 
 subprocess.call(['python', '-m', 'pip', 'install', 'napari[all]'])
 
+# install cellpose
+subprocess.call(['python', '-m', 'pip', 'install', 'cellpose'])
+
 # deactivate mamba environment
 subprocess.call(['mamba', 'deactivate'])
 
