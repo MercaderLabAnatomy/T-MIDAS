@@ -376,12 +376,13 @@ def image_segmentation():
         
     if choice == "2":
         os.system('clear')
-        print('''You chose to segment blobs in 2D. \n
-                A popup will appear in a moment asking you to select the folder containing the single color .tif images.
-                ''')
+        print("\n")
+        print("---------------------------------")
+        print("You chose to segment blobs in 2D.")
+        print("---------------------------------")
+        print("\n")
+        print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the .tif images.'''))
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        # ask if user wants to use classical gauss-otsu or cellpose's cyto3 model
-
         print("\n")
         print(wrapper.fill("You can choose between two methods:"))
         print("\n")
