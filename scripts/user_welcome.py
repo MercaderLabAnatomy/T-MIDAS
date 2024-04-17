@@ -86,6 +86,7 @@ def logging(env_name, script_name, input_parameters=None, user_name=None):
 
 
 def python_script_environment_setup(env_name, script_name, input_parameters=None):
+    print("\n")
     print(f"\nRunning chosen pipeline with the following parameters: {input_parameters}")
     subprocess.run(f"mamba run -n {env_name} python {script_name} {input_parameters}".split(),
                    capture_output=False,text=True,cwd="/mnt/")
@@ -399,9 +400,13 @@ def image_segmentation():
             restart_program()
         if choice == "2":
             print("\nYou chose Cellpose's cyto3 model.")
+            print("\n")
+            print(wrapper.fill("First, you will be asked to enter the typical diameter of the objects that you want to segment. If you want to let Cellpose predict the diameter, enter 0."))
+            print("\n")
             diameter = input("\nEnter the typical diameter of the objects that you want to segment: ")
             print("\n")
             print(wrapper.fill("Next, you will be asked to enter the channels to use. Gray=0, Red=1, Green=2, Blue=3. Single (gray) channel, enter 0 0. For green cytoplasm and blue nuclei, enter 2 3."))
+            print("\n")
             channels = input("\nEnter the channels to use (example: 0 0):")
             python_script_environment_setup('tmidas-env', 
                                             os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_2D_cyto3.py',
