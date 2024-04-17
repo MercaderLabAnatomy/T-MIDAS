@@ -375,17 +375,41 @@ def image_segmentation():
                 A popup will appear in a moment asking you to select the folder containing the single color .tif images.
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        sigma = input("\nEnter the sigma for the gauss-otsu-labeling (example: 1.0): ")
-        exclude_small = input("\nLower size threshold to exclude small objects: ")
-        exclude_large = input("\nUpper size threshold to exclude large objects: ")
-        python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_2D.py',
-                                        '--input ' + input_folder + 
-                                        ' --sigma ' + sigma +
-                                        ' --exclude_small ' + exclude_small + 
-                                        ' --exclude_large ' + exclude_large)
-        restart_program()
-        
+        # ask if user wants to use classical gauss-otsu or cellpose's cyto3 model
+
+        print("\n")
+        print(wrapper.fill("You can choose between two methods:"))
+        print("\n")
+        print(wrapper.fill("[1] Classical gauss-otsu labeling."))
+        print("\n")
+        print(wrapper.fill("[2] Cellpose's (generalist) cyto3 model."))
+        print("\n")
+        choice = input("\nEnter your choice: ")
+        if choice == "1":
+            print("\nYou chose classical gauss-otsu labeling.")
+            sigma = input("\nEnter the sigma for the gauss-otsu-labeling (example: 1.0): ")
+            exclude_small = input("\nLower size threshold to exclude small objects: ")
+            exclude_large = input("\nUpper size threshold to exclude large objects: ")
+            python_script_environment_setup('tmidas-env', 
+                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_2D.py',
+                                            '--input ' + input_folder + 
+                                            ' --sigma ' + sigma +
+                                            ' --exclude_small ' + exclude_small + 
+                                            ' --exclude_large ' + exclude_large)
+            restart_program()
+        if choice == "2":
+            print("\nYou chose Cellpose's cyto3 model.")
+            diameter = input("\nEnter the typical diameter of the objects that you want to segment: ")
+            print("\n")
+            print(wrapper.fill("Next, you will be asked to enter the channels to use. Gray=0, Red=1, Green=2, Blue=3. Single (gray) channel, enter 0 0. For green cytoplasm and blue nuclei, enter 2 3."))
+            channels = input("\nEnter the channels to use (example: 0 0):")
+            python_script_environment_setup('tmidas-env', 
+                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_2D_cyto3.py',
+                                            '--input ' + input_folder +
+                                            ' --diameter ' + diameter +
+                                            ' --channels ' + channels)
+            restart_program()
+
     
     if choice == "3":
         os.system('clear')
