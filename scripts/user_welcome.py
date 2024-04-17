@@ -605,9 +605,13 @@ def ROI_analysis():
 
     if choice == "5":
         os.system('clear')
-        print('''You chose to get basic ROI properties (size, shape). \n
-                A popup will appear in a moment asking you to select the folder containing the label images.
-                ''')
+        print("\n")
+        print("----------------------------------------------------")
+        print("You chose to get basic ROI properties (size, shape).")
+        print("----------------------------------------------------")
+        print("\n")
+        print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
+
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/get_basic_regionprops.py',
@@ -625,8 +629,8 @@ def ROI_analysis():
 def validation():
     os.system('clear')
     print("\nValidation: What would you like to do?\n")
-    print("[1] Validate counts against manual counts (2D label images)")
-    print("[2] Validate segmentation results against manual segmentation results (2D or 3D label images)")
+    print("[1] Validate spot counts (2D)")
+    print("[2] Validate blobs (2D or 3D; global F1 score)")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -634,26 +638,39 @@ def validation():
 
     if choice == "1":
         os.system('clear')
-        print('''You chose to validate predicted counts against manual counts. \n
-                A popup will appear in a moment asking you to select the folder containing the segmentation results.'''
-        )
-        print("\nNames of your manually annotated label images must end with '_ground_truth.tif'.")
+        print("\n")
+        print("--------------------------------------------------------")
+        print("You chose to validate spot counts against manual counts.")
+        print("--------------------------------------------------------")
+        print("\n")
+        print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
         input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
+        label_pattern = input("\nEnter the label pattern of the label images (example: _labels.tif): ")
+        gt_pattern = input("\nEnter the ground truth pattern of the label images (example: _ground_truth.tif): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/counts_validation.py',
-                                        '--input ' + input_folder)
+                                        '--input ' + input_folder +
+                                        ' --label_pattern ' + label_pattern +
+                                        ' --gt_pattern ' + gt_pattern)
         restart_program()
     if choice == "2":
         os.system('clear')
-        print('''You chose to validate segmentation results against manual segmentation results. \n
-                A popup will appear in a moment asking you to select the folder containing the segmentation results.'''
-        )
-        print("\nNames of your manually annotated label images must end with '_ground_truth.tif'.")
+        print("\n")
+        print("---------------------------------------------------------------")
+        print("You chose to validate blobs by calculating the global F1 score.")
+        print("---------------------------------------------------------------")
+        print("\n")
+        print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
+        print("\n")
+        print(wrapper.fill("""The F1 score is the harmonic mean of precision and recall, and it ranges from 0 to 1. A high F1 score indicates that the prediction has both high precision (most blobs are correctly segmented) and high recall (most existing objects are detected)."""))
         input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
-        segmentation_type = input("\nHow many labels do the label images contain? (s = single, m = multiple) ")
+        label_pattern = input("\nEnter the label pattern of the label images (example: _labels.tif): ")
+        gt_pattern = input("\nEnter the ground truth pattern of the label images (example: _ground_truth.tif): ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances_validation.py',
-                                        '--input ' + input_folder + ' --type ' + segmentation_type)
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_validation_f1_score.py',
+                                        '--input ' + input_folder + 
+                                        ' --label_pattern ' + label_pattern +
+                                        ' --gt_pattern ' + gt_pattern)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()

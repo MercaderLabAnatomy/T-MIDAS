@@ -56,7 +56,7 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [5] Get basic ROI properties (size, shape)
 [4] Image Segmentation Validation
     [1] Validate spot counts (2D)
-    [2] Validate blob intersections (2D or 3D)   
+    [2] Validate blobs (2D or 3D; global F1 score)   
 </pre>
 
 ## WIP
