@@ -381,7 +381,7 @@ def image_segmentation():
         print("\n")
         print(wrapper.fill("You can choose between two methods:"))
         print("\n")
-        print(wrapper.fill("[1] Classical gauss-otsu labeling."))
+        print(wrapper.fill("[1] Gauss-Otsu-labeling."))
         print("\n")
         print(wrapper.fill("[2] Cellpose's (generalist) cyto3 model."))
         print("\n")
