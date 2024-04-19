@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description="Get some regionprops of all object
 parser.add_argument("--input", type=str, required=True, help="Path to input images.")
 parser.add_argument("--label_pattern", type=str, default='_labels.tif', help="Pattern to identify label images.")
 # if intensity quantification, ask for the channel. Default is no intensity quantification
-parser.add_argument("--channel", type=int, default=None, help="Channel to quantify intensity.")
+parser.add_argument("--channel", type=int, default=-1, help="Channel to quantify intensity.")
 args = parser.parse_args()
 
 input_folder = args.input
@@ -25,7 +25,7 @@ def get_regionprops(label_img_path, intensity_img_path=None):
     df = pd.DataFrame()
     label_img = cp.asarray(io.imread(label_img_path))
     # Get the regionprops
-    if channel is not None:
+    if channel is not -1:
         intensity_img = cp.asarray(io.imread(intensity_img_path)[:,:,channel])
         props = regionprops(label_img, intensity_img)
         for i, prop in enumerate(props):

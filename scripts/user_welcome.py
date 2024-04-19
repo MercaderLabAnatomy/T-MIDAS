@@ -617,6 +617,9 @@ def ROI_analysis():
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         label_pattern = input("\nEnter the label pattern of the label images (example: _labels.tif): ")
         channel = input("\nOf which channel do you want to quantify intensity? (1st: 0, 2nd: 1, 3rd: 2. Otherwise just press Enter): ")
+        # allow no channel input
+        channel = channel if channel else "-1"
+        
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/get_basic_regionprops.py',
                                         '--input ' + input_folder +
