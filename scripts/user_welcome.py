@@ -615,9 +615,13 @@ def ROI_analysis():
         print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
 
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        label_pattern = input("\nEnter the label pattern of the label images (example: _labels.tif): ")
+        channel = input("\nOf which channel do you want to quantify intensity? (1st: 0, 2nd: 1, 3rd: 2. Otherwise just press Enter): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/get_basic_regionprops.py',
-                                        '--input ' + input_folder)
+                                        '--input ' + input_folder +
+                                        ' --label_pattern ' + label_pattern +
+                                        ' --channel ' + channel)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
@@ -683,7 +687,8 @@ def validation():
         restart_program()
  
 def restart_program():
-    choice = input("\n You are finished. Press Enter to restart the Image Analysis Suite or press x to exit.\n")
+    print("\n")
+    choice = input("\nYou are finished. Press Enter to restart the Image Analysis Suite or press x to exit.\n")
     if choice == "":
         os.system('clear')
         welcome_message()
@@ -693,6 +698,7 @@ def restart_program():
 
 def exit_program():
     os.system('clear')
+    print("\n")
     print("\n Okay, goodbye!\n")
     print("PS: If you need me later, just type 'assistance'.\n")
     exit()

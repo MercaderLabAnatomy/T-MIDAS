@@ -9,45 +9,78 @@ from cucim.skimage.measure import regionprops
 
 
 # Argument Parsing
-parser = argparse.ArgumentParser(description="Segments CLAHE images.")
+parser = argparse.ArgumentParser(description="Get some regionprops of all objects in all tifs in a input_folder.")
 parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+parser.add_argument("--label_pattern", type=str, default='_labels.tif', help="Pattern to identify label images.")
+# if intensity quantification, ask for the channel. Default is no intensity quantification
+parser.add_argument("--channel", type=int, default=None, help="Channel to quantify intensity.")
 args = parser.parse_args()
 
 input_folder = args.input
+label_pattern = args.label_pattern
+channel = args.channel
 
-
-
-def get_regionprops(tif):
-    # Read the tif
-    img = cp.asarray(io.imread(tif))
-
-    # Get the regionprops
-    props = regionprops(img)
-
-    # Get the properties
+def get_regionprops(label_img_path, intensity_img_path=None):
+    
     df = pd.DataFrame()
-    for i, prop in enumerate(props):
-        df.loc[i, 'Filename'] = os.path.basename(tif)
-        df.loc[i, 'Label'] = int(prop.label) 
-        df.loc[i, 'Area'] = prop.area
-        df.loc[i, 'Perimeter'] = prop.perimeter
-        df.loc[i, 'Eccentricity'] = prop.eccentricity
-        df.loc[i, 'MajorAxisLength'] = prop.major_axis_length
-        df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
+    label_img = cp.asarray(io.imread(label_img_path))
+    # Get the regionprops
+    if intensity_img_path is not None:
+        intensity_img = cp.asarray(io.imread(intensity_img_path)[:,:,channel])
+        props = regionprops(label_img, intensity_img)
+        for i, prop in enumerate(props):
+            df.loc[i, 'Filename'] = os.path.basename(label_img_path)
+            df.loc[i, 'Label'] = int(prop.label) 
+            df.loc[i, 'Area'] = prop.area.get()
+            df.loc[i, 'Perimeter'] = prop.perimeter.get()
+            df.loc[i, 'Eccentricity'] = prop.eccentricity
+            df.loc[i, 'MajorAxisLength'] = prop.major_axis_length
+            df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
+            df.loc[i, 'MeanIntensity'] =  prop.intensity_mean.get()
+        
+    else:
+        props = regionprops(label_img)
+        for i, prop in enumerate(props):
+            df.loc[i, 'Filename'] = os.path.basename(label_img_path)
+            df.loc[i, 'Label'] = int(prop.label) 
+            df.loc[i, 'Area'] = prop.area.get()
+            df.loc[i, 'Perimeter'] = prop.perimeter.get()
+            df.loc[i, 'Eccentricity'] = prop.eccentricity
+            df.loc[i, 'MajorAxisLength'] = prop.major_axis_length
+            df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
 
     return df
 
 def main():
-    # Get the tifs
-    tifs = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('_labels.tif')]
+    # Get the label images
+    label_imgs = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
+    label_imgs = sorted(label_imgs)
+    # get intensities
+    intensity_imgs = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith(label_pattern)]
+    intensity_imgs = sorted(intensity_imgs)
+    
+    # check if the number of label images is the same as the number of intensity images
+    if len(label_imgs) != len(intensity_imgs):
+        raise ValueError('The number of label images is not the same as the number of intensity images.')
+    
+    # Create an empty dataframe to store the regionprops
+    regionprops_df = pd.DataFrame()
+    
+    for label_img_path, intensity_img_path in zip(label_imgs, intensity_imgs):
 
-    # Get the regionprops
-    df = pd.DataFrame()
-    for tif in tifs:
-        df = pd.concat([df, get_regionprops(tif)]) 
-
-    # Save the data in parent folder
-    df.to_csv(os.path.join(input_folder, 'regionprops.csv'), index=False)
+        # Get the regionprops
+        regionprops = get_regionprops(label_img_path, intensity_img_path)
+        
+        # Add the regionprops to the dataframe by concatenating
+        regionprops_df = pd.concat([regionprops_df, regionprops], ignore_index=True)
+        
+        
+        
+    # Save the regionprops to a csv file
+    regionprops_df.to_csv(os.path.join(input_folder, 'regionprops.csv'), index=False)
+    
 
 if __name__ == '__main__':
     main()
+
+
