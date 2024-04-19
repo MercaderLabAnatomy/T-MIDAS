@@ -25,7 +25,7 @@ def get_regionprops(label_img_path, intensity_img_path=None):
     df = pd.DataFrame()
     label_img = cp.asarray(io.imread(label_img_path))
     # Get the regionprops
-    if intensity_img_path is not None:
+    if channel is not None:
         intensity_img = cp.asarray(io.imread(intensity_img_path)[:,:,channel])
         props = regionprops(label_img, intensity_img)
         for i, prop in enumerate(props):
