@@ -11,6 +11,7 @@ import os
 from skimage.io import imread
 from cellpose import models, core
 from tifffile import imwrite
+from tqdm import tqdm
 
 use_GPU = core.use_gpu()
 
@@ -39,7 +40,7 @@ model = models.Cellpose(gpu=use_GPU, model_type='cyto3')
 
 def segment_images(input_folder, output_folder, model, channels, diameter, flow_threshold):
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
-    for input_file in input_files:
+    for input_file in tqdm(input_files, total = len(input_files), desc="Processing images"):
         img = imread(os.path.join(input_folder,input_file))
         masks,flows, styles, diams = model.eval(img, diameter=diameter, 
                                                 flow_threshold=flow_threshold, 
@@ -48,6 +49,7 @@ def segment_images(input_folder, output_folder, model, channels, diameter, flow_
                              input_file.replace(".tif", "_labels.tif")), 
                              masks.astype(np.uint32), 
                              compression='zlib')
+
 
 
 # execute segmentation

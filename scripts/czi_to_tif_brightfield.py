@@ -3,6 +3,7 @@ import argparse
 from aicsimageio import AICSImage
 import cv2
 from PIL import Image
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Process brightfield czi files.')
@@ -34,6 +35,6 @@ def czi_scenes_to_tifs(filepath):
 
 #czi_scenes_to_tifs(filepath)
 
-for file in os.listdir(folder):
+for file in tqdm(os.listdir(folder), total = len(os.listdir(folder)), desc="Processing images"):
     if file.endswith(".czi"):
         czi_scenes_to_tifs(os.path.join(folder, file))

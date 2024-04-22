@@ -9,6 +9,7 @@ import argparse
 import tifffile as tf
 import pyclesperanto_prototype as cle
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
+from tqdm import tqdm
 # ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -66,7 +67,7 @@ def ndpi_2_tif(ndpi_files):
     return tiff_image 
 
 
-for ndpis_file in ndpis_files:
+for ndpis_file in tqdm(ndpis_files, total = len(ndpis_files), desc="Processing images"):
 
     ndpi_files = get_ndpi_filenames(os.path.join(input_folder, ndpis_file))
 

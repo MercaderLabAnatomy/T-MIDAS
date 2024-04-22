@@ -3,6 +3,7 @@ import random
 import argparse
 import tifffile as tf
 import os
+from tqdm import tqdm
 
 
 
@@ -82,7 +83,7 @@ def process_image(path, tile_diagonal, output_dir, subset_percentage, random_see
 def main():
 
     output_dir = os.path.join(args.input, 'random_tiles')
-    for filename in os.listdir(args.input):
+    for filename in tqdm(os.listdir(args.input), total=len(os.listdir(args.input)), desc="Processing images"):
         if filename.endswith(".tif"):
             path = os.path.join(args.input, filename)
             process_image(path, args.tile_diagonal, output_dir, args.percentage, args.random_seed)

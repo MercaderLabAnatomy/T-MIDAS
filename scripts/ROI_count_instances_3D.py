@@ -19,6 +19,7 @@ warnings.filterwarnings("ignore")
 import SimpleITK as sitk
 from skimage.measure import regionprops
 import pyclesperanto_prototype as cle
+from tqdm import tqdm
 
 
 
@@ -82,7 +83,7 @@ classifier = apoc.ObjectClassifier(cl_filename)
 results_list = []
 
 # Iterate over files in blob_folder
-for blob_image_filename in os.listdir(blob_folder):
+for blob_image_filename in tqdm(os.listdir(blob_folder), total=len(os.listdir(blob_folder)), desc="Processing images"):
     if blob_image_filename.endswith("blob_labels.tif"):
         # Load blob_image
 

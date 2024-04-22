@@ -6,6 +6,7 @@ import pandas as pd
 from skimage import io
 import cupy as cp
 from cucim.skimage.measure import regionprops
+from tqdm import tqdm
 
 
 def parse_args():
@@ -68,7 +69,7 @@ def main():
     # Create an empty dataframe to store the regionprops
     regionprops_df = pd.DataFrame()
     
-    for label_img_path, intensity_img_path in zip(label_imgs, intensity_imgs):
+    for label_img_path, intensity_img_path in tqdm(zip(label_imgs, intensity_imgs), total=len(label_imgs), desc="Processing images"):
 
         # Get the regionprops
         regionprops = get_regionprops(label_img_path, intensity_img_path)

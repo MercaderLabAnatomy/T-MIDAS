@@ -4,6 +4,7 @@ import numpy as np
 import cupy as cp
 import tifffile as tf
 from readlif.reader import LifFile
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Process a lif file.')
@@ -82,7 +83,7 @@ def process_scene(scene,path):
     save_image(multichannel_stack,res_meta,path.split(".")[0] +"_{scene}.tif".format(scene=position))
     print("Processed {scene}".format(scene=position))
 
-for lif_file in lif_files:
+for lif_file in tqdm(lif_files, total = len(lif_files), desc="Processing lif files"):
     
     if lif_file:
         

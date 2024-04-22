@@ -10,6 +10,7 @@ import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 import pyclesperanto_prototype as cle  # version 0.24.2
 from skimage.measure import regionprops
 import warnings
+from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
@@ -112,7 +113,7 @@ def save_image(image, filename):
 
 image_folder = os.path.join(args.input)
 
-for filename in os.listdir(image_folder):
+for filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):
     if not filename.endswith("_labels.tif"):
         continue
     
@@ -139,4 +140,4 @@ for filename in os.listdir(image_folder):
         save_image(ROIs, os.path.join(image_folder, filename.replace(".tif", "_labels.tif")))
 
 
-print("Done.")
+

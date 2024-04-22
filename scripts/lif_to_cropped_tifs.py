@@ -5,7 +5,7 @@ import os
 import pyclesperanto_prototype as cle
 import tifffile as tf
 import argparse
-
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Process a lif file.')
@@ -195,7 +195,7 @@ def process_scene(scene,template_channel,path):
     print("Processed {scene}".format(scene=position))
 
 
-for lif_file in lif_files:
+for lif_file in tqdm(lif_files, total = len(lif_files), desc="Processing lif files"):
     
     if lif_file:
         path = os.path.join(input_folder, lif_file)

@@ -12,6 +12,7 @@ import pyclesperanto_prototype as cle
 import napari_segment_blobs_and_things_with_membranes as nsbatwm
 import re
 from skimage.measure import regionprops
+from tqdm import tqdm
 # ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -106,8 +107,8 @@ border_zone_filepaths = [os.path.join(args.input, filename) for filename in bord
 
 
 # iterate over length of list
-for i in range(len(original_filepaths)):
-    print(f"Processing image: {original_filepaths[i]}")
+for i in tqdm(range(len(original_filepaths)), total = len(original_filepaths), desc="Processing images"):
+    #print(f"Processing image: {original_filepaths[i]}")
     ROI2CSV(original_filepaths[i], instance_filepaths[i], ventricle_wo_injury_filepaths[i], injury_filepaths[i], epicardium_filepaths[i], border_zone_filepaths[i])
 
 

@@ -13,6 +13,7 @@ from skimage.io import imread, imsave
 import pandas as pd
 import apoc
 import napari_segment_blobs_and_things_with_membranes as nsbatwm 
+from tqdm import tqdm
 # ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -69,14 +70,14 @@ args = parse_args()
 image_folder = args.image_folder
 
 
-for image_filename in os.listdir(image_folder):
+for image_filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):
     if image_filename.endswith(".tif") or image_filename.endswith(".tiff"):
         filepath = os.path.join(image_folder, image_filename)
-        print(f"Segmenting {filepath}")
+        #print(f"Segmenting {filepath}")
         tissue_image = load_image(filepath,tissue_channel)
-        print(tissue_image.shape)
+        #print(tissue_image.shape)
         tissue_labels = get_3D_labels_RandomForestClassifier(tissue_image, label_threshold)
-        print(tissue_labels.shape)
+        #print(tissue_labels.shape)
         napari_io.imsave(os.path.join(image_folder,image_filename.split(".")[0] + "_tissue.tif"), tissue_labels)
                 
 

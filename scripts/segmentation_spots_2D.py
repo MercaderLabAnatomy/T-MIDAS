@@ -4,6 +4,7 @@ import numpy as np
 from skimage.io import imread
 from tifffile import imwrite
 import pyclesperanto_prototype as cle
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
@@ -57,10 +58,10 @@ def save_image(image, filename):
 def main():
     """Main function to process all images in the input directory."""
     image_folder = os.path.join(args.input)
-    for filename in os.listdir(image_folder):
+    for filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):
         if not filename.endswith(".tif"):
             continue
-        print(f"Processing image: {filename}")
+        #print(f"Processing image: {filename}")
         labeled_image = process_image(os.path.join(image_folder, filename))
         if labeled_image is not None:
             output_path = os.path.join(image_folder, f"{filename[:-4]}_labels.tif")

@@ -34,6 +34,7 @@ import pyclesperanto_prototype as cle
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 import napari_segment_blobs_and_things_with_membranes as nsbatwm  # version 0.3.7
 from skimage.measure import regionprops
+from tqdm import tqdm
 # ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -113,7 +114,7 @@ for ndpis_file in ndpis_files:
     rois = get_rois(CROPPING_TEMPLATE_CHANNEL)
     number_of_rois = len(rois)
 
-    for ndpi_file in ndpi_files:
+    for ndpi_file in tqdm(ndpi_files, total = len(ndpi_files), desc="Processing images"):
         if ndpi_file.endswith(".ndpi"):
 
             output_filename = os.path.join(output_dir, os.path.splitext(os.path.basename(ndpi_file))[0])

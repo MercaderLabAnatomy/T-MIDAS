@@ -9,6 +9,7 @@ from cucim.skimage.filters import gaussian
 from cucim.skimage.filters.thresholding import threshold_otsu
 from cucim.skimage.measure import label
 import pyclesperanto_prototype as cle
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Segments CLAHE images.")
@@ -75,17 +76,12 @@ def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma
     label_image = cp.asnumpy(label_image)
     return label_image
 
-for idx, (mask_file, intensity_file) in enumerate(zip(mask_files, intensity_files), start=1):
-    print(f"Processing {idx} of {len(intensity_files)}")
+for idx, (mask_file, intensity_file) in enumerate(tqdm(zip(mask_files, intensity_files), 
+                                                       total = len(intensity_files), 
+                                                       desc="Processing images"), start=1):
+    #print(f"Processing {idx} of {len(intensity_files)}")
     image_gol = intersect_clahe_go(mask_file, intensity_file, args.kernel_size, args.clip_limit, args.nbins, args.outline_sigma)
     output_path = os.path.join(input_folder, f"{os.path.basename(intensity_file)[:-4]}_reseg_clahe.tif")
     tf.imwrite(output_path, image_gol, compression='zlib')
-
-
-
-
-
-
-
 
 

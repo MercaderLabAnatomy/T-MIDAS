@@ -2,7 +2,7 @@ import os
 from skimage import exposure, util
 import tifffile as tf
 import argparse
-
+from tqdm import tqdm
 
 
 def parse_args():
@@ -18,7 +18,7 @@ args = parse_args()
 def main():
     """Main function to process all images in the input directory."""
     image_folder = os.path.join(args.input)
-    for filename in os.listdir(image_folder):
+    for filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):
         if not filename.endswith(".tif"):
             continue
         # also exclude images that end with _labels.tif

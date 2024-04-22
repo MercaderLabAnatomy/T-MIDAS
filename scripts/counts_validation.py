@@ -11,6 +11,7 @@ from skimage.io import imread
 import pandas as pd
 from cucim.skimage.measure import regionprops as regionprops_gpu
 import cupy as cp
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
@@ -82,7 +83,7 @@ def validation_gpu(ground_truth_file, prediction_file):
 
     results.append([sample, num_gt_objects, num_pred_objects, num_gt_inside_pred])
 
-for idx, i in enumerate(ground_truth_files):
+for idx, i in enumerate(tqdm(ground_truth_files, total = len(ground_truth_files), desc="Processing images")):
     print(f"Processing {idx+1} of {len(ground_truth_files)}")
 
     if cp.cuda.is_available():

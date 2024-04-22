@@ -27,6 +27,7 @@ from PIL import Image, ImageOps
 import argparse
 import napari_segment_blobs_and_things_with_membranes as nsbatwm  # version 0.3.7
 from skimage.measure import regionprops
+from tqdm import tqdm
 # ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -81,7 +82,7 @@ def get_rois(slide):
     return rois
 
 
-for ndpi_file in ndpi_files:
+for ndpi_file in tqdm(ndpi_files, total = len(ndpi_files), desc="Processing images"):
 
     output_filename = os.path.join(output_dir, os.path.splitext(os.path.basename(ndpi_file))[0])
     slide = openslide.OpenSlide(os.path.join(input_folder, ndpi_file))

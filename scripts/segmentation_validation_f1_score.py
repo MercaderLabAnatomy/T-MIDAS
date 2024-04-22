@@ -4,6 +4,7 @@ import cupy as cp
 from skimage.io import imread
 import pandas as pd
 from sklearn.metrics import f1_score
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
@@ -35,7 +36,7 @@ if len(predictions) != len(ground_truths):
 results = []
 
 
-for i in range(len(predictions)):
+for i in tqdm(range(len(predictions)), total=len(predictions), desc="Processing images"):
     prediction = imread(predictions[i])
     ground_truth = imread(ground_truths[i])
     f1 = f1_score(cp.ravel(ground_truth), cp.ravel(prediction), average='micro') 

@@ -9,6 +9,7 @@ from skimage.color import rgb2gray
 import tifffile as tf
 import pyclesperanto_prototype as cle
 import napari_segment_blobs_and_things_with_membranes as nsbatwm
+from tqdm import tqdm
 # ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -61,10 +62,10 @@ def process_image(image_path, image_type):
 
 
 
-for filename in os.listdir(image_folder):
+for filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):
     if not filename.endswith(".tif"):
         continue
-    print(f"Processing image: {filename}")
+    #print(f"Processing image: {filename}")
     labeled_image = process_image(os.path.join(image_folder, filename), image_type)
     if labeled_image is not None:
         tf.imwrite(os.path.join(image_folder, f"{filename[:-4]}_semantic_seg.tif"), labeled_image, compression='zlib')

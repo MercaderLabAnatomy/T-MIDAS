@@ -34,7 +34,7 @@ def split_color_channels(folder, dim_order, channel_names):
     # get the list of files in the folder
     files = [file for file in os.listdir(folder) if file.endswith('.tif')]
     # loop through the files
-    for file in tqdm(files):
+    for file in tqdm(files, total=len(files), desc="Processing images"):
         # load the image
         img = imread(os.path.join(folder, file))
         # convert the numpy array to a cupy array

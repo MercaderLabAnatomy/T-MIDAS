@@ -2,7 +2,7 @@ import os
 from tifffile import imread, imwrite
 import argparse
 import cupy as cp
-
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Blob-based crops.')
@@ -33,13 +33,13 @@ def intersection_gpu(mask, original):
 
 
 
-for idx, filename in enumerate(filenames):
+for idx, filename in enumerate(tqdm(filenames, total = len(filenames), desc="Processing images")):
     # print processing file  of total files
     mask = os.path.join(args.input, 
                                filename + args.maskfiles)
     original = os.path.join(args.input, 
                                    filename + args.intersectfiles)
-    print('Processing image set {} / {}'.format(idx+1, len(filenames)))
+    #print('Processing image set {} / {}'.format(idx+1, len(filenames)))
     
     if cp.cuda.is_available():
         result = intersection_gpu(mask, original)

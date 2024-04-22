@@ -7,6 +7,7 @@ from skimage.io import imread
 import pandas as pd
 import apoc
 import napari_segment_blobs_and_things_with_membranes as nsbatwm 
+from tqdm import tqdm
 # ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -72,14 +73,14 @@ nuclei_channel = args.nuclei_channel
 image_folder = args.image_folder
 
 
-for image_filename in os.listdir(image_folder):
+for image_filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):
     if image_filename.endswith(".tif") or image_filename.endswith(".tiff"):
         filepath = os.path.join(image_folder, image_filename)
-        print(f"Segmenting {filepath}")
+        #print(f"Segmenting {filepath}")
         nuclei_image = load_image(filepath,nuclei_channel)
-        print(nuclei_image.shape)
+        #print(nuclei_image.shape)
         nuclei_labels = get_3D_labels_otsu(nuclei_image, label_threshold)
-        print(nuclei_labels.shape)
+        #print(nuclei_labels.shape)
         napari_io.imsave(os.path.join(image_folder,image_filename.split(".")[0] + "_nuclei_intensities.tif"), nuclei_image)
         napari_io.imsave(os.path.join(image_folder,image_filename.split(".")[0] + "_nuclei_labels.tif"), nuclei_labels)
  

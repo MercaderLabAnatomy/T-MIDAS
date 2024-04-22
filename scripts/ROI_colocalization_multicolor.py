@@ -8,6 +8,7 @@ import cupy as cp
 from cupyx.scipy.sparse import csr_matrix, coo_matrix
 from cucim.skimage.measure import label, regionprops
 from tifffile import imwrite
+from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Script for colocalization analysis of images.')
@@ -40,7 +41,7 @@ print("Number of label files in each channel:")
 def coloc_channels(file_lists, channels):
     csv_rows = []
     
-    for i in range(len(file_lists[channels[0]])):
+    for i in tqdm(range(len(file_lists[channels[0]])), total=len(file_lists[channels[0]]), desc="Processing images"):
         images = {channel: cp.asarray(io.imread(file_lists[channel][i])) for channel in channels}
         
         label_ids = cp.unique(images[channels[0]])
