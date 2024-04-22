@@ -89,7 +89,7 @@ def python_script_environment_setup(env_name, script_name, input_parameters=None
     print("\n")
     print(f"\nRunning chosen pipeline with the following parameters: \n{input_parameters}")
     print("\n")
-    subprocess.run(f"mamba run -n {env_name} python {script_name} {input_parameters}".split(),
+    subprocess.run(f"mamba run --live-stream -n {env_name} python {script_name} {input_parameters}".split(),
                    capture_output=False,text=True,cwd="/mnt/")
     print("\nDone.")
     logging(env_name, script_name, input_parameters, user_name)
@@ -146,6 +146,7 @@ def image_preprocessing():
     print("[4] Sample Random Image Subregions")
     print("[5] Normalize intensity across single color image (CLAHE)")
     print("[6] Split color channels of multicolor images")
+    print("[7] Merge color channels")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -219,6 +220,18 @@ def image_preprocessing():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/split_color_channels.py',
                                         '--input ' + input_folder + ' --dim_order ' + dim_order + ' --channel_names ' + channel_names)
         restart_program()
+        
+    if choice == "7":
+        os.system('clear')
+        print(wrapper.fill("You chose to merge the color channels of multicolor images. A popup will appear in a moment asking you to select the folder containing the color channel folders. You will be asked to enter the names of the color channels."))
+        print("\n")
+        input_folder = popup_input("\nEnter the path to the folder containing the color channel folders: ")
+        channel_names = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/merge_color_channels.py',
+                                        '--input ' + input_folder + ' --channels ' + channel_names)
+        restart_program()
+    
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":

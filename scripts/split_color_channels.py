@@ -12,12 +12,14 @@ from tqdm import tqdm
 from tifffile import imwrite
 
 
-parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
-parser.add_argument('--input', type=str, help='Path to the folder containing the multicolor images.')
-parser.add_argument('--dim_order', type=str, help='Dimension order of the images (example: XYZCT).')
-parser.add_argument('--channel_names', type=str, nargs='+', help='Names of the color channels (example: FITC DAPI TRITC).')
-                    
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
+    parser.add_argument('--input', type=str, help='Path to the folder containing the multicolor images.')
+    parser.add_argument('--dim_order', type=str, help='Dimension order of the images (example: XYZCT).')
+    parser.add_argument('--channel_names', type=str, nargs='+', help='Names of the color channels (example: FITC DAPI TRITC).')
+    return parser.parse_args()
+
+args = parse_args()
 
 
 folder = args.input

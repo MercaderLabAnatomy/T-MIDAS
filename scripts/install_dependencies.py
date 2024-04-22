@@ -26,6 +26,8 @@ dependencies = [
 # first create and activate mamba environment
 subprocess.call(['mamba', 'create', '-y', '-n', 'tmidas-env', 'python=3.8'])
 subprocess.call(['mamba', 'activate', 'tmidas-env'])
+# init mamba environment
+subprocess.call(['mamba', 'init'])
 
 
 # proceed with installation of dependencies

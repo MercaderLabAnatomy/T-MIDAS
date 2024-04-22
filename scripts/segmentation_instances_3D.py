@@ -55,11 +55,13 @@ def get_3D_labels_threshold(image, label_threshold):
 label_threshold = 500.0
 SIGMA = 2.0 # dilation of UEPs, cf. https://imagej.nih.gov/ij/docs/menus/process.html#watershed
 
-# Argument parsing
-parser = argparse.ArgumentParser(description='Get 3D nuclei segmentation')
-parser.add_argument('--image_folder', type=str, help='Path to folder containing TIF files')
-parser.add_argument('--nuclei_channel', type=int, help='Channel to use as nuclei channel')
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Get 3D nuclei segmentation')
+    parser.add_argument('--image_folder', type=str, help='Path to folder containing TIF files')
+    parser.add_argument('--nuclei_channel', type=int, help='Channel to use as nuclei channel')
+    return parser.parse_args()
+
+args = parse_args()
 
 
 nuclei_channel = args.nuclei_channel

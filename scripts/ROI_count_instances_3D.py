@@ -37,14 +37,16 @@ def get_volume(ROI):
     volume_um3 = volume * (pixel_width * pixel_height * pixel_depth)
     return volume_um3
 
-# Argument parsing
-parser = argparse.ArgumentParser(description='Get blob inside ROI')
-parser.add_argument('--input_folder', type=str, help='Path to folder containing blob and ROI label image subfolders')
-# ask for names of the subfolders
-parser.add_argument('--blob_folder', type=str, help='Name of the folder containing blob label images')
-parser.add_argument('--ROI_folder', type=str, help='Name of the folder containing ROI label images')
-#parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Get blob inside ROI')
+    parser.add_argument('--input_folder', type=str, help='Path to folder containing blob and ROI label image subfolders')
+    # ask for names of the subfolders
+    parser.add_argument('--blob_folder', type=str, help='Name of the folder containing blob label images')
+    parser.add_argument('--ROI_folder', type=str, help='Name of the folder containing ROI label images')
+    #parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
+    return parser.parse_args()
+
+args = parse_args()
 
 
 

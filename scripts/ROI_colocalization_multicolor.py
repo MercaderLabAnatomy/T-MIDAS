@@ -9,7 +9,7 @@ from cupyx.scipy.sparse import csr_matrix, coo_matrix
 from cucim.skimage.measure import label, regionprops
 from tifffile import imwrite
 
-def parse_arguments():
+def parse_args():
     parser = argparse.ArgumentParser(description='Script for colocalization analysis of images.')
     parser.add_argument('--input', type=str, help='Path to the parent folder of the channel folders.')
     parser.add_argument('--channels', nargs='+', type=str, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
@@ -19,7 +19,7 @@ def parse_arguments():
     parser.add_argument('--get_areas', type=str, help='Do you want to get areas of ROIs in the first channel? (y/n)')
     return parser.parse_args()
 
-args = parse_arguments()
+args = parse_args()
 
 
 parent_dir = args.input + '/'

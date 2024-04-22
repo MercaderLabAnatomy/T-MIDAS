@@ -5,11 +5,13 @@ from skimage.io import imread
 from tifffile import imwrite
 import pyclesperanto_prototype as cle
 
-# Argument Parsing
-parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
-parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-parser.add_argument("--bg", type=int, choices=[1, 2], required=True, help="Background type (1 for dark or 2 for tissue).")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
+    parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+    parser.add_argument("--bg", type=int, choices=[1, 2], required=True, help="Background type (1 for dark or 2 for tissue).")
+    return parser.parse_args()
+
+args = parse_args()
 
 SIZE_THRESHOLD = 100.0  # square pixels
 

@@ -14,14 +14,16 @@ from tifffile import imwrite
 
 use_GPU = core.use_gpu()
 
-# Argument Parsing
-parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
-parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-# add diameter
-parser.add_argument("--diameter", type=float, default=40.0, help="Diameter of objects.")
-# add channels
-parser.add_argument("--channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
+    parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+    # add diameter
+    parser.add_argument("--diameter", type=float, default=40.0, help="Diameter of objects.")
+    # add channels
+    parser.add_argument("--channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
+    return parser.parse_args()
+
+args = parse_args()
 
 channels = args.channels
 input_folder = args.input

@@ -6,13 +6,15 @@ from tifffile import imwrite
 import pyclesperanto_prototype as cle
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 
-# Argument Parsing
-parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
-parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
-parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
-parser.add_argument("--sigma", type=float, default=1.0, help="Defines the sigma for the gauss-otsu-labeling.")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
+    parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+    parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
+    parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
+    parser.add_argument("--sigma", type=float, default=1.0, help="Defines the sigma for the gauss-otsu-labeling.")
+    return parser.parse_args()
+
+args = parse_args()
 
 
 LOWER_THRESHOLD = args.exclude_small

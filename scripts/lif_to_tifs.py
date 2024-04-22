@@ -5,10 +5,12 @@ import cupy as cp
 import tifffile as tf
 from readlif.reader import LifFile
 
-# parse arguments
-parser = argparse.ArgumentParser(description='Process a lif file.')
-parser.add_argument('--input', type=str, help='path to the lif file')
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Process a lif file.')
+    parser.add_argument('--input', type=str, help='path to the lif file')
+    return parser.parse_args()
+
+args = parse_args()
 
 input_folder = args.input
 

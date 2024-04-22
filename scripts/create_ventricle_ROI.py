@@ -14,13 +14,15 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Input: Folder with label images containing masks of intact myocardium and injury regions.")
+    parser.add_argument("--input", type=str, required=True, help="Path to input label images.")
+    parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
+    parser.add_argument("--intact_label_id", type=int, required=True, help="Label id of the intact myocardium.")
+    parser.add_argument("--injury_label_id", type=int, required=True, help="Label id of the injury region.")
+    return parser.parse_args()
 
-parser = argparse.ArgumentParser(description="Input: Folder with label images containing masks of intact myocardium and injury regions.")
-parser.add_argument("--input", type=str, required=True, help="Path to input label images.")
-parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
-parser.add_argument("--intact_label_id", type=int, required=True, help="Label id of the intact myocardium.")
-parser.add_argument("--injury_label_id", type=int, required=True, help="Label id of the injury region.")
-args = parser.parse_args()
+args = parse_args()
 
 PIXEL_RESOLUTION = args.pixel_resolution
 

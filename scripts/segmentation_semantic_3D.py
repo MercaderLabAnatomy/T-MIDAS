@@ -55,11 +55,13 @@ label_threshold = 100000.0
 
 SIGMA = 2.0 # dilation of UEPs, cf. https://imagej.nih.gov/ij/docs/menus/process.html#watershed
 
-# Argument parsing
-parser = argparse.ArgumentParser(description='Get 3D tissue segmentation')
-parser.add_argument('--image_folder', type=str, help='Path to folder containing TIF files')
-parser.add_argument('--tissue_channel', type=int, help='Channel to use as tissue channel')
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Get 3D tissue segmentation')
+    parser.add_argument('--image_folder', type=str, help='Path to folder containing TIF files')
+    parser.add_argument('--tissue_channel', type=int, help='Channel to use as tissue channel')
+    return parser.parse_args()
+
+args = parse_args()
 
 
 

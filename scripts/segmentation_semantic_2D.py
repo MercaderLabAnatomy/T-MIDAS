@@ -18,11 +18,14 @@ import cv2
 import apoc
 
 
-# Argument Parsing
-parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
-parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-parser.add_argument("--image_type", type=str, required=True, help="Brightfield images? (y/n)")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
+    parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+    parser.add_argument("--image_type", type=str, required=True, help="Brightfield images? (y/n)")
+    return parser.parse_args()
+
+args = parse_args()
+    
 image_folder = args.input
 image_type = args.image_type
 

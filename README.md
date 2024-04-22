@@ -39,6 +39,7 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [4] Sample Random Image Subregions
     [5] Normalize intensity across single color image (CLAHE)
     [6] Split color channels
+    [7] Merge color channels
 [2] Image Segmentation
     [1] Segment bright spots (2D)
     [2] Segment blobs (2D)

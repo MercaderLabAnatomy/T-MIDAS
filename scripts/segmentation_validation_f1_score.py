@@ -5,12 +5,16 @@ from skimage.io import imread
 import pandas as pd
 from sklearn.metrics import f1_score
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
+    parser.add_argument('--input', type=str, help='Path to the folder containing the segmentation results.')
+    parser.add_argument('--label_pattern', type=str, help='Label image suffix. Example: "_labels.tif"')
+    parser.add_argument('--gt_pattern', type=str, help='Ground truth label image suffix. Example: "_ground_truth.tif"')
+    return parser.parse_args()
 
-parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
-parser.add_argument('--input', type=str, help='Path to the folder containing the segmentation results.')
-parser.add_argument('--label_pattern', type=str, help='Label image suffix. Example: "_labels.tif"')
-parser.add_argument('--gt_pattern', type=str, help='Ground truth label image suffix. Example: "_ground_truth.tif"')
-args = parser.parse_args()
+args = parse_args()
+    
+    
 
 input_folder = args.input
 label_pattern = args.label_pattern

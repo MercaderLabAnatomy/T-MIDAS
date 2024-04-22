@@ -4,11 +4,13 @@ from aicsimageio import AICSImage
 import cv2
 from PIL import Image
 
-# parse arguments
-parser = argparse.ArgumentParser(description='Process brightfield czi files.')
-parser.add_argument('--input', type=str, help='path to the czi files')
-parser.add_argument('--scale_factor', type=float, help='resize output tif', default=0.5)
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Process brightfield czi files.')
+    parser.add_argument('--input', type=str, help='path to the czi files')
+    parser.add_argument('--scale_factor', type=float, help='resize output tif', default=0.5)
+    return parser.parse_args()
+
+args = parse_args()
 
 folder = args.input
 scale_factor = args.scale_factor

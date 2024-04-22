@@ -5,13 +5,15 @@ import argparse
 
 
 
-# Argument Parsing
-parser = argparse.ArgumentParser(description="Applies CLAHE to image with intensity gradient")
-parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-parser.add_argument("--kernel_size", type=int, required=True, help="Defines the shape of contextual regions.")
-parser.add_argument("--clip_limit", type=float, required=True, help="Defines the contrast limit for localised histogram equalisation.")
-parser.add_argument("--nbins", type=int, required=True, help="Number of bins for the histogram.")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Applies CLAHE to image with intensity gradient")
+    parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+    parser.add_argument("--kernel_size", type=int, required=True, help="Defines the shape of contextual regions.")
+    parser.add_argument("--clip_limit", type=float, required=True, help="Defines the contrast limit for localised histogram equalisation.")
+    parser.add_argument("--nbins", type=int, required=True, help="Number of bins for the histogram.")
+    return parser.parse_args()
+
+args = parse_args()
 
 def main():
     """Main function to process all images in the input directory."""

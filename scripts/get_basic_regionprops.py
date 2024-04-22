@@ -8,13 +8,15 @@ import cupy as cp
 from cucim.skimage.measure import regionprops
 
 
-# Argument Parsing
-parser = argparse.ArgumentParser(description="Get some regionprops of all objects in all tifs in a input_folder.")
-parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-parser.add_argument("--label_pattern", type=str, default='_labels.tif', help="Pattern to identify label images.")
-# if intensity quantification, ask for the channel. Default is no intensity quantification
-parser.add_argument("--channel", type=int, default=-1, help="Channel to quantify intensity.")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Get some regionprops of all objects in all tifs in a input_folder.")
+    parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+    parser.add_argument("--label_pattern", type=str, default='_labels.tif', help="Pattern to identify label images.")
+    # if intensity quantification, ask for the channel. Default is no intensity quantification
+    parser.add_argument("--channel", type=int, default=-1, help="Channel to quantify intensity.")
+    return parser.parse_args()
+
+args = parse_args()
 
 input_folder = args.input
 label_pattern = args.label_pattern

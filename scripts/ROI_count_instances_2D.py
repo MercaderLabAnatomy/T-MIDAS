@@ -16,11 +16,13 @@ from skimage.measure import regionprops
 import warnings
 warnings.filterwarnings("ignore")
 
-# Argument Parsing
-parser = argparse.ArgumentParser(description="Input: Folder with all label images (ROIs and instance segmentations).")
-parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
-parser.add_argument("--input", type=str, required=True, help="Path to input label images.")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Input: Folder with all label images (ROIs and instance segmentations).")
+    parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
+    parser.add_argument("--input", type=str, required=True, help="Path to input label images.")
+    return parser.parse_args()
+
+args = parse_args()
 
 
 def get_area(ROI):

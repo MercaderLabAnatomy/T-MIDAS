@@ -7,11 +7,13 @@ import tifffile as tf
 import argparse
 
 
-# parse arguments
-parser = argparse.ArgumentParser(description='Process a lif file.')
-parser.add_argument('--input_folder', type=str, help='path to the lif file')
-parser.add_argument('--template_channel', type=int, help='channel to use as template')
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Process a lif file.')
+    parser.add_argument('--input_folder', type=str, help='path to the lif file')
+    parser.add_argument('--template_channel', type=int, help='channel to use as template')
+    return parser.parse_args()
+
+args = parse_args()
 
 template_channel = args.template_channel
 input_folder = args.input_folder

@@ -10,18 +10,20 @@ from cucim.skimage.filters.thresholding import threshold_otsu
 from cucim.skimage.measure import label
 import pyclesperanto_prototype as cle
 
-# Argument Parsing
-parser = argparse.ArgumentParser(description="Segments CLAHE images.")
-parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-parser.add_argument("--masks", type=str, required=True, help="Path to label images.")
-parser.add_argument('--label_pattern', type=str, help='Label image suffix. Example: "*_labels.tif"')
-parser.add_argument("--kernel_size", type=int, required=True, help="Defines the shape of contextual regions.")
-parser.add_argument("--clip_limit", type=float, required=True, help="Defines the contrast limit for localised histogram equalisation.")
-parser.add_argument("--nbins", type=int, required=True, help="Number of bins for the histogram.")
-parser.add_argument("--outline_sigma", type=float, default=1.0, help="Defines the sigma for the gauss-otsu-labeling.")
-parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
-parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Segments CLAHE images.")
+    parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+    parser.add_argument("--masks", type=str, required=True, help="Path to label images.")
+    parser.add_argument('--label_pattern', type=str, help='Label image suffix. Example: "*_labels.tif"')
+    parser.add_argument("--kernel_size", type=int, required=True, help="Defines the shape of contextual regions.")
+    parser.add_argument("--clip_limit", type=float, required=True, help="Defines the contrast limit for localised histogram equalisation.")
+    parser.add_argument("--nbins", type=int, required=True, help="Number of bins for the histogram.")
+    parser.add_argument("--outline_sigma", type=float, default=1.0, help="Defines the sigma for the gauss-otsu-labeling.")
+    parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
+    parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
+    return parser.parse_args()
+
+args = parse_args()
 
 
 

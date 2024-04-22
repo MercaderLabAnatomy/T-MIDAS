@@ -39,12 +39,14 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-# ask for the path to the ndpis files using argparse
-parser = argparse.ArgumentParser(description='Extract ROIs from NDPI files and save them as TIF files.')
-parser.add_argument('--input', type=str, help='Path to the folder containing the NDPI(s) files.')
-parser.add_argument('--cropping_template_channel_name', type=str, help='Enter the channel name that represents the cropping template (hearts = FITC).')
-# parser.add_argument('--level', type=int, help='Enter the resolution level of the NDPI image (0 = highest resolution, 1 = second highest resolution).')
-args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Extract ROIs from NDPI files and save them as TIF files.')
+    parser.add_argument('--input', type=str, help='Path to the folder containing the NDPI(s) files.')
+    parser.add_argument('--cropping_template_channel_name', type=str, help='Enter the channel name that represents the cropping template (hearts = FITC).')
+    # parser.add_argument('--level', type=int, help='Enter the resolution level of the NDPI image (0 = highest resolution, 1 = second highest resolution).')
+    return parser.parse_args()
+
+args = parse_args()
 
 input_folder = args.input
 

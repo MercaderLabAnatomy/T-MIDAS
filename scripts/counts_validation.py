@@ -12,20 +12,23 @@ import pandas as pd
 from cucim.skimage.measure import regionprops as regionprops_gpu
 import cupy as cp
 
-parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
-parser.add_argument('--input', type=str, help='Path to the folder containing the segmentation results.')
-parser.add_argument('--label_pattern', type=str, help='Label image suffix. Example: "_labels.tif"')
-parser.add_argument('--gt_pattern', type=str, help='Ground truth label image suffix. Example: "_ground_truth.tif"')
+def parse_args():
+    parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
+    parser.add_argument('--input', type=str, help='Path to the folder containing the segmentation results.')
+    parser.add_argument('--label_pattern', type=str, help='Label image suffix. Example: "_labels.tif"')
+    parser.add_argument('--gt_pattern', type=str, help='Ground truth label image suffix. Example: "_ground_truth.tif"')
+    return parser.parse_args()
 
-args = parser.parse_args()
+args = parse_args()
+
 input_folder = args.input
 label_pattern = args.label_pattern
 gt_pattern = args.gt_pattern
 
 predictions = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
 ground_truths = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(gt_pattern)] 
-prediction_files.sort()
-ground_truth_files.sort()
+predictions.sort()
+ground_truths.sort()
 
 results = []
 

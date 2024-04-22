@@ -3,12 +3,16 @@ from tifffile import imread, imwrite
 import argparse
 import cupy as cp
 
-parser = argparse.ArgumentParser(description='Blob-based crops.')
-parser.add_argument('--input', type=str, help='path to the input folder containing intensity and label images.')
-parser.add_argument('--maskfiles', type=str, help='tag of label images')
-parser.add_argument('--intersectfiles', type=str, help='tag of intensity images')
-parser.add_argument('--output_tag', type=str, help='tag of output images')
-args = parser.parse_args()
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Blob-based crops.')
+    parser.add_argument('--input', type=str, help='path to the input folder containing intensity and label images.')
+    parser.add_argument('--maskfiles', type=str, help='tag of label images')
+    parser.add_argument('--intersectfiles', type=str, help='tag of intensity images')
+    parser.add_argument('--output_tag', type=str, help='tag of output images')
+    return parser.parse_args()
+
+args = parse_args()
 
 
 filenames = [f.replace(args.maskfiles, '') for f in os.listdir(args.input) if f.endswith(args.maskfiles)]

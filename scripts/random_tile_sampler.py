@@ -6,7 +6,7 @@ import os
 
 
 
-def parse_arguments():
+def parse_args():
     parser = argparse.ArgumentParser(description='Sample random tiles from a tiff image.')
     parser.add_argument('--input', type=str, help='Folder containing the .tif images.')
     parser.add_argument('--tile_diagonal', type=int, help='Enter the tile diagonal in pixels.')
@@ -14,6 +14,7 @@ def parse_arguments():
     parser.add_argument('--random_seed', type=int, help='Enter a random seed for reproducibility (integer): ')
     return parser.parse_args()
 
+args = parse_args()
 
 def load_tiff_image(path):
     return tf.imread(path)
@@ -79,7 +80,7 @@ def process_image(path, tile_diagonal, output_dir, subset_percentage, random_see
     save_tiles(tiles, path, output_dir)
 
 def main():
-    args = parse_arguments()
+
     output_dir = os.path.join(args.input, 'random_tiles')
     for filename in os.listdir(args.input):
         if filename.endswith(".tif"):
