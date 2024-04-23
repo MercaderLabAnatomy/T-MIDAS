@@ -685,9 +685,9 @@ def validation():
         print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
         print("\n")
         print(wrapper.fill("""The F1 score is the harmonic mean of precision and recall, and it ranges from 0 to 1. A high F1 score indicates that the prediction has both high precision (most blobs are correctly segmented) and high recall (most existing objects are detected)."""))
-        input_folder = popup_input("\nEnter the path to the folder containing the segmentation results: ")
-        label_pattern = input("\nEnter the label pattern of the label images (example: _labels.tif): ")
-        gt_pattern = input("\nEnter the ground truth pattern of the label images (example: _ground_truth.tif): ")
+        input_folder = popup_input("\nEnter the path to the folder containing label images (automated segmentation + annotations): ")
+        label_pattern = input("\nEnter the suffix of the label images from automated segmentation (example: _labels.tif): ")
+        gt_pattern = input("\nEnter the suffix you chose for your annotated images (example: _ground_truth.tif): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_validation_f1_score.py',
                                         '--input ' + input_folder + 
