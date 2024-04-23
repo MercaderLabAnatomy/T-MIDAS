@@ -40,6 +40,7 @@ def get_regionprops(label_img_path, intensity_img_path=None):
             df.loc[i, 'MajorAxisLength'] = prop.major_axis_length
             df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
             df.loc[i, 'MeanIntensity'] =  prop.intensity_mean.get()
+            df.loc[i, 'MaxIntensity'] =  prop.intensity_max.get()
         
     else:
         props = regionprops(label_img)
