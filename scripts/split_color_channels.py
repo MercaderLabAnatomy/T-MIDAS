@@ -50,5 +50,5 @@ def split_color_channels(folder, dim_order, channel_names):
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
+
     split_color_channels(args.input, args.dim_order, args.channel_names)
