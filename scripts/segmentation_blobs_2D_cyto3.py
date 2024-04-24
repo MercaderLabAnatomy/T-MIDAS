@@ -9,7 +9,7 @@ from tifffile import imwrite
 import numpy as np
 import os
 from skimage.io import imread
-from cellpose import models, core
+from cellpose import models, core, denoise
 from tifffile import imwrite
 from tqdm import tqdm
 
@@ -36,7 +36,9 @@ if not isinstance(channels, list):
 
 flow_threshold = 0.4
 
-model = models.Cellpose(gpu=use_GPU, model_type='cyto3')
+#model = models.Cellpose(gpu=use_GPU, model_type='cyto3')
+model = denoise.CellposeDenoiseModel(gpu=True, model_type="cyto3",
+             restore_type="denoise_cyto3", chan2_restore=False)
 
 def segment_images(input_folder, output_folder, model, channels, diameter, flow_threshold):
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]

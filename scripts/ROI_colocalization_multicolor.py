@@ -54,7 +54,7 @@ def coloc_channels(file_lists, channels):
         for label_id in label_ids:
             ROI_masks[label_id.item()] = csr_matrix(images[channels[0]] == label_id)
 
-        
+        num_ROIs = len(ROI_masks)
 
 
         coloc_01 = {label_id: {} for label_id in ROI_masks.keys() if ROI_masks[label_id] is not None}
@@ -103,7 +103,7 @@ def coloc_channels(file_lists, channels):
                     csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id]])
             elif args.get_areas.lower() == 'n':
                 for label_id in ROI_masks.keys():
-                    csv_rows.append([filename, unique_labels_01[0]])
+                    csv_rows.append([filename, num_ROIs , unique_labels_01[0]])
             else:
                 raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.") 
 
@@ -113,7 +113,7 @@ def coloc_channels(file_lists, channels):
                     csv_rows.append([filename, label_id, area[label_id], unique_labels_01[label_id], unique_labels_02[label_id], unique_labels_all[label_id]])
             elif args.get_areas.lower() == 'n':
                 for label_id in ROI_masks.keys():
-                    csv_rows.append([filename, unique_labels_01[0], unique_labels_02[0], unique_labels_all[0]])
+                    csv_rows.append([filename, num_ROIs ,unique_labels_01[0], unique_labels_02[0], unique_labels_all[0]])
             else:
                 raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.") 
 
@@ -139,7 +139,7 @@ with open(csv_file, 'w', newline='') as file:
             writer.writerow(['Filename', f"{channels[0]} ROI", "Area (sq. px)", 
                              *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
         elif args.get_areas.lower() == 'n':
-            writer.writerow(['Filename', *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
+            writer.writerow(['Filename', f"{channels[0]} Count", *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
         else:
             raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.")
 
@@ -149,7 +149,7 @@ with open(csv_file, 'w', newline='') as file:
                              *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
                              f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
         elif args.get_areas.lower() == 'n':
-            writer.writerow(['Filename', *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
+            writer.writerow(['Filename', f"{channels[0]} Count", *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
                              f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
         else:
             raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.")
