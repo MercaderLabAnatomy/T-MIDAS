@@ -34,6 +34,9 @@ file_lists = {channel: sorted(glob.glob(os.path.join(parent_dir, channel + '/', 
 if len(set(channels)) < len(channels) or len(channels) < 2:
     raise ValueError("Channel names must be unique and at least two channels must be provided.")
 
+# print number of channels
+print("Number of channels:", len(channels))
+print("\n")
 print("Number of label files in each channel:")
 {print(channel, ":", len(file_lists[channel])) for channel in file_lists}
 
@@ -136,7 +139,7 @@ with open(csv_file, 'w', newline='') as file:
             writer.writerow(['Filename', f"{channels[0]} ROI", "Area (sq. px)", 
                              *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
         elif args.get_areas.lower() == 'n':
-            writer.writerow(['Filename', f"{channels[0]} ROI", *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
+            writer.writerow(['Filename', *[f"{channel}_in_{channels[0]}" for channel in channels[1:]]])
         else:
             raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.")
 
@@ -146,7 +149,7 @@ with open(csv_file, 'w', newline='') as file:
                              *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
                              f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
         elif args.get_areas.lower() == 'n':
-            writer.writerow(['Filename', f"{channels[0]} ROI", *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
+            writer.writerow(['Filename', *[f"{channel}_in_{channels[0]}" for channel in channels[1:]], 
                              f"{channels[2]}_in_{channels[1]}_in_{channels[0]}"])
         else:
             raise ValueError("Please provide a valid input (y/n) for getting areas of ROIs in the first channel.")
