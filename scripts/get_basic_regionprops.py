@@ -28,7 +28,7 @@ def get_regionprops(label_img_path, intensity_img_path=None):
     df = pd.DataFrame()
     label_img = cp.asarray(io.imread(label_img_path))
     # Get the regionprops
-    if channel is not -1:
+    if channel != -1:
         intensity_img = cp.asarray(io.imread(intensity_img_path)[:,:,channel])
         props = regionprops(label_img, intensity_img)
         for i, prop in enumerate(props):
@@ -59,26 +59,37 @@ def main():
     # Get the label images
     label_imgs = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
     label_imgs = sorted(label_imgs)
-    # get intensities
-    intensity_imgs = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith(label_pattern)]
-    intensity_imgs = sorted(intensity_imgs)
-    
-    # check if the number of label images is the same as the number of intensity images
-    if len(label_imgs) != len(intensity_imgs):
-        raise ValueError('The number of label images is not the same as the number of intensity images.')
-    
+   
+   
+   
     # Create an empty dataframe to store the regionprops
-    regionprops_df = pd.DataFrame()
+    regionprops_df = pd.DataFrame() 
     
-    for label_img_path, intensity_img_path in tqdm(zip(label_imgs, intensity_imgs), total=len(label_imgs), desc="Processing images"):
+    if channel != -1:    
+        # get intensities
+        intensity_imgs = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith(label_pattern)]
+        intensity_imgs = sorted(intensity_imgs)
+    
+        # check if the number of label images is the same as the number of intensity images
+        if len(label_imgs) != len(intensity_imgs):
+            raise ValueError('The number of label images is not the same as the number of intensity images.')
 
-        # Get the regionprops
-        regionprops = get_regionprops(label_img_path, intensity_img_path)
-        
-        # Add the regionprops to the dataframe by concatenating
-        regionprops_df = pd.concat([regionprops_df, regionprops], ignore_index=True)
-        
-        
+        for label_img_path, intensity_img_path in tqdm(zip(label_imgs, intensity_imgs), total=len(label_imgs), desc="Processing images"):
+
+            # Get the regionprops
+            regionprops = get_regionprops(label_img_path, intensity_img_path)
+
+            # Add the regionprops to the dataframe by concatenating
+            regionprops_df = pd.concat([regionprops_df, regionprops], ignore_index=True)
+    else:
+        for label_img_path in tqdm(label_imgs, total=len(label_imgs), desc="Processing images"):
+
+            # Get the regionprops
+            regionprops = get_regionprops(label_img_path)
+
+            # Add the regionprops to the dataframe by concatenating
+            regionprops_df = pd.concat([regionprops_df, regionprops], ignore_index=True)    
+    
         
     # Save the regionprops to a csv file
     regionprops_df.to_csv(os.path.join(input_folder, 'regionprops.csv'), index=False)
