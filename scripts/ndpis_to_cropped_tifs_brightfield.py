@@ -64,6 +64,7 @@ def get_rois(slide):
     thumbnail = slide.get_thumbnail(slide_dims_downscaled)
     thumbnail = thumbnail.convert('L')
     thumbnail = ImageOps.invert(thumbnail) # invert brightfield image
+    thumbnail = ImageOps.equalize(thumbnail) # enhance contrast
     labeled_thumbnail = nsbatwm.gauss_otsu_labeling(thumbnail, 5.0)
     props = regionprops(labeled_thumbnail)
     rois = []
