@@ -1,36 +1,25 @@
-"""
-Script to extract regions of interest (ROIs) from NDPI files and save them as TIF files.
-
-Requires folder containing single channel NDPI files with an NDPIS file with the following filename pattern:
-
-filename.ndpis
-filename-DAPI.ndpi
-...
-
-ROIs are extracted by finding the contours in a binary image and are then filtered by size (keep big hearts, skip the rest). 
-The binary image is created using blurring and otsu thresholding. 
-The user is prompted to select the channel from which the ROIs should be extracted. 
-The same ROIs are then used to crop the images from the other channels. 
-
-Installation and usage instructions can be found at the bottom of this script.
-
-This is not the fastest script (single CPU core), but it does the job on its own.
-It works well for NDPI files of around 200-300MB, requiring about 20GB of RAM.
-It takes between 1-5 minutes per slide with 0.23-0.46um/pixel resolution. 
-The user is prompted to select either resolution level.
-
-"""
-
 import openslide
 import os
 from PIL import Image, ImageOps
 import argparse
-import napari_segment_blobs_and_things_with_membranes as nsbatwm  # version 0.3.7
 from skimage.measure import regionprops
+# from cucim.skimage.measure import regionprops as regionprops_gpu
 from tqdm import tqdm
-# ignore warnings
+import pyclesperanto_prototype as cle  # version 0.24.2
 import warnings
 warnings.filterwarnings("ignore")
+import numpy as np
+import torch
+from skimage.measure import label
+from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator
+
+model_type = "vit_t"
+sam_checkpoint = "/opt/T-MIDAS/models/mobile_sam.pt"
+device = "cuda" if torch.cuda.is_available() else "cpu"
+mobile_sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
+mobile_sam.to(device=device)
+mobile_sam.eval()
+mask_generator = SamAutomaticMaskGenerator(mobile_sam)
 
 
 def parse_args():
@@ -55,18 +44,36 @@ for file in os.listdir(input_folder):
         ndpi_files.append(file)
 
 
-#ndpi_file = ndpi_files[0]
+# def save_image(image, filename):
+#     image_uint32 = image.astype(np.uint32)
+#     imwrite(filename, image_uint32, compression='zlib')
 
-def get_rois(slide):
+def get_rois(slide, output_filename):
 
     scaling_factor = 100
     slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
     thumbnail = slide.get_thumbnail(slide_dims_downscaled)
-    thumbnail = thumbnail.convert('L')
-    thumbnail = ImageOps.invert(thumbnail) # invert brightfield image
-    thumbnail = ImageOps.equalize(thumbnail) # enhance contrast
-    labeled_thumbnail = nsbatwm.gauss_otsu_labeling(thumbnail, 5.0)
-    props = regionprops(labeled_thumbnail)
+    # save the thumbnail with the slide name
+    thumbnail.save(output_filename + "_thumbnail.png")
+
+    thumbnail_array = np.array(thumbnail)
+    thumbnail_shape = thumbnail_array.shape[:2]
+    labels = np.zeros(thumbnail_shape, dtype=np.uint32)
+    masks = mask_generator.generate(thumbnail_array) # generate masks using Mobile-SAM
+    for i, mask_data in enumerate(masks):
+          mask = mask_data["segmentation"]
+          labeled_mask = label(mask, return_num=False)
+          labels[labeled_mask > 0] = labeled_mask[labeled_mask > 0] + (i * labeled_mask.max())
+    props = regionprops(labels)
+    areas = [region.area for region in props]
+    max_area_label = np.argmax(areas) + 1 
+    labels[labels == max_area_label] = 0     # remove the largest label
+    labels = cle.dilate_labels(labels, None, 2.0)
+    labels = cle.merge_touching_labels(labels)
+    labels = cle.pull(labels)
+
+    # save_image(labels, output_filename + "_labels.tif")
+
     rois = []
     for i, prop in enumerate(props):
         minr, minc, maxr, maxc = prop.bbox
@@ -76,9 +83,46 @@ def get_rois(slide):
         maxc = min(thumbnail.width, maxc + 10)
         rois.append((minc*scaling_factor, minr*scaling_factor, (maxc-minc)*scaling_factor, (maxr-minr)*scaling_factor))
     
-    # drop rois that are 4x the size of the median roi
+    # drop rois that are 5x the size of the median roi
     median_roi_size = sorted([roi[2]*roi[3] for roi in rois])[int(len(rois)/2)]
     rois = [roi for roi in rois if roi[2]*roi[3] < 5*median_roi_size]    
+
+
+
+    # Calculate the centroids of the ROIs
+    centroids = [(x + w // 2, y + h // 2) for x, y, w, h in rois]
+
+    # Calculate the distances between all pairs of centroids
+    distances = []
+    for i in range(len(rois)):
+        for j in range(i+1, len(rois)):
+            cx1, cy1 = centroids[i]
+            cx2, cy2 = centroids[j]
+            distance = np.sqrt((cx1 - cx2)**2 + (cy1 - cy2)**2)
+            distances.append(distance)
+
+    # Calculate the median distance
+    median_distance = np.median(distances)
+
+    # Merge ROIs that are closer than a third of the median distance
+    for i in range(len(rois)):
+        for j in range(i+1, len(rois)):
+            cx1, cy1 = centroids[i]
+            cx2, cy2 = centroids[j]
+            distance = np.sqrt((cx1 - cx2)**2 + (cy1 - cy2)**2)
+            if distance < median_distance / 5:
+                # Merge the ROIs
+                x = min(rois[i][0], rois[j][0])
+                y = min(rois[i][1], rois[j][1])
+                w = max(rois[i][0] + rois[i][2], rois[j][0] + rois[j][2]) - x
+                h = max(rois[i][1] + rois[i][3], rois[j][1] + rois[j][3]) - y
+                rois[i] = (x, y, w, h)
+                rois[j] = (0, 0, 0, 0)
+
+
+
+    rois = [roi for roi in rois if roi[2] > 0 and roi[3] > 0]
+    len(rois)
       
     return rois
 
@@ -87,8 +131,7 @@ for ndpi_file in tqdm(ndpi_files, total = len(ndpi_files), desc="Processing imag
 
     output_filename = os.path.join(output_dir, os.path.splitext(os.path.basename(ndpi_file))[0])
     slide = openslide.OpenSlide(os.path.join(input_folder, ndpi_file))
-    
-    rois = get_rois(slide)
+    rois = get_rois(slide,output_filename)
     number_of_rois = len(rois)
     for i, roi in enumerate(rois):
         x, y, w, h = roi
@@ -100,37 +143,3 @@ for ndpi_file in tqdm(ndpi_files, total = len(ndpi_files), desc="Processing imag
         cropped_image = cropped_image.convert('RGB')
         cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif", compression="tiff_deflate")
 
-"""
-
-1) Installation (Ubuntu)
-
-1.1) Install OpenSlide
-
-sudo apt install openslide-tools
-
-1.2) Install fast package manager Mamba
-
-curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-bash Miniforge3-$(uname)-$(uname -m).sh
-
-1.3) Other operating systems (Windows, Mac OS)
-
-https://openslide.org/api/python/#installing
-https://github.com/conda-forge/miniforge 
-
-
-2) Create Mamba environment and install dependencies
-
-mamba create -n openslide-env openslide-python
-mamba activate openslide-env
-pip install opencv-python
-
-
-3) Usage
-
-In CLI, type
-
-mamba activate openslide-env
-python NDPI2TIF.py
-
-"""

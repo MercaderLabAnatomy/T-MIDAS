@@ -18,7 +18,10 @@ dependencies = [
     'glob2',
     'pytest',
     'cucim',
-    'aicspylibczi'
+    'aicspylibczi',
+    'torch',
+    'torchvision',
+    'timm'
     
 ]
 
@@ -41,6 +44,8 @@ subprocess.call(['mamba', 'install', '-y',
                  'pyopencl',
                  'cupy']) # if not installed with mamba but pip: gives error with cublas
 
+
+subprocess.call(['pip', 'install', 'git+https://github.com/ChaoningZhang/MobileSAM.git'])
 
 for dependency in dependencies:
     subprocess.call(['pip', 'install', dependency])
