@@ -32,7 +32,7 @@ args = parse_args()
     
 image_folder = args.input
 
-def process_image(image_path, image_type):
+def process_image(image_path):
     try:
 
         image = imread(image_path)
@@ -54,7 +54,7 @@ for filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_fold
     if not filename.endswith(".tif"):
         continue
     #print(f"Processing image: {filename}")
-    labeled_image = process_image(os.path.join(image_folder, filename), image_type)
+    labeled_image = process_image(os.path.join(image_folder, filename))
     if labeled_image is not None:
         tf.imwrite(os.path.join(image_folder, f"{filename[:-4]}_semantic_seg_sam.tif"), labeled_image, compression='zlib')
         
