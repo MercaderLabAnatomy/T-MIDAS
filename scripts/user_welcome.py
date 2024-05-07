@@ -364,8 +364,9 @@ def image_segmentation():
     print("[2] Segment blobs (2D)")
     print("[3] Segment blobs (3D; requires dark background and good SNR)")
     print("[4] Semantic segmentation (2D, fluorescence or brightfield)")
-    print("[5] Semantic segmentation (3D; requires dark background and good SNR)")
-    print("[6] Improve instance segmentation using CLAHE")
+    print("[5] Semantic segmentation (2D; Segment Anything)")   
+    print("[6] Semantic segmentation (3D; requires dark background and good SNR)")
+    print("[7] Improve instance segmentation using CLAHE")
     # print("[7] Segment multicolor images of cell cultures (2D)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
@@ -456,6 +457,17 @@ def image_segmentation():
         restart_program()
     if choice == "5":
         os.system('clear')
+        print('''You chose semantic segmentation (2D; Segment Anything).\n
+                A popup will appear in a moment asking you to select the folder containing the .tif images.
+                
+              ''')
+        input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_SAM_2D.py',
+                                        '--input ' + input_folder)
+        restart_program()
+    if choice == "6":
+        os.system('clear')
         print('''You chose semantic segmentation (3D). \n
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
                 ''')
@@ -465,7 +477,7 @@ def image_segmentation():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_3D.py',
                                         '--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
         restart_program()
-    if choice == "6":
+    if choice == "7":
         os.system('clear')
         print(wrapper.fill("You chose to improve instance segmentations using CLAHE. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
         print("\n")

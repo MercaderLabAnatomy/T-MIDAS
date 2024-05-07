@@ -47,8 +47,9 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
         [2] Cellpose's (generalist) cyto3 model
     [3] Segment blobs (3D; requires dark background and good SNR)
     [4] Semantic segmentation (2D; fluorescence or brightfield)
-    [5] Semantic segmentation (3D; requires dark background and good SNR)
-    [6] Improve instance segmentation using CLAHE
+    [5] Semantic segmentation (2D; Segment Anything)
+    [6] Semantic segmentation (3D; requires dark background and good SNR)
+    [7] Improve instance segmentation using CLAHE
 [3] Regions of Interest (ROI) Analysis
     [1] Heart slices: Generate ROI from [intact+injured] ventricle masks
     [2] Count spots within ROI (2D)
