@@ -199,18 +199,26 @@ def get_rois(template_ndpi_file):
 #                 cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif")
 #                 # tf.imwrite(output_filename + "_roi_0" + str(i+1) + "_label.tif", label_image, compression='zlib')
 
-for ndpi_file in tqdm(ndpi_files, total = len(ndpi_files), desc="Processing images"):
 
-    output_filename = os.path.join(output_dir, os.path.splitext(os.path.basename(ndpi_file))[0])
-    slide = openslide.OpenSlide(os.path.join(input_folder, ndpi_file))
-    rois = get_rois(slide,output_filename)
-    number_of_rois = len(rois)
-    for i, roi in enumerate(rois):
-        x, y, w, h = roi
-        cropped_image = slide.read_region((x, y), 0, (w, h))
-        cropped_image_dimensions = cropped_image.size
-        print("ROI %d of %d with dimensions %s saved as %s" % (i+1, number_of_rois, 
-                                                               cropped_image_dimensions, 
-                                                               output_filename + "_roi_0" + str(i+1) + ".tif"))
-        cropped_image = cropped_image.convert('RGB')
-        cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif", compression="tiff_deflate")
+
+for ndpis_file in ndpis_files:
+
+
+    ndpi_files = get_ndpi_filenames(os.path.join(input_folder, ndpis_file))
+
+
+    for ndpi_file in tqdm(ndpi_files, total = len(ndpi_files), desc="Processing images"):
+    
+        output_filename = os.path.join(output_dir, os.path.splitext(os.path.basename(ndpi_file))[0])
+        slide = openslide.OpenSlide(os.path.join(input_folder, ndpi_file))
+        rois = get_rois(slide,output_filename)
+        number_of_rois = len(rois)
+        for i, roi in enumerate(rois):
+            x, y, w, h = roi
+            cropped_image = slide.read_region((x, y), 0, (w, h))
+            cropped_image_dimensions = cropped_image.size
+            print("ROI %d of %d with dimensions %s saved as %s" % (i+1, number_of_rois, 
+                                                                   cropped_image_dimensions, 
+                                                                   output_filename + "_roi_0" + str(i+1) + ".tif"))
+            cropped_image = cropped_image.convert('RGB')
+            cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif", compression="tiff_deflate")
