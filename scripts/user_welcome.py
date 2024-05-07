@@ -315,15 +315,15 @@ def crop_images():
         print('''You chose to crop blobs from multicolor .ndpi files.  \n
               A popup will appear in a moment asking you to select the folder containing ndpi(s) files.''')
         input_folder = popup_input("\nEnter the path to the folder containing ndpi(s) files: ")
-        # CROPPING_TEMPLATE_CHANNEL_NAME = input('''
-        #                                        Enter the channel name 
-        #                                        that represents the cropping template 
-        #                                        (for example FITC or CY5): 
-        #                                        ''')
+        CROPPING_TEMPLATE_CHANNEL_NAME = input('''
+                                               Enter the channel name 
+                                               that represents the cropping template 
+                                               (for example FITC or CY5): 
+                                               ''')
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/ndpis_to_cropped_tifs.py',
-                                        '--input ' + input_folder)# + 
-                                        #' --cropping_template_channel_name ' + CROPPING_TEMPLATE_CHANNEL_NAME)
+                                        '--input ' + input_folder + 
+                                        ' --cropping_template_channel_name ' + CROPPING_TEMPLATE_CHANNEL_NAME)
         restart_program()            
 
     if choice == "2":

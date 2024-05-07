@@ -53,9 +53,7 @@ def get_rois(slide, output_filename):
     scaling_factor = 100
     slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
     thumbnail = slide.get_thumbnail(slide_dims_downscaled)
-    # save the thumbnail with the slide name
     thumbnail.save(output_filename + "_thumbnail.png")
-
     thumbnail_array = np.array(thumbnail)
     thumbnail_shape = thumbnail_array.shape[:2]
     labels = np.zeros(thumbnail_shape, dtype=np.uint32)
