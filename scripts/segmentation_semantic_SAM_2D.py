@@ -12,6 +12,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from skimage.measure import label
+import torch
 from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator
 
 model_type = "vit_t"
