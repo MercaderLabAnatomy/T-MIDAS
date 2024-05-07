@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
+import cv2
 import os
 import argparse
 from skimage.io import imread

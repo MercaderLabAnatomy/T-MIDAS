@@ -122,7 +122,7 @@ def get_rois(slide, output_filename):
 
 
     rois = [roi for roi in rois if roi[2] > 0 and roi[3] > 0]
-    len(rois)
+    # len(rois)
       
     return rois
 
