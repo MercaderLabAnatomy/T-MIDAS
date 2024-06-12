@@ -5,6 +5,7 @@ from skimage.io import imread
 from tifffile import imwrite
 import pyclesperanto_prototype as cle
 from tqdm import tqdm
+import torch
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
@@ -21,6 +22,8 @@ BG = args.bg
 def calculate_threshold(image):
     """Calculate intensity threshold for image segmentation."""
     gray_areas = image[image > 0]
+    #gray_areas = image.flatten()[np.flatnonzero(image)]
+
     intensity_threshold = np.percentile(gray_areas, 75) + np.mean(gray_areas)
     return intensity_threshold
 
@@ -29,27 +32,24 @@ def process_image(image_path):
     try:
         image = imread(image_path)
 
-
+        #image = cle.push(image)
         
         if BG == 1:
             intensity_threshold = calculate_threshold(image)
-            image = cle.push(image)
             image = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
             image = cle.top_hat_box(image, None, 10.0, 10.0, 0.0)
             image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
             image_l = cle.connected_components_labeling_box(image_to)
             print("Segmenting bright spots with tissue background")
         elif BG == 2:
-            image = cle.push(image)
             image_thb = cle.top_hat_box(image, None, 10.0, 10.0, 0.0)
             image_l = cle.gauss_otsu_labeling(image_thb, None, 1.0)
             print("Segmenting bright spots with dark background")
         
         
-        image_labeled = cle.exclude_small_labels(image_l, None, SIZE_THRESHOLD)
-        image_labeled = cle.pull(image_labeled)
+        #image_labeled = cle.exclude_small_labels(image_l, None, SIZE_THRESHOLD)
+        image_labeled = cle.pull(image_l)
         #image_labeled = np.array(image_labeled, dtype=np.uint32)
-        
         return image_labeled
     except Exception as e:
         print(f"Error processing {image_path}: {str(e)}")

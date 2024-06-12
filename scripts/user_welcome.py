@@ -227,9 +227,10 @@ def image_preprocessing():
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the color channel folders: ")
         channel_names = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
+        use_gpu = input("\nUse GPU for processing? May terminate if images are too large (y/n): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/merge_color_channels.py',
-                                        '--input ' + input_folder + ' --channels ' + channel_names)
+                                        '--input ' + input_folder + ' --channels ' + channel_names + ' --gpu ' + use_gpu)
         restart_program()
     
     if choice == "r" or choice == "R":

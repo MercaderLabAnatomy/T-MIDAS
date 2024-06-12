@@ -32,7 +32,10 @@ def coloc_channels(file_lists, channels, output_images, get_areas):
 
         image_c1 = imread(file_lists[channels[0]][file_paths.index(file_path)])
         image_c2 = imread(file_lists[channels[1]][file_paths.index(file_path)])
-        image_c3 = imread(file_lists[channels[2]][file_paths.index(file_path)])
+        if len(channels) == 3:
+            image_c3 = imread(file_lists[channels[2]][file_paths.index(file_path)])
+        else:
+            pass
 
         label_ids = np.unique(image_c1)
         label_ids = label_ids[label_ids != 0] # drop the background label
@@ -40,21 +43,35 @@ def coloc_channels(file_lists, channels, output_images, get_areas):
         for label_id in label_ids:
             ROI_mask = image_c1 == label_id # boolean mask with true where label_id is present in image_c1
             c2_in_c1_count = len(np.unique(image_c2 * ROI_mask)) - 1
-            c3_in_c2_in_c1_count = len(np.unique(image_c3 * (image_c2 * ROI_mask))) - 1
+            if len(channels) ==3:
+                c3_in_c2_in_c1_count = len(np.unique(image_c3 * (image_c2 * ROI_mask))) - 1
 
             if output_images.lower() == 'y': 
                 coloc_image_c2 = label(ROI_mask & (image_c2 > 0))
-                coloc_image_c3 = label(ROI_mask & (image_c3 > 0))
                 filename = os.path.splitext(os.path.basename(file_path))[0]
                 imwrite(f"{filename}_{channels[1]}_in_{channels[0]}_ROI_{label_id}.tif", coloc_image_c2, compression='zlib')
-                imwrite(f"{filename}_{channels[2]}_in_{channels[0]}_ROI_{label_id}.tif", coloc_image_c3, compression='zlib')
+                if len(channels) ==3:
+                    coloc_image_c3 = label(ROI_mask & (image_c3 > 0))
+                    imwrite(f"{filename}_{channels[2]}_in_{channels[0]}_ROI_{label_id}.tif", coloc_image_c3, compression='zlib')
+                else:
+                    pass
 
 
             if get_areas.lower() == 'y':
                 area = regionprops(ROI_mask.astype(np.int32))[0].area
-                csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count, c3_in_c2_in_c1_count])
+                if len(channels) == 2:
+                    csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count])
+                elif len(channels) ==3:
+                    csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count, c3_in_c2_in_c1_count])
+                else:
+                    raise ValueError("Number of channels must be 2 or 3.")
             else:
-                csv_rows.append([os.path.basename(file_path), label_id, c2_in_c1_count, c3_in_c2_in_c1_count])
+                if len(channels) == 2:
+                    csv_rows.append([os.path.basename(file_path), label_id, c2_in_c1_count])
+                elif len(channels) ==3:
+                    csv_rows.append([os.path.basename(file_path), label_id, c2_in_c1_count, c3_in_c2_in_c1_count])
+                else:
+                    raise ValueError("Number of channels must be 2 or 3.")
 
     return csv_rows
 
@@ -84,8 +101,9 @@ def main():
         if get_areas.lower() == 'y':
             header.append("Area (sq. px)")
             header.append(f"{channels[1]}_in_{channels[0]}")
-        if len(channels) > 2:
+        if len(channels) == 2:
             header.append(f"{channels[1]}_in_{channels[0]}")
+        elif len(channels) ==3:
             header.append(f"{channels[2]}_in_{channels[1]}_in_{channels[0]}")
         writer.writerow(header)
         writer.writerows(csv_rows)
