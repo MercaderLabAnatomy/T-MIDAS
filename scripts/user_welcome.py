@@ -381,9 +381,24 @@ def image_segmentation():
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the intensity images: ")
         bg = input("\nWhat kind of background? (1 = gray, 2 = dark): ")
-        python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots_2D.py',
-                                        '--input ' + input_folder + ' --bg ' + bg)
+        if bg == "1":
+            print("\n")
+            print(wrapper.fill('''You chose to segment bright spots with background. You will be asked to enter an intensity threshold.'''))
+            intensity_threshold = input("\nEnter the intensity threshold (0 < value < 255): ")
+            python_script_environment_setup('tmidas-env', 
+                                  os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots_2D.py',
+                                  '--input ' + input_folder + ' --bg ' + bg + ' --intensity_threshold ' + intensity_threshold)
+        if bg == "2":
+            print("\n")
+            print(wrapper.fill('''You chose to segment bright spots with dark background.'''))
+            python_script_environment_setup('tmidas-env', 
+                                  os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots_2D.py',
+                                  '--input ' + input_folder + ' --bg ' + bg)
+        else:
+            print("Invalid choice")
+            restart_program()
+
+
         restart_program()
         
     if choice == "2":
