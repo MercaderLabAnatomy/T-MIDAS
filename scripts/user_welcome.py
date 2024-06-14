@@ -564,8 +564,9 @@ def ROI_analysis():
     print("[1] Heart slices: Generate ROI from [intact+injured] ventricle masks")
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
-    print("[4] Colocalize ROI in different color channels")
-    print("[5] Get basic ROI properties (size, shape)")
+    print("[4] Count Colocalization of ROI in different color channels")
+    print("[5] Get properties of objects within ROI (two channels)")
+    print("[6] Get basic ROI properties (single channel)")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -624,7 +625,7 @@ def ROI_analysis():
         print("You chose to colocalize ROI in different color channels.")
         print("------------------------------------------------")
         print("\n")
-        print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing a subfolder for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. Then enter the suffix of the label images of each channel in the same order. Example: *_labels.tif *_labels.tif *_labels.tif. 
+        print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing subfolders for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. Then enter the suffix of the label images of each channel in the same order. Example: *_labels.tif *_labels.tif *_labels.tif. 
                            """))
         print("\n")
 
@@ -635,7 +636,7 @@ def ROI_analysis():
         output_images = input("\nDo you want to save colocalization images? (y/n): ")
         get_area = input("\nDo you want to get the area of the ROI of the first channel? (y/n): ")
         python_script_environment_setup('tmidas-env', 
-                                    os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_multicolor.py',
+                                    os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_count_multicolor.py',
                                     '--input ' + input_folder +
                                     ' --channels ' + channels +
                                     ' --label_patterns ' + label_patterns +
@@ -647,6 +648,30 @@ def ROI_analysis():
         restart_program()
 
     if choice == "5":
+        os.system('clear')
+        print("\n")
+        print("----------------------------------------------------")
+        print("You chose to get properties of objects within ROI.")
+        print("----------------------------------------------------")
+        print("\n")
+        print(wrapper.fill('''A popup will appear in a moment asking you to select the parent folder containing subfolders for each color channel. Those should contain the segmentations (label images with suffix _labels.tif), as well as the intensity images. You will be asked to enter the names of the two color channel folders that you want to colocalize to obtain the properties of objects in the second channel within the ROI of the first channel. Please enter channel names in the corresponding order. Example: FITC DAPI would mean you want to obtain the regionprops of DAPI obects within FITC ROI. Then enter the suffix of the label images of each channel in the same order. Example: *_labels.tif *_labels.tif.'''))
+
+        input_folder = popup_input("\nEnter the path to the parent folder: ")
+        channels = input("\nEnter the names of the color channel subfolders in the abovementioned order (example: FITC DAPI): ")
+        label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif): ")
+        label_ids = input("\nEnter the label ids of the ROIs in the first channel (example: 1 2 3): ")
+        
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_regionprops.py',
+                                        '--input ' + input_folder +
+                                        ' --channels ' + channels +
+                                        ' --label_patterns ' + label_patterns +
+                                        ' --label_ids ' + label_ids)
+        restart_program()
+
+
+
+    if choice == "6":
         os.system('clear')
         print("\n")
         print("----------------------------------------------------")
