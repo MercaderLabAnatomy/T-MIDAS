@@ -54,8 +54,9 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [1] Heart slices: Generate ROI from [intact+injured] ventricle masks
     [2] Count spots within ROI (2D)
     [3] Count blobs within ROI (3D)
-    [4] Colocalize ROI in different color channels
-    [5] Get basic ROI properties (size, shape)
+    [4] Count Colocalization of ROI in 2 or 3 color channels
+    [5] Get properties of objects within ROI (two channels)
+    [6] Get basic ROI properties (single channel)
 [4] Image Segmentation Validation
     [1] Validate spot counts (2D)
     [2] Validate blobs (2D or 3D; global F1 score)   

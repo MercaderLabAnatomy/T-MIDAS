@@ -564,7 +564,7 @@ def ROI_analysis():
     print("[1] Heart slices: Generate ROI from [intact+injured] ventricle masks")
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
-    print("[4] Count Colocalization of ROI in different color channels")
+    print("[4] Count Colocalization of ROI in 2 or 3 color channels")
     print("[5] Get properties of objects within ROI (two channels)")
     print("[6] Get basic ROI properties (single channel)")
     print("[r] Return to main menu")
