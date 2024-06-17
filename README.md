@@ -37,7 +37,7 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
         [3] Multicolor image stacks (.lif)
     [3] Extract Blob Region from Images
     [4] Sample Random Image Subregions
-    [5] Normalize intensity across single color image (CLAHE)
+    [5] Enhance contrast of single color image using CLAHE
     [6] Split color channels
     [7] Merge color channels
 [2] Image Segmentation
