@@ -19,12 +19,13 @@ def parse_args():
     parser.add_argument('--label_patterns', nargs='+', type=str, required=True, help='Label pattern for each channel. Example: "*_labels.tif *_labels.tif "')
     # select label ids in first channel
     parser.add_argument('--label_ids', nargs='+', type=int, required=True, help='Label ids to be analyzed in the first channel.')
+    parser.add_argument('--ROI_size', type=str, default='n', help='Do you want to get size of ROIs in the first channel? (y/n)')
     return parser.parse_args()
 
 def median_intensity(label_img, intensity_img):
         return cp.median(intensity_img[label_img])
 
-def get_regionprops(label_img, intensity_img, file_path, label_id,channels):
+def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_size='n',c1_regionprops=None):
     df = pd.DataFrame()
     label_img = cp.asarray(label_img)
     intensity_img = cp.asarray(intensity_img)
@@ -32,6 +33,10 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels):
     for i, prop in enumerate(props):
         df.loc[i, 'Filename'] = os.path.basename(file_path)
         df.loc[i, f'{channels[0]} label id'] = label_id
+        if ROI_size.lower() == 'y':
+            df.loc[i, f'{channels[0]} Size'] = c1_regionprops[label_id-1].area
+        else:
+            pass
         df.loc[i, f'{channels[1]} label id'] = int(prop.label)
         try:
             df.loc[i, 'Size'] = prop.area.get()
@@ -80,7 +85,7 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels):
 
 
 
-def coloc_channels(file_lists, channels, parent_dir,label_ids):
+def coloc_channels(file_lists, channels, parent_dir,label_ids, ROI_size):
     
     
     # Create an empty dataframe to store the regionprops
@@ -94,6 +99,13 @@ def coloc_channels(file_lists, channels, parent_dir,label_ids):
 
         image_c1 = imread(file_lists[channels[0]][file_paths.index(file_path)])
         image_c2 = imread(file_lists[channels[1]][file_paths.index(file_path)])
+        
+        c1_regionprops = None
+
+        if ROI_size.lower() == 'y':
+            c1_regionprops = regionprops(image_c1)
+        else:
+            pass
 
         # get intensities of image_c2 by removing the label_pattern
         image_c2_intensities = imread(file_lists[channels[1]][file_paths.index(file_path)].replace('_labels.tif', '.tif'))
@@ -108,9 +120,9 @@ def coloc_channels(file_lists, channels, parent_dir,label_ids):
             # c2_in_c1 should now only contain the label_id objects that are inside the ROI_mask
 
             # Get the regionprops
-            regionprops = get_regionprops(c2_in_c1, image_c2_intensities,file_path, label_id,channels)
+            all_regionprops = get_regionprops(c2_in_c1, image_c2_intensities,file_path, label_id,channels, ROI_size,c1_regionprops)
             # Add the regionprops to the dataframe by concatenating
-            regionprops_df = pd.concat([regionprops_df, regionprops], ignore_index=True)
+            regionprops_df = pd.concat([regionprops_df, all_regionprops], ignore_index=True)
 
             
     # Save the regionprops to a csv file
@@ -123,13 +135,14 @@ def main():
     channels = [c.upper() for c in args.channels]
     label_patterns = args.label_patterns
     label_ids = args.label_ids 
+    ROI_size = args.ROI_size
 
     if len(set(channels)) < len(channels) or len(channels) < 2:
         raise ValueError("Channel names must be unique and at least two channels must be provided.")
 
     file_lists = {channel: sorted(glob.glob(os.path.join(parent_dir, channel, label_pattern))) for channel, label_pattern in zip(channels, label_patterns)}
 
-    coloc_channels(file_lists, channels, parent_dir,label_ids)
+    coloc_channels(file_lists, channels, parent_dir,label_ids, ROI_size)
 
 
 
