@@ -212,18 +212,12 @@ def image_preprocessing():
 
     if choice == "6":
         os.system('clear')
-        print(wrapper.fill("You chose to denoise images using Cellpose. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter the diameter of the objects you want to segment and the channels to use."))
-        print("\n")
-        print(wrapper.fill("First, you will be asked to enter the typical diameter of the objects that you want to segment. If you want to let Cellpose predict the diameter, enter 0."))
-        print("\n")
-        print(wrapper.fill("Next, you will be asked to enter the channels to use. Gray=0, Red=1, Green=2, Blue=3. Single (gray) channel, enter 0 0. For green cytoplasm and blue nuclei, enter 2 3."))
+        print(wrapper.fill("You chose to denoise images using Cellpose. A popup will appear in a moment asking you to select the folder containing the .tif images. They can be 2D/3D/4D and have multiple or a single color channel."))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        diameter = input("\nEnter the typical diameter of the objects that you want to segment: ")
-        channels = input("\nEnter the channels to use (example: 0 0):")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/denoise_cellpose.py',
-                                        '--input ' + input_folder + ' --diameter ' + diameter + ' --channels ' + channels)
+                                        '--input ' + input_folder + ' --channels ' + channels)
         restart_program()
 
 
