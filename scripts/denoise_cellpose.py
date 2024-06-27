@@ -51,12 +51,13 @@ def denoise_images(input_folder, output_folder, model, num_channels):
     for input_file in tqdm(input_files, total=len(input_files), desc="Processing images"):
         img = imread(os.path.join(input_folder, input_file))
 
-        for c in tqdm(range(num_channels), total=num_channels, desc="Processing channels"):
+        for c in tqdm(range(num_channels[0]), total=num_channels[0], desc="Processing channels"):
+
             img_dn = model.eval(img, channels=[c, 0], z_axis=0)
             # drop the last dimension
             img_dn = np.squeeze(img_dn)
             imwrite(os.path.join(output_folder, 
-                                 input_file.replace(".tif", f"_C{c}_denoised.tif")), 
+                                 input_file.replace(".tif", f"_C{c+1}_denoised.tif")), 
                                  normalize_to_uint8(img_dn), 
                                  compression='zlib')
 

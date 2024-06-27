@@ -218,7 +218,7 @@ def image_preprocessing():
         num_channels= input("\nEnter the number of color channels to be denoised: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/denoise_cellpose.py',
-                                        '--input ' + input_folder + ' --num_channels ' + num_channels)
+                                        '--input ' + input_folder + ' --num_channels ' + num_channels) 
         restart_program()
 
 

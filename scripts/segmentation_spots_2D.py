@@ -43,8 +43,8 @@ def process_image(image_path):
             else:
                 intensity_threshold = calculate_threshold(image)
                 print(f"Calculated intensity threshold: {intensity_threshold}")
-            image = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
             image = cle.top_hat_box(image, None, 10.0, 10.0, 0.0)
+            image = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
             image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
             image_l = cle.connected_components_labeling_box(image_to)
             print("Segmenting bright spots with tissue background")

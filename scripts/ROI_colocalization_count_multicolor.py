@@ -43,8 +43,12 @@ def coloc_channels(file_lists, channels, output_images, get_areas):
         for label_id in label_ids:
             ROI_mask = image_c1 == label_id # boolean mask with true where label_id is present in image_c1
             c2_in_c1_count = len(np.unique(image_c2 * ROI_mask)) - 1
+
+            #c2_not_in_c1_count = len(np.unique(image_c2 * ~ROI_mask)) - 1 # the tilde operator inverts the mask
+
             if len(channels) ==3:
                 c3_in_c2_in_c1_count = len(np.unique(image_c3 * (image_c2 * ROI_mask))) - 1
+                c3_not_in_c2_but_in_c1_count = len(np.unique(image_c3 * (ROI_mask & ~image_c2))) - 1 # this is the c3 counts that are in the ROI but not in c2
 
             if output_images.lower() == 'y': 
                 coloc_image_c2 = label(ROI_mask & (image_c2 > 0))
@@ -62,7 +66,7 @@ def coloc_channels(file_lists, channels, output_images, get_areas):
                 if len(channels) == 2:
                     csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count])
                 elif len(channels) ==3:
-                    csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count, c3_in_c2_in_c1_count])
+                    csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count, c3_in_c2_in_c1_count, c3_not_in_c2_but_in_c1_count])
                 else:
                     raise ValueError("Number of channels must be 2 or 3.")
             else:
@@ -99,12 +103,13 @@ def main():
         writer = csv.writer(file)
         header = ['Filename', f"{channels[0]} ROI"]
         if get_areas.lower() == 'y':
-            header.append("Area (sq. px)")
-            header.append(f"{channels[1]}_in_{channels[0]}")
+            header.append(f"{channels[0]} ROI size")
         if len(channels) == 2:
             header.append(f"{channels[1]}_in_{channels[0]}")
         elif len(channels) ==3:
+            header.append(f"{channels[1]}_in_{channels[0]}")
             header.append(f"{channels[2]}_in_{channels[1]}_in_{channels[0]}")
+            header.append(f"{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}")
         writer.writerow(header)
         writer.writerows(csv_rows)
 
