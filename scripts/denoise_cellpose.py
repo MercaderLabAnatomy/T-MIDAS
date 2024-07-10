@@ -22,7 +22,7 @@ def parse_args():
     # add channels
     parser.add_argument("--num_channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
     parser.add_argument('--restoration_type',type=str, default='dn', help='Denoise or deblur? (dn/db)')
-    parser.add_argument('--object_type',type=str, default='c', help='Cells or nuclei? (c/n)')
+    # parser.add_argument('--object_type',type=str, default='c', help='Cells or nuclei? (c/n)')  
     return parser.parse_args()
 
 args = parse_args()
@@ -33,15 +33,15 @@ input_folder = args.input
 
 # choose model based on restoration and type
 if args.restoration_type == 'dn':
-    if args.object_type == 'c':
-        restoration_model = 'denoise_cyto3'
-    elif args.object_type == 'n':
-        restoration_model = 'denoise_nuclei'
+    # if args.object_type == 'c':
+    restoration_model = 'denoise_cyto3'
+    # elif args.object_type == 'n':
+    #     restoration_model = 'denoise_nuclei'
 elif args.restoration_type == 'db':
-    if args.object_type == 'c':
-        restoration_model = 'deblur_cyto3'
-    elif args.object_type == 'n':
-        restoration_model = 'deblur_nuclei'
+    # if args.object_type == 'c':
+    restoration_model = 'deblur_cyto3'
+    # elif args.object_type == 'n':
+    #     restoration_model = 'deblur_nuclei'
 else:
     print("Invalid restoration type. Choose 'dn' for denoise or 'db' for deblur.")
     exit(1) # this will stop the script, 1 means error
