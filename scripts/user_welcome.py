@@ -145,7 +145,7 @@ def image_preprocessing():
     print("[3] Extract intersecting regions of two images")
     print("[4] Sample Random Image Subregions")
     print("[5] Enhance contrast of single color image using CLAHE")
-    print("[6] Denoise images using Cellpose")
+    print("[6] Restore images using Cellpose")
     print("[7] Split color channels of multicolor images")
     print("[8] Merge color channels")
     print("[r] Return to Main Menu")
@@ -212,13 +212,15 @@ def image_preprocessing():
 
     if choice == "6":
         os.system('clear')
-        print(wrapper.fill("You chose to denoise images using Cellpose. A popup will appear in a moment asking you to select the folder containing the .tif images. They can be 2D/3D/4D and have multiple or a single color channel"))
+        print(wrapper.fill("You chose to restore images using Cellpose. A popup will appear in a moment asking you to select the folder containing the .tif images. They can be 2D/3D/4D and have multiple or a single color channel"))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         num_channels= input("\nEnter the number of color channels to be denoised: ")
+        restoration_type = input("\nChoose between denoise (dn) or deblur (db): ")
+        object_type = input("\nCells or nuclei? (c/n): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/denoise_cellpose.py',
-                                        '--input ' + input_folder + ' --num_channels ' + num_channels) 
+                                        '--input ' + input_folder + ' --num_channels ' + num_channels + ' --restoration_type ' + restoration_type + ' --object_type ' + object_type)
         restart_program()
 
 
@@ -646,14 +648,14 @@ def ROI_analysis():
         channels = input("\nEnter the names of your color channel subfolders in the abovementioned order (example: FITC DAPI TRITC): ")
         label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif *_labels.tif): ")
         #add_intensity = input("\nDo you want to quantify average intensity of the last channel in the ROI of the second last channel? (y/n): ")
-        output_images = input("\nDo you want to save colocalization images? (y/n): ")
+        # output_images = input("\nDo you want to save colocalization images? (y/n): ")
         get_area = input("\nDo you want to get the area of the ROI of the first channel? (y/n): ")
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_count_multicolor.py',
                                     '--input ' + input_folder +
                                     ' --channels ' + channels +
                                     ' --label_patterns ' + label_patterns +
-                                    ' --output_images ' + output_images +
+                                    # ' --output_images ' + output_images +
                                     ' --get_area ' + get_area
                                     )
                                     #' --add_intensity ' + add_intensity
