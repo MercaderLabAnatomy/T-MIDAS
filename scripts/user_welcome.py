@@ -212,15 +212,15 @@ def image_preprocessing():
 
     if choice == "6":
         os.system('clear')
-        print(wrapper.fill("You chose to restore images using Cellpose. A popup will appear in a moment asking you to select the folder containing the .tif images. They can be 2D/3D/4D and have multiple or a single color channel. You will be asked whether you want to denoise or deblur and whether you want to restore cells or nuclei (so better use single color channel images, this will also be faster and you can use the split and merge pipelines of T-MIDAS to separate the color channels and merge them back when restored). Lastly, you will be asked for the dimension order of the images. Remember that in Fiji, the typical dimension order for a 5D image is XYCZT (width, height, channels, slices, frames), but this can vary depending on how the image was acquired or processed. In Python, you can find out by using imread and checking the shape of the image."))
+        print(wrapper.fill("You chose to restore images using Cellpose. A popup will appear in a moment asking you to select the folder containing the .tif images. They can be 2D, z-stack or time series. Single color channel is recommended for speed (You can split color channels with T-MIDAS). You will be asked whether you want to denoise or deblur. Lastly, you will be asked for the dimension order of the images. For example TZYX (frames, slices, height, width), but this can vary depending on how the image was acquired or processed. In Python, you can find out by using imread and checking the shape of the image."))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         num_channels= input("\nEnter the number of color channels to be denoised: ")
         restoration_type = input("\nChoose between denoise (dn) or deblur (db): ")
-        # object_type = input("\nCells or nuclei? (c/n): ")
+        dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/denoise_cellpose.py',
-                                        '--input ' + input_folder + ' --num_channels ' + num_channels + ' --restoration_type ' + restoration_type) 
+                                        '--input ' + input_folder + ' --num_channels ' + num_channels + ' --restoration_type ' + restoration_type + ' --dim_order ' + dim_order)
         # + ' --object_type ' + object_type) 
         restart_program()
 
