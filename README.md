@@ -38,7 +38,7 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [3] Extract Blob Region from Images
     [4] Sample Random Image Subregions
     [5] Enhance contrast of single color image using CLAHE
-    [6] Denoise images using Cellpose
+    [6] Restore images using Cellpose
     [7] Split color channels
     [8] Merge color channels
 [2] Image Segmentation
