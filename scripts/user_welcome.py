@@ -399,20 +399,22 @@ def image_segmentation():
                 A popup will appear in a moment asking you to select the folder containing the intensity images.
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the intensity images: ")
+        dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
         bg = input("\nWhat kind of background? (1 = gray, 2 = dark): ")
         if bg == "1":
             print("\n")
             print(wrapper.fill('''You chose to segment bright spots with background. You will be asked to enter an intensity threshold.'''))
             intensity_threshold = input("\nEnter the intensity threshold (0 < value < 255): ")
             python_script_environment_setup('tmidas-env', 
-                                  os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots_2D.py',
-                                  '--input ' + input_folder + ' --bg ' + bg + ' --intensity_threshold ' + intensity_threshold)
+                                  os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots.py',
+                                  '--input ' + input_folder + ' --dim_order ' + dim_order +
+                                  ' --bg ' + bg + ' --intensity_threshold ' + intensity_threshold)
         if bg == "2":
             print("\n")
             print(wrapper.fill('''You chose to segment bright spots with dark background.'''))
             python_script_environment_setup('tmidas-env', 
-                                  os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots_2D.py',
-                                  '--input ' + input_folder + ' --bg ' + bg)
+                                  os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots.py',
+                                  '--input ' + input_folder + ' --dim_order ' + dim_order + ' --bg ' + bg)
         else:
             print("Invalid choice")
             restart_program()
@@ -442,12 +444,14 @@ def image_segmentation():
             sigma = input("\nEnter the sigma for the gauss-otsu-labeling (example: 1.0): ")
             exclude_small = input("\nLower size threshold to exclude small objects: ")
             exclude_large = input("\nUpper size threshold to exclude large objects: ")
+            dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
             python_script_environment_setup('tmidas-env', 
-                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_2D.py',
+                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs.py',
                                             '--input ' + input_folder + 
                                             ' --sigma ' + sigma +
                                             ' --exclude_small ' + exclude_small + 
-                                            ' --exclude_large ' + exclude_large)
+                                            ' --exclude_large ' + exclude_large +
+                                            ' --dim_order ' + dim_order)
             restart_program()
         if choice == "2":
             print("\nYou chose Cellpose's cyto3 model.")
@@ -459,11 +463,13 @@ def image_segmentation():
             print(wrapper.fill("Next, you will be asked to enter the channels to use. Gray=0, Red=1, Green=2, Blue=3. Single (gray) channel, enter 0 0. For green cytoplasm and blue nuclei, enter 2 3."))
             print("\n")
             channels = input("\nEnter the channels to use (example: 0 0):")
+            dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
             python_script_environment_setup('tmidas-env', 
-                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_2D_cyto3.py',
+                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_cyto3.py',
                                             '--input ' + input_folder +
                                             ' --diameter ' + diameter +
-                                            ' --channels ' + channels)
+                                            ' --channels ' + channels +
+                                            ' --dim_order ' + dim_order)
             restart_program()
 
     
