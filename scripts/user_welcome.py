@@ -217,10 +217,13 @@ def image_preprocessing():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         num_channels= input("\nEnter the number of color channels to be denoised: ")
         restoration_type = input("\nChoose between denoise (dn) or deblur (db): ")
+        object_type = input("\nChoose between nuclei (n) or cytoplasm (c): ")
         dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/denoise_cellpose.py',
-                                        '--input ' + input_folder + ' --num_channels ' + num_channels + ' --restoration_type ' + restoration_type + ' --dim_order ' + dim_order)
+                                        '--input ' + input_folder + ' --num_channels ' + num_channels + ' --restoration_type ' + restoration_type + 
+                                        ' --object_type ' + object_type + ' --dim_order ' + dim_order)
+
         # + ' --object_type ' + object_type) 
         restart_program()
 
