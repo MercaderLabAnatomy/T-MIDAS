@@ -38,9 +38,9 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [3] Extract Blob Region from Images
     [4] Sample Random Image Subregions
     [5] Enhance contrast of single color image using CLAHE
-    [6] Denoise or deblur images (Cellpose 3)
-    [7] Split color channels
-    [8] Merge color channels
+    [6] Denoise or deblur images /w Cellpose 3 (2D,2D+t,3D,3D+t)
+    [7] Split color channels (2D,3D)
+    [8] Merge color channels (2D,2D+t,3D,3D+t)
 [2] Image Segmentation
     [1] Segment bright spots (2D,2D+t,3D,3D+t)
     [2] Segment blobs (2D,2D+t,3D,3D+t)
@@ -63,9 +63,8 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
 </pre>
 
 ## WIP
-- Plug & Play DGMs for Transfer Learning (PyTorch framework)
-- Lightsheet data
-- Time series data
+- AI for ROI detection in brightfield and fluorescence images
+- Code stability
 
 
 ## Installation (Ubuntu)

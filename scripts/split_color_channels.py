@@ -44,7 +44,7 @@ def split_color_channels(folder, dim_order, channel_names):
         # save the color channels
         for i, channel in enumerate(channels):
             channel = cp.asnumpy(channel)
-            save_image(channel, os.path.join(folder, f"{file[:-4]}_{channel_names[i]}.tif"))
+            save_image(channel, os.path.join(folder, f"{channel_names[i]}-{file[:-4]}.tif"))
 
 
 
