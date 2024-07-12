@@ -97,6 +97,17 @@ def denoise_images_zyx(input_folder, output_folder, model, num_channels,dim_orde
         print("Check if image shape corresponds to the dim order that you have given:\n")
         print(f"Image shape: {image.shape}, dimension order: {dim_order}")
         print("\n")
+
+        # Determine if the image is 2D or 3D
+        is_3d = len(img.shape) == 3 and 'Z' in dim_order
+
+        if is_3d:
+            if dim_order != 'ZYX':
+                img = np.transpose(img, (dim_order.index('Z'), dim_order.index('Y'), dim_order.index('X')))
+        else: # 2D case
+            if dim_order != 'YX':
+                img = np.transpose(img, (dim_order.index('Y'), dim_order.index('X')))
+
         for c in tqdm(range(num_channels[0]), total=num_channels[0], desc="Processing channels"):
 
             img_dn = model.eval(img, channels=[c, 0], z_axis=0)#,channel_axis=4) # z_axis should be user input
@@ -119,9 +130,17 @@ def denoise_images_tzyx(input_folder, output_folder, model, dim_order):
         print(f"Image shape: {img.shape}, dimension order: {dim_order}")
         print("\n")
 
-        # if dim order is not TZYX, then transpose the image
-        if dim_order != 'TZYX':
-            img = np.transpose(img, (dim_order.index('T'), dim_order.index('Z'), dim_order.index('Y'), dim_order.index('X')))
+        # Determine if the image is 2D or 3D
+        is_3d = len(img.shape) == 4 and 'Z' in dim_order
+
+        if is_3d:
+            # if dim order is not TZYX, then transpose the image
+            if dim_order != 'TZYX':
+                img = np.transpose(img, (dim_order.index('T'), dim_order.index('Z'), dim_order.index('Y'), dim_order.index('X')))
+        else: # 2D case
+            if dim_order != 'TYX':
+                img = np.transpose(img, (dim_order.index('T'), dim_order.index('Y'), dim_order.index('X')))
+
         # with this order, t_axis should be 0
         t_axis = 0
         # Create a list to store denoised time points

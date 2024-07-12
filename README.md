@@ -42,8 +42,8 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [7] Split color channels
     [8] Merge color channels
 [2] Image Segmentation
-    [1] Segment bright spots (2D,3D,3D+t)
-    [2] Segment blobs (2D,3D,3D+t)
+    [1] Segment bright spots (2D,2D+t,3D,3D+t)
+    [2] Segment blobs (2D,2D+t,3D,3D+t)
         [1] User-defined or automatic (Otsu) thresholding
         [2] Cellpose's (generalist) cyto3 model
     [3] Segment blobs (3D; requires dark background and good SNR)
