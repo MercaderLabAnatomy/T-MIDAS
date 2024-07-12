@@ -38,13 +38,13 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [3] Extract Blob Region from Images
     [4] Sample Random Image Subregions
     [5] Enhance contrast of single color image using CLAHE
-    [6] Restore images using Cellpose
+    [6] Denoise or deblur images (Cellpose 3)
     [7] Split color channels
     [8] Merge color channels
 [2] Image Segmentation
-    [1] Segment bright spots (2D)
-    [2] Segment blobs (2D)
-        [1] Gauss-Otsu-labeling
+    [1] Segment bright spots (2D,3D,3D+t)
+    [2] Segment blobs (2D,3D,3D+t)
+        [1] User-defined or automatic (Otsu) thresholding
         [2] Cellpose's (generalist) cyto3 model
     [3] Segment blobs (3D; requires dark background and good SNR)
     [4] Semantic segmentation (2D; fluorescence or brightfield)

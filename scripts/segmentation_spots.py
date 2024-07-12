@@ -32,12 +32,26 @@ def calculate_threshold(image):
     intensity_threshold = np.percentile(gray_areas, 75) + np.mean(gray_areas)
     return intensity_threshold
 
-def process_image(image_path):
+def process_image(image_path, dim_order):
     """Process a single image and return labeled image."""
     try:
         image = imread(image_path)
         intensity_threshold = None  # Initialize intensity_threshold with a default value
-
+        print("\n")
+        print("Check if image shape corresponds to the dim order that you have given:\n")
+        print(f"Image shape: {image.shape}, dimension order: {dim_order}")
+        print("\n")
+        # Determine if the image is 2D or 3D
+        is_3d = len(image.shape) == 3 and 'Z' in dim_order
+        if is_3d:
+            if dim_order != 'ZYX':
+                transpose_order = [dim_order.index(d) for d in 'ZYX']
+                image = np.transpose(image, transpose_order)
+        else:  # 2D case
+            if dim_order != 'YX':
+                transpose_order = [dim_order.index(d) for d in 'YX']
+                image = np.transpose(image, transpose_order)
+                
         if BG == 1:
             if args.intensity_threshold is not None:
                 intensity_threshold = args.intensity_threshold

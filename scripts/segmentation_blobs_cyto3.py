@@ -36,14 +36,32 @@ if not isinstance(channels, list):
 
 flow_threshold = 0.4
 
-#model = models.Cellpose(gpu=use_GPU, model_type='cyto3')
-model = denoise.CellposeDenoiseModel(gpu=True, model_type="cyto3",
-             restore_type="denoise_cyto3", chan2_restore=False)
+model = models.Cellpose(gpu=use_GPU, model_type='cyto3')
+# model = denoise.CellposeDenoiseModel(gpu=True, model_type="cyto3",
+#              restore_type="denoise_cyto3", chan2_restore=False)
 
 def segment_images(input_folder, output_folder, model, channels, diameter, flow_threshold):
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
     for input_file in tqdm(input_files, total = len(input_files), desc="Processing images"):
         img = imread(os.path.join(input_folder,input_file))
+        # print value of each dimension
+        print("\n")
+        print("Check if image shape corresponds to the dim order that you have given:\n")
+        print(f"Image shape: {img.shape}, dimension order: {dim_order}")
+        print("\n")
+        # Determine if the image is 2D or 3D
+        is_3d = len(img.shape) == 3 and 'Z' in dim_order
+
+        if is_3d:
+            if dim_order != 'ZYX':
+                transpose_order = [dim_order.index(d) for d in 'ZYX']
+                img = np.transpose(img, transpose_order)
+        else:  # 2D case
+            if dim_order != 'YX':
+                transpose_order = [dim_order.index(d) for d in 'YX']
+                img = np.transpose(img, transpose_order)
+                
+        
         masks,flows, styles, diams = model.eval(img, diameter=diameter, 
                                                 flow_threshold=flow_threshold, 
                                                 channels=channels, niter=2000)
@@ -62,26 +80,37 @@ def segment_time_series_images(input_folder, output_folder, model, channels, dia
         print(f"Image shape: {img.shape}, dimension order: {dim_order}")
         print("\n")
         # Determine if the image is 2D or 3D
-        is_3d = len(image.shape) == 4 and 'Z' in dim_order
+        is_3d = len(img.shape) == 4 and 'Z' in dim_order
         
         if is_3d:
             if dim_order != 'TZYX':
                 transpose_order = [dim_order.index(d) for d in 'TZYX']
-                image = np.transpose(image, transpose_order)
+                img = np.transpose(img, transpose_order)
         else:  # 2D case
             if dim_order != 'TYX':
                 transpose_order = [dim_order.index(d) for d in 'TYX']
-                image = np.transpose(image, transpose_order)
+                img = np.transpose(img, transpose_order)
 
         # Pre-allocate the array for labeled time points
-        labeled_time_points = np.zeros(image.shape, dtype=np.uint32)
-        
+        labeled_time_points = np.zeros(img.shape, dtype=np.uint32)
+
         for t in tqdm(range(img.shape[0]), total=img.shape[0], desc="Processing time points"):
             # Extract the current time point
             img_t = np.take(img, t, axis=0)
-            mask, flows, styles, diams = model.eval(img_t, diameter=diameter, 
-                                                    flow_threshold=flow_threshold, 
-                                                    channels=channels, niter=2000)
+
+            if is_3d:
+                mask, flows, styles, diams = model.eval(img_t, diameter=diameter, 
+                                                        flow_threshold=flow_threshold, 
+                                                        channels=channels, niter=2000, z_axis=0,do_3D=True)
+            else:
+                mask, flows, styles, diams = model.eval(img_t, diameter=diameter,
+                                                        flow_threshold=flow_threshold,
+                                                        channels=channels, niter=2000)
+            # print mask shape
+            print("\n")
+            print(f"Mask shape: {mask.shape}")
+            print("\n")
+
             labeled_time_points[t] = mask
 
 

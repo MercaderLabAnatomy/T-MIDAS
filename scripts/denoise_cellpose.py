@@ -88,12 +88,15 @@ def normalize_to_uint8(image):
 
 
 
-def denoise_images_zyx(input_folder, output_folder, model, num_channels):
+def denoise_images_zyx(input_folder, output_folder, model, num_channels,dim_order):
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
     
     for input_file in tqdm(input_files, total=len(input_files), desc="Processing images"):
         img = imread(os.path.join(input_folder, input_file))
-
+        print("\n")
+        print("Check if image shape corresponds to the dim order that you have given:\n")
+        print(f"Image shape: {image.shape}, dimension order: {dim_order}")
+        print("\n")
         for c in tqdm(range(num_channels[0]), total=num_channels[0], desc="Processing channels"):
 
             img_dn = model.eval(img, channels=[c, 0], z_axis=0)#,channel_axis=4) # z_axis should be user input
@@ -151,4 +154,4 @@ def denoise_images_tzyx(input_folder, output_folder, model, dim_order):
 if 'T' in args.dim_order:
     denoise_images_tzyx(input_folder, input_folder, model, dim_order)
 else:
-    denoise_images_zyx(input_folder, input_folder, model, num_channels)
+    denoise_images_zyx(input_folder, input_folder, model, num_channels, dim_order)

@@ -434,21 +434,21 @@ def image_segmentation():
         print("\n")
         print(wrapper.fill("You can choose between two methods:"))
         print("\n")
-        print(wrapper.fill("[1] Gauss-Otsu-labeling."))
+        print(wrapper.fill("[1] User-defined or automatic (Otsu) intensity thresholding."))
         print("\n")
         print(wrapper.fill("[2] Cellpose's (generalist) cyto3 model."))
         print("\n")
         choice = input("\nEnter your choice: ")
         if choice == "1":
             print("\nYou chose classical gauss-otsu labeling.")
-            sigma = input("\nEnter the sigma for the gauss-otsu-labeling (example: 1.0): ")
+            threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
             exclude_small = input("\nLower size threshold to exclude small objects: ")
             exclude_large = input("\nUpper size threshold to exclude large objects: ")
             dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
             python_script_environment_setup('tmidas-env', 
                                             os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs.py',
                                             '--input ' + input_folder + 
-                                            ' --sigma ' + sigma +
+                                            ' --threshold ' + threshold +
                                             ' --exclude_small ' + exclude_small + 
                                             ' --exclude_large ' + exclude_large +
                                             ' --dim_order ' + dim_order)
@@ -456,7 +456,7 @@ def image_segmentation():
         if choice == "2":
             print("\nYou chose Cellpose's cyto3 model.")
             print("\n")
-            print(wrapper.fill("First, you will be asked to enter the typical diameter of the objects that you want to segment. If you want to let Cellpose predict the diameter, enter 0."))
+            print(wrapper.fill("First, you will be asked to enter the typical diameter of the objects that you want to segment. If you want to let Cellpose predict the diameter, enter 0. Diameter prediction only works for 2D images."))
             print("\n")
             diameter = input("\nEnter the typical diameter of the objects that you want to segment: ")
             print("\n")
