@@ -31,7 +31,7 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
         [1] Convert .ndpi
         [2] Convert .lif
         [3] Convert brightfield .czi
-    [2] Cropping Largest Objects from Images
+    [2] Cropping Largest Objects from Images /w Segment Anything
         [1] Slidescanner images (fluorescent, .ndpi)
         [2] Slidescanner images (brightfield, .ndpi)
         [3] Multicolor image stacks (.lif)
@@ -46,7 +46,6 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [2] Segment blobs (2D,2D+t,3D,3D+t)
         [1] User-defined or automatic (Otsu) thresholding
         [2] Cellpose's (generalist) cyto3 model
-    [3] Segment blobs (3D; requires dark background and good SNR)
     [4] Semantic segmentation (2D; fluorescence or brightfield)
     [5] Semantic segmentation (2D; Segment Anything)
     [6] Semantic segmentation (3D; requires dark background and good SNR)
