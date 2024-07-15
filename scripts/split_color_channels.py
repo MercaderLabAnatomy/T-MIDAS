@@ -38,6 +38,7 @@ def split_channels_cpu(file_list, channels, dim_order, output_dir):
             os.makedirs(channel_dir, exist_ok=True)
 
             if is_time_series:
+            
                 if is_3d:
                     channel_img = img.take(i, axis=channel_axis)
                 else:

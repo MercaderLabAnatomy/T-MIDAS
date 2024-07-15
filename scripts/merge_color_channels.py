@@ -26,8 +26,10 @@ def merge_channels_cpu(file_lists, channels, dim_order, merged_dir):
     
     is_3d = 'Z' in dim_order
     is_time_series = 'T' in dim_order
+
     
     if is_time_series:
+
         if is_3d:
             time_points, z_slices, height, width = img_shape
             merged_shape = (time_points, len(channels), z_slices, height, width)
@@ -50,7 +52,7 @@ def merge_channels_cpu(file_lists, channels, dim_order, merged_dir):
             with TiffFile(file_lists[channel][i]) as tif:
                 if is_time_series:
                     if is_3d:
-                        for t in tqdm(range(time_points), desc=f"Processing frame {t} of {time_points}"):
+                        for t in tqdm(range(time_points), desc=f"Processing frames"):
                             merged_img[t,c,:,:,:] = tif.asarray(key=slice(t * z_slices, (t + 1) * z_slices))
                     else:
                         merged_img[:,c,:,:] = tif.asarray()
