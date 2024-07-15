@@ -1,54 +1,82 @@
-# this python script employs cupy to split the color channels of an image
-# user input is the folder containing the images to be split, as well as the dimension order of the images and the names of the color channel output folders
-
-
 import os
-import cupy as cp
 import argparse
-import sys
-from skimage.io import imread
-import numpy as np
+import glob
 from tqdm import tqdm
-from tifffile import imwrite
-
+from tifffile import imread, imwrite, TiffFile
+import numpy as np
+import sys
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
-    parser.add_argument('--input', type=str, help='Path to the folder containing the multicolor images.')
-    parser.add_argument('--dim_order', type=str, help='Dimension order of the images (example: XYZCT).')
-    parser.add_argument('--channel_names', type=str, nargs='+', help='Names of the color channels (example: FITC DAPI TRITC).')
+    parser = argparse.ArgumentParser(description='Batch split channels')
+    parser.add_argument('--input', type=str, required=True, help='Path to the folder containing multi-channel images.')
+    parser.add_argument('--channels', nargs='+', type=str, required=True, help='Names of the color channels to split. Example: "TRITC DAPI FITC"')
+    parser.add_argument('--dim_order', type=str, default='CYX', help='Dimension order of the input images.')
     return parser.parse_args()
 
-args = parse_args()
+def split_channels_cpu(file_list, channels, dim_order, output_dir):
+    for file_path in tqdm(file_list, desc='Splitting files'):
+        with TiffFile(file_path) as tif:
+            img = tif.asarray()
+            metadata = tif.imagej_metadata
 
+        print(f"Input image shape: {img.shape}, dimension order: {dim_order}")
 
-folder = args.input
+        if dim_order not in ['CYX', 'ZCYX', 'TCYX', 'TZCYX']:
+            raise ValueError(f"Expected dimension order 'CYX', 'ZCYX', 'TCYX', or 'TZCYX', but got '{dim_order}'")
 
+        is_3d = 'Z' in dim_order
+        is_time_series = 'T' in dim_order
 
-def save_image(image, filename):
-    # Convert image data type to uint32 before saving
-    image_uint32 = image.astype(np.uint32)
-    imwrite(filename, image_uint32, compression='zlib')
+        channel_axis = dim_order.index('C')
+        num_channels = img.shape[channel_axis]
 
-def split_color_channels(folder, dim_order, channel_names):
-    # get the list of files in the folder
-    files = [file for file in os.listdir(folder) if file.endswith('.tif')]
-    # loop through the files
-    for file in tqdm(files, total=len(files), desc="Processing images"):
-        # load the image
-        img = imread(os.path.join(folder, file))
-        # convert the numpy array to a cupy array
-        img = cp.array(img)
-        # split the color channels
-        channels = [img[:,:,i] for i in range(img.shape[dim_order.index('C')])]
-        # save the color channels
+        if num_channels != len(channels):
+            raise ValueError(f"Number of channels in the image ({num_channels}) does not match the number of provided channel names ({len(channels)})")
+
         for i, channel in enumerate(channels):
-            channel = cp.asnumpy(channel)
-            save_image(channel, os.path.join(folder, f"{channel_names[i]}-{file[:-4]}.tif"))
+            channel_dir = os.path.join(output_dir, channel)
+            os.makedirs(channel_dir, exist_ok=True)
 
+            if is_time_series:
+                if is_3d:
+                    channel_img = img.take(i, axis=channel_axis)
+                else:
+                    channel_img = img.take(i, axis=channel_axis)
+            else:
+                if is_3d:
+                    channel_img = img.take(i, axis=channel_axis)
+                else:
+                    channel_img = img.take(i, axis=channel_axis)
 
+            output_filename = os.path.join(channel_dir, f"{os.path.splitext(os.path.basename(file_path))[0]}_{channel}.tif")
+            imwrite(output_filename, channel_img, compression='zlib', imagej=True, metadata={'axes': dim_order.replace('C', '')})
 
+    print("Splitting completed successfully.")
 
-if __name__ == '__main__':
+def main():
+    args = parse_args()
+    input_dir = args.input
+    channels = [c.upper() for c in args.channels]
+    dim_order = args.dim_order.upper()
 
-    split_color_channels(args.input, args.dim_order, args.channel_names)
+    file_list = sorted(glob.glob(os.path.join(input_dir, '*.tif')))
+
+    if len(file_list) == 0:
+        raise ValueError(f"No .tif files found in the input directory: {input_dir}")
+
+    print(f"Number of images to process: {len(file_list)}")
+
+    output_dir = os.path.join(input_dir, 'split_channels')
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    split_channels_cpu(file_list, channels, dim_order, output_dir)
+
+    print("Split images saved in", output_dir)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"An error occurred: {e}", file=sys.stderr)
+        sys.exit(1)

@@ -234,10 +234,10 @@ def image_preprocessing():
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the multicolor images: ")
         dim_order = input("\nEnter the dimension order of the images (example: XYZCT): ")
-        channel_names = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
+        channels = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/split_color_channels.py',
-                                        '--input ' + input_folder + ' --dim_order ' + dim_order + ' --channel_names ' + channel_names)
+                                        '--input ' + input_folder + ' --dim_order ' + dim_order + ' --channels ' + channels)
         restart_program()
         
     if choice == "8":
