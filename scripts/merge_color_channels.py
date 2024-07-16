@@ -75,6 +75,7 @@ def merge_channels_cpu(file_lists, channels, dim_order, merged_dir):
                 merged_img = np.moveaxis(merged_img, 0, 0)  # CYX
         
         output_filename = os.path.join(merged_dir, os.path.basename(file_lists[channels[0]][i]).replace(channels[0], '').lstrip('-'))
+        print(f"Saving merged image to {output_filename}")
         imwrite(output_filename, merged_img, compression='zlib', imagej=True, 
                 metadata={'axes': 'TZCYX' if is_time_series and is_3d else 'TCYX' if is_time_series else 'ZCYX' if is_3d else 'CYX'})
     

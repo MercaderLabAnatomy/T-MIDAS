@@ -20,7 +20,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     # add channels
-    parser.add_argument("--num_channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
+    # parser.add_argument("--num_channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
     parser.add_argument('--restoration_type',type=str, default='dn', help='Denoise or deblur? (dn/db)')
     parser.add_argument('--dim_order',type=str, default='ZYX', help='Dimension order of the input images.')
     parser.add_argument('--object_type',type=str, default='c', help='Cells or nuclei? (c/n)')  
@@ -28,7 +28,7 @@ def parse_args():
 
 args = parse_args()
 
-num_channels = args.num_channels
+# num_channels = args.num_channels
 input_folder = args.input
 dim_order = args.dim_order
 
@@ -88,7 +88,7 @@ def normalize_to_uint8(image):
 
 
 
-def denoise_images_zyx(input_folder, output_folder, model, num_channels,dim_order):
+def denoise_images_zyx(input_folder, output_folder, model,dim_order):
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
     
     for input_file in tqdm(input_files, total=len(input_files), desc="Processing images"):
@@ -108,15 +108,15 @@ def denoise_images_zyx(input_folder, output_folder, model, num_channels,dim_orde
             if dim_order != 'YX':
                 img = np.transpose(img, (dim_order.index('Y'), dim_order.index('X')))
 
-        for c in tqdm(range(num_channels[0]), total=num_channels[0], desc="Processing channels"):
+        # for c in tqdm(range(num_channels[0]), total=num_channels[0], desc="Processing channels"):
 
-            img_dn = model.eval(img, channels=[c, 0], z_axis=0)#,channel_axis=4) # z_axis should be user input
-            # drop the last dimension
-            img_dn = np.squeeze(img_dn)
-            imwrite(os.path.join(output_folder, 
-                                 input_file.replace(".tif", f"_{restoration_model}.tif")), 
-                                 normalize_to_uint8(img_dn), 
-                                 compression='zlib')
+        img_dn = model.eval(img, channels=[0, 0], z_axis=0)#,channel_axis=4) # z_axis should be user input
+        # drop the last dimension
+        img_dn = np.squeeze(img_dn)
+        imwrite(os.path.join(output_folder, 
+                             input_file.replace(".tif", f"_{restoration_model}.tif")), 
+                             normalize_to_uint8(img_dn), 
+                             compression='zlib')
 
 
 def denoise_images_tzyx(input_folder, output_folder, model, dim_order):
@@ -173,4 +173,4 @@ def denoise_images_tzyx(input_folder, output_folder, model, dim_order):
 if 'T' in args.dim_order:
     denoise_images_tzyx(input_folder, input_folder, model, dim_order)
 else:
-    denoise_images_zyx(input_folder, input_folder, model, num_channels, dim_order)
+    denoise_images_zyx(input_folder, input_folder, model, dim_order)

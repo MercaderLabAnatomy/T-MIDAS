@@ -22,7 +22,23 @@ def split_channels_cpu(file_list, channels, dim_order, output_dir):
         print(f"Input image shape: {img.shape}, dimension order: {dim_order}")
 
         if dim_order not in ['CYX', 'ZCYX', 'TCYX', 'TZCYX']:
-            raise ValueError(f"Expected dimension order 'CYX', 'ZCYX', 'TCYX', or 'TZCYX', but got '{dim_order}'")
+            # reorder the image to the desired dimension order
+            if len(img.shape) == 3 and dim_order != 'CYX':
+                transpose_order = [dim_order.index(d) for d in 'CYX']
+                img = np.transpose(img, transpose_order)
+            elif len(img.shape) == 4 and dim_order != 'ZCYX':
+                transpose_order = [dim_order.index(d) for d in 'ZCYX']
+                img = np.transpose(img, transpose_order)
+            elif len(img.shape) == 4 and dim_order != 'TCYX':
+                transpose_order = [dim_order.index(d) for d in 'TCYX']
+                img = np.transpose(img, transpose_order)
+            elif len(img.shape) == 5 and dim_order != 'TZCYX':
+                transpose_order = [dim_order.index(d) for d in 'TZCYX']
+                img = np.transpose(img, transpose_order)
+            else:
+                raise ValueError(f"Expected dimensions 'CYX', 'ZCYX', 'TCYX', or 'TZCYX', but got '{dim_order}'")
+
+            # raise ValueError(f"Expected dimension order 'CYX', 'ZCYX', 'TCYX', or 'TZCYX', but got '{dim_order}'")
 
         is_3d = 'Z' in dim_order
         is_time_series = 'T' in dim_order
