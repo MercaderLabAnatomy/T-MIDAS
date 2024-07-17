@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     # add channels
     # parser.add_argument("--num_channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
-    parser.add_argument('--restoration_type',type=str, default='dn', help='Denoise or deblur? (dn/db)')
+    parser.add_argument('--restoration_type',type=str, default='dn', help='Denoise, deblur or upscale? (dn/db/us)')
     parser.add_argument('--dim_order',type=str, default='ZYX', help='Dimension order of the input images.')
     parser.add_argument('--object_type',type=str, default='c', help='Cells or nuclei? (c/n)')  
     return parser.parse_args()
@@ -70,6 +70,12 @@ elif args.restoration_type == 'db':
         restoration_model = 'deblur_cyto3'
     elif args.object_type == 'n':
         restoration_model = 'deblur_nuclei'
+elif args.restoration_type == 'us':
+    if args.object_type == 'c':
+        restoration_model = 'upsample_cyto3'
+    elif args.object_type == 'n':
+        restoration_model = 'upsample_nuclei'
+
 else:
     print("Invalid restoration type. Choose 'dn' for denoise or 'db' for deblur.")
     exit(1) # this will stop the script, 1 means error
@@ -95,7 +101,7 @@ def denoise_images_zyx(input_folder, output_folder, model,dim_order):
         img = imread(os.path.join(input_folder, input_file))
         print("\n")
         print("Check if image shape corresponds to the dim order that you have given:\n")
-        print(f"Image shape: {image.shape}, dimension order: {dim_order}")
+        print(f"Image shape: {img.shape}, dimension order: {dim_order}")
         print("\n")
 
         # Determine if the image is 2D or 3D
