@@ -66,15 +66,21 @@ def coloc_channels(file_lists, channels, get_areas):
                 if get_areas.lower() == 'y':
                     props = regionprops(ROI_mask.astype(np.int32))
                     area = props[0].area if props else 0
-                    c2_in_c1_areas = [prop.area for prop in regionprops(label(image_c2 * ROI_mask).astype(np.int32))]
+                    c2_in_c1_areas = [prop.area for prop in regionprops(label(image_c2 * ROI_mask).astype(np.int32))] # this is
                     c2_in_c1_avg_area = safe_mean(c2_in_c1_areas)
                     c2_in_c1_std_area = safe_std(c2_in_c1_areas)
 
                     if image_c3 is not None:
+                        c3_in_c1_areas = [prop.area for prop in regionprops(label(image_c3 * ROI_mask).astype(np.int32))]
+                        c3_in_c1_avg_area = safe_mean(c3_in_c1_areas)
+                        c3_in_c1_std_area = safe_std(c3_in_c1_areas)
                         c3_in_c2_in_c1_areas = [prop.area for prop in regionprops(label(image_c3 * (image_c2 * ROI_mask)).astype(np.int32))]
                         c3_in_c2_in_c1_avg_area = safe_mean(c3_in_c2_in_c1_areas)
                         c3_in_c2_in_c1_std_area = safe_std(c3_in_c2_in_c1_areas)
-                        csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count, c3_in_c1_count, c3_in_c2_in_c1_count, c3_not_in_c2_but_in_c1_count, c2_in_c1_avg_area, c2_in_c1_std_area, c3_in_c2_in_c1_avg_area, c3_in_c2_in_c1_std_area])
+                        csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count, c3_in_c1_count, c3_in_c2_in_c1_count, c3_not_in_c2_but_in_c1_count, 
+                                         c2_in_c1_avg_area, c2_in_c1_std_area, 
+                                         c3_in_c1_avg_area, c3_in_c1_std_area,
+                                         c3_in_c2_in_c1_avg_area, c3_in_c2_in_c1_std_area])
                     else:
                         csv_rows.append([os.path.basename(file_path), label_id, area, c2_in_c1_count, c2_in_c1_avg_area, c2_in_c1_std_area])
                 else:
@@ -117,7 +123,7 @@ def main():
             if get_areas.lower() == 'y':
                 header.extend([f"{channels[1]}_avg_size_in_{channels[0]}", f"{channels[1]}_std_size_in_{channels[0]}"])
                 if len(channels) == 3:
-                    header.extend([f"{channels[2]}_avg_size_in_{channels[1]}_in_{channels[0]}", f"{channels[2]}_std_size_in_{channels[1]}_in_{channels[0]}"])
+                    header.extend([f"{channels[2]}_avg_size_in_{channels[0]}", f"{channels[2]}_std_size_in_{channels[0]}", f"{channels[2]}_avg_size_in_{channels[1]}_in_{channels[0]}", f"{channels[2]}_std_size_in_{channels[1]}_in_{channels[0]}"])
             writer.writerow(header)
             writer.writerows(csv_rows)
 
