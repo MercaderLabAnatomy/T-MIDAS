@@ -1,66 +1,37 @@
-import subprocess
+import os
+from conda.cli.python_api import run_command, Commands
 
+env_name = "tmidas-env"
+
+# Create the environment
+run_command(Commands.CREATE, "-n", env_name, "python=3.8", "-y")
+
+# Activate the environment
+os.environ["CONDA_DEFAULT_ENV"] = env_name
+os.environ["CONDA_PREFIX"] = os.path.join(os.environ["CONDA_PREFIX"], "envs", env_name)
+
+# Initialize mamba
+run_command(Commands.RUN, "-n", env_name, "mamba", "init")
+
+# Install dependencies
 dependencies = [
-    'numpy',
-    'scikit-image',
-    'tifffile',
-    'pyclesperanto-prototype', 
-    'Pillow',
-    'napari-segment-blobs-and-things-with-membranes',
-    'napari-simpleitk-image-processing',
-    'pandas',
-    'apoc', # GPU-accelerated pixel and object classification
-    'aicsimageio', # for reading .czi files
-    'opencv-python',  
-    'readlif', # for reading .lif files
-    'SimpleITK',
-    'openslide-python', # for reading .ndpi files 
-    'glob2',
-    'pytest',
-    'cucim',
-    'aicspylibczi',
-    'torch',
-    'torchvision',
-    'timm'
-    
+    'numpy', 'scikit-image', 'tifffile', 'pyclesperanto-prototype', 'Pillow',
+    'napari-segment-blobs-and-things-with-membranes', 'napari-simpleitk-image-processing',
+    'pandas', 'apoc', 'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
+    'openslide-python', 'glob2', 'pytest', 'cucim', 'aicspylibczi', 'torch',
+    'torchvision', 'timm'
 ]
 
+run_command(Commands.RUN, "-n", env_name, "python", "-m", "pip", "install", "-U", "setuptools", "pip")
 
-# first create and activate mamba environment
-subprocess.call(['mamba', 'create', '-y', '-n', 'tmidas-env', 'python=3.8'])
-subprocess.call(['mamba', 'activate', 'tmidas-env'])
-# init mamba environment
-subprocess.call(['mamba', 'init'])
+run_command(Commands.INSTALL, "-n", env_name, "openslide", "ocl-icd-system", "pyopencl", "cupy", "-y")
 
-
-# proceed with installation of dependencies
-
-subprocess.call(['python', '-m', 'pip', 'install', '-U', 'setuptools', 'pip'])
-
-# Additional installations for specific packages
-subprocess.call(['mamba', 'install', '-y', 
-                 'openslide',
-                 'ocl-icd-system',
-                 'pyopencl',
-                 'cupy']) # if not installed with mamba but pip: gives error with cublas
-
-
-subprocess.call(['pip', 'install', 'git+https://github.com/ChaoningZhang/MobileSAM.git'])
+run_command(Commands.RUN, "-n", env_name, "pip", "install", "git+https://github.com/ChaoningZhang/MobileSAM.git")
 
 for dependency in dependencies:
-    subprocess.call(['pip', 'install', dependency])
+    run_command(Commands.RUN, "-n", env_name, "pip", "install", dependency)
 
-
-# install napari
-
-subprocess.call(['python', '-m', 'pip', 'install', 'napari[all]'])
-
-# install cellpose
-subprocess.call(['python', '-m', 'pip', 'install', 'cellpose'])
-
-# deactivate mamba environment
-subprocess.call(['mamba', 'deactivate'])
-
-
+run_command(Commands.RUN, "-n", env_name, "python", "-m", "pip", "install", "napari[all]")
+run_command(Commands.RUN, "-n", env_name, "python", "-m", "pip", "install", "cellpose")
 
 print("All dependencies installed successfully.")
