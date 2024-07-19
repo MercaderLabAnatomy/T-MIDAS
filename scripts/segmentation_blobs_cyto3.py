@@ -1,16 +1,9 @@
-# segment blobs using cyto3 
-
-
 import os
 import argparse
 import numpy as np
 from skimage.io import imread
 from tifffile import imwrite
-import numpy as np
-import os
-from skimage.io import imread
-from cellpose import models, core, denoise
-from tifffile import imwrite
+from cellpose import models, core
 from tqdm import tqdm
 
 use_GPU = core.use_gpu()
@@ -20,107 +13,54 @@ def parse_args():
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     parser.add_argument("--diameter", type=float, default=40.0, help="Diameter of objects.")
     parser.add_argument("--channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
-    parser.add_argument('--dim_order',type=str, default='ZYX', help='Dimension order of the input images.')
+    parser.add_argument('--dim_order', type=str, default='ZYX', help='Dimension order of the input images.')
     return parser.parse_args()
 
-args = parse_args()
-
-channels = args.channels
-input_folder = args.input
-diameter = args.diameter
-dim_order = args.dim_order
-
-# convert to list
-if not isinstance(channels, list):
-    channels = [channels]
-
-flow_threshold = 0.4
-
-model = models.Cellpose(gpu=use_GPU, model_type='cyto3')
-# model = denoise.CellposeDenoiseModel(gpu=True, model_type="cyto3",
-#              restore_type="denoise_cyto3", chan2_restore=False)
-
-def segment_images(input_folder, output_folder, model, channels, diameter, flow_threshold):
-    input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
-    for input_file in tqdm(input_files, total = len(input_files), desc="Processing images"):
-        img = imread(os.path.join(input_folder,input_file))
-        # print value of each dimension
-        print("\n")
-        print("Check if image shape corresponds to the dim order that you have given:\n")
-        print(f"Image shape: {img.shape}, dimension order: {dim_order}")
-        print("\n")
-        # Determine if the image is 2D or 3D
-        is_3d = len(img.shape) == 3 and 'Z' in dim_order
-
-        if is_3d:
-            if dim_order != 'ZYX':
-                transpose_order = [dim_order.index(d) for d in 'ZYX']
-                img = np.transpose(img, transpose_order)
-        else:  # 2D case
-            if dim_order != 'YX':
-                transpose_order = [dim_order.index(d) for d in 'YX']
-                img = np.transpose(img, transpose_order)
-                
-        
-        masks,flows, styles, diams = model.eval(img, diameter=diameter, 
-                                                flow_threshold=flow_threshold, 
-                                                channels=channels, niter=2000)
-        imwrite(os.path.join(output_folder, 
-                             input_file.replace(".tif", "_labels.tif")), 
-                             masks.astype(np.uint32), 
-                             compression='zlib')
-
-def segment_time_series_images(input_folder, output_folder, model, channels, diameter, flow_threshold):
-    input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
-    for input_file in tqdm(input_files, total = len(input_files), desc="Processing images"):
-        img = imread(os.path.join(input_folder,input_file))
-        # print value of each dimension
-        print("\n")
-        print("Check if image shape corresponds to the dim order that you have given:\n")
-        print(f"Image shape: {img.shape}, dimension order: {dim_order}")
-        print("\n")
-        # Determine if the image is 2D or 3D
-        is_3d = len(img.shape) == 4 and 'Z' in dim_order
-        
-        if is_3d:
-            if dim_order != 'TZYX':
-                transpose_order = [dim_order.index(d) for d in 'TZYX']
-                img = np.transpose(img, transpose_order)
-        else:  # 2D case
-            if dim_order != 'TYX':
-                transpose_order = [dim_order.index(d) for d in 'TYX']
-                img = np.transpose(img, transpose_order)
-
-        # Pre-allocate the array for labeled time points
+def process_image(input_file, input_folder, model, channels, diameter, flow_threshold, dim_order):
+    img = imread(os.path.join(input_folder, input_file))
+    
+    print("\nCheck if image shape corresponds to the dim order that you have given:")
+    print(f"Image shape: {img.shape}, dimension order: {dim_order}\n")
+    
+    is_3d = len(img.shape) == (4 if 'T' in dim_order else 3) and 'Z' in dim_order
+    
+    if 'T' in dim_order:
+        transpose_order = [dim_order.index(d) for d in 'TZYX' if d in dim_order]
+    else:
+        transpose_order = [dim_order.index(d) for d in 'ZYX' if d in dim_order]
+    
+    img = np.transpose(img, transpose_order)
+    
+    if 'T' in dim_order:
         labeled_time_points = np.zeros(img.shape, dtype=np.uint32)
-
-        for t in tqdm(range(img.shape[0]), total=img.shape[0], desc="Processing time points"):
-            # Extract the current time point
-            img_t = np.take(img, t, axis=0)
-
-            if is_3d:
-                mask, flows, styles, diams = model.eval(img_t, diameter=diameter, 
-                                                        flow_threshold=flow_threshold, 
-                                                        channels=channels, niter=2000, z_axis=0,do_3D=True)
-            else:
-                mask, flows, styles, diams = model.eval(img_t, diameter=diameter,
-                                                        flow_threshold=flow_threshold,
-                                                        channels=channels, niter=2000)
-            # print mask shape
-            print("\n")
-            print(f"Mask shape: {mask.shape}")
-            print("\n")
-
+        for t in tqdm(range(img.shape[0]), desc="Processing time points"):
+            img_t = img[t]
+            mask, _, _, _ = model.eval(img_t, diameter=diameter, flow_threshold=flow_threshold, 
+                                       channels=channels, niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
             labeled_time_points[t] = mask
+        result = labeled_time_points
+    else:
+        result, _, _, _ = model.eval(img, diameter=diameter, flow_threshold=flow_threshold, 
+                                     channels=channels, niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
+    
+    output_file = os.path.join(input_folder, input_file.replace(".tif", "_labels.tif"))
+    imwrite(output_file, result.astype(np.uint32), compression='zlib')
 
+def main():
+    args = parse_args()
+    
+    channels = args.channels if isinstance(args.channels, list) else [args.channels]
+    input_folder = args.input
+    diameter = args.diameter
+    dim_order = args.dim_order
+    
+    flow_threshold = 0.4
+    model = models.Cellpose(gpu=use_GPU, model_type='cyto3')
+    
+    input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
+    
+    for input_file in tqdm(input_files, desc="Processing images"):
+        process_image(input_file, input_folder, model, channels, diameter, flow_threshold, dim_order)
 
-        imwrite(os.path.join(output_folder, 
-                             input_file.replace(".tif", "_labels.tif")), 
-                             labeled_time_points.astype(np.uint32),
-                             compression='zlib')
-
-# execute segmentation
-if 'T' in dim_order:
-    segment_time_series_images(input_folder, input_folder, model, channels, diameter, flow_threshold)
-else:
-    segment_images(input_folder, input_folder, model, channels, diameter, flow_threshold)
+if __name__ == "__main__":
+    main()
