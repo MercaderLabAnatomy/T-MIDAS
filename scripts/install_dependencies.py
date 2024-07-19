@@ -1,17 +1,31 @@
+import subprocess
+import sys
 import os
-from conda.cli.python_api import run_command, Commands
+
+def run_command(command):
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    output, error = process.communicate()
+    if process.returncode != 0:
+        print(f"Error executing command: {command}")
+        print(error.decode())
+        sys.exit(1)
+    return output.decode()
 
 env_name = "tmidas-env"
 
 # Create the environment
-run_command(Commands.CREATE, "-n", env_name, "python=3.8", "-y")
+run_command(f"conda create -n {env_name} python=3.8 -y")
 
 # Activate the environment
-os.environ["CONDA_DEFAULT_ENV"] = env_name
-os.environ["CONDA_PREFIX"] = os.path.join(os.environ["CONDA_PREFIX"], "envs", env_name)
+activate_command = f"conda activate {env_name}"
+if sys.platform.startswith('win'):
+    activate_command = f"call {activate_command}"
+
+# Set up the command prefix to run in the activated environment
+cmd_prefix = f"{activate_command} && "
 
 # Initialize mamba
-run_command(Commands.RUN, "-n", env_name, "mamba", "init")
+run_command(cmd_prefix + "mamba init")
 
 # Install dependencies
 dependencies = [
@@ -22,16 +36,16 @@ dependencies = [
     'torchvision', 'timm'
 ]
 
-run_command(Commands.RUN, "-n", env_name, "python", "-m", "pip", "install", "-U", "setuptools", "pip")
+run_command(cmd_prefix + "python -m pip install -U setuptools pip")
 
-run_command(Commands.INSTALL, "-n", env_name, "openslide", "ocl-icd-system", "pyopencl", "cupy", "-y")
+run_command(cmd_prefix + "conda install openslide ocl-icd-system pyopencl cupy -y")
 
-run_command(Commands.RUN, "-n", env_name, "pip", "install", "git+https://github.com/ChaoningZhang/MobileSAM.git")
+run_command(cmd_prefix + "pip install git+https://github.com/ChaoningZhang/MobileSAM.git")
 
 for dependency in dependencies:
-    run_command(Commands.RUN, "-n", env_name, "pip", "install", dependency)
+    run_command(cmd_prefix + f"pip install {dependency}")
 
-run_command(Commands.RUN, "-n", env_name, "python", "-m", "pip", "install", "napari[all]")
-run_command(Commands.RUN, "-n", env_name, "python", "-m", "pip", "install", "cellpose")
+run_command(cmd_prefix + "python -m pip install napari[all]")
+run_command(cmd_prefix + "python -m pip install cellpose")
 
 print("All dependencies installed successfully.")
