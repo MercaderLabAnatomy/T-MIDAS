@@ -146,8 +146,8 @@ def image_preprocessing():
     print("[4] Sample Random Image Subregions")
     print("[5] Enhance contrast of single color image using CLAHE")
     print("[6] Restore images using Cellpose")
-    print("[7] Split color channels of multicolor images")
-    print("[8] Merge color channels")
+    print("[7] Split color channels (2D or 3D, also time series)")
+    print("[8] Merge color channels (2D or 3D, also time series)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -383,8 +383,8 @@ def crop_images():
 def image_segmentation():
     os.system('clear')
     print("\nImage Segmentation: What would you like to do?\n")
-    print("[1] Segment bright spots (2D)")
-    print("[2] Segment blobs (2D)")
+    print("[1] Segment bright spots (2D or 3D, also time series)")
+    print("[2] Segment blobs (2D or 3D, also time series)")
     # print("[3] Segment blobs (3D; requires dark background and good SNR)")
     print("[3] Semantic segmentation (2D, fluorescence or brightfield)")
     print("[4] Semantic segmentation (2D; Segment Anything)")   
