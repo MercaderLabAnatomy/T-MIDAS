@@ -45,12 +45,17 @@ def process_image(image_path,dim_order,threshold):
                 transpose_order = [dim_order.index(d) for d in 'YX']
                 image = np.transpose(image, transpose_order)
 
-        if threshold == 1:
-            intensity_threshold = threshold
-            image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
-            print(f"Using user-defined intensity threshold: {intensity_threshold}")
-        else:
+
+        if threshold == 0:
+            image = cle.top_hat_box(image, None, 10.0, 10.0, 0.0)
             image_to = cle.gauss_otsu_labeling(image, None, 1.0)
+        else: 
+            intensity_threshold = threshold
+            print(f"Using user-defined intensity threshold: {intensity_threshold}")
+            image = cle.top_hat_box(image, None, 10.0, 10.0, 0.0)
+            image = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
+            image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
+            
         image_labeled = cle.connected_components_labeling_box(image_to)
         image_labeled = cle.exclude_small_labels(image_labeled, None, LOWER_THRESHOLD)
         image_labeled = cle.exclude_large_labels(image_labeled, None, UPPER_THRESHOLD)
