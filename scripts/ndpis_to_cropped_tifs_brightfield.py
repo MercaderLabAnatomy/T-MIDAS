@@ -25,6 +25,7 @@ mask_generator = SamAutomaticMaskGenerator(mobile_sam)
 def parse_args():
     parser = argparse.ArgumentParser(description='Extract ROIs from NDPI files and save them as TIF files.')
     parser.add_argument('--input', type=str, help='Path to the folder containing the NDPI(s) files.')
+    parser.add_argument('--padding', type=int, default=10, help='Padding around the ROIs (default: 10).')
     return parser.parse_args()
 
 args = parse_args()
@@ -32,6 +33,10 @@ args = parse_args()
 input_folder = args.input
 
 output_dir = input_folder + "/tif_files"
+
+
+PADDING = args.padding
+
 
 # make output directory if it does not exist
 if not os.path.exists(output_dir):
@@ -69,16 +74,16 @@ def get_rois(slide, output_filename):
     labels = cle.dilate_labels(labels, None, 2.0)
     labels = cle.merge_touching_labels(labels)
     labels = cle.pull(labels)
-
+    Image.fromarray(labels).save(output_filename + "_thumbnail_labels.png")
     # save_image(labels, output_filename + "_labels.tif")
 
     rois = []
     for i, prop in enumerate(props):
         minr, minc, maxr, maxc = prop.bbox
-        minr = max(0, minr - 10)
-        minc = max(0, minc - 10)
-        maxr = min(thumbnail.height, maxr + 10)
-        maxc = min(thumbnail.width, maxc + 10)
+        minr = max(0, minr - PADDING) # 
+        minc = max(0, minc - PADDING)
+        maxr = min(thumbnail.height, maxr + PADDING)
+        maxc = min(thumbnail.width, maxc + PADDING)
         rois.append((minc*scaling_factor, minr*scaling_factor, (maxc-minc)*scaling_factor, (maxr-minr)*scaling_factor))
     
     # drop rois that are 5x the size of the median roi

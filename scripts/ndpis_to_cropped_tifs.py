@@ -28,12 +28,15 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Extract ROIs from NDPI files and save them as TIF files.')
     parser.add_argument('--input', type=str, help='Path to the folder containing the NDPI(s) files.')
     parser.add_argument('--cropping_template_channel_name', type=str, help='Enter the channel name that represents the cropping template (hearts = FITC).')
+    parser.add_argument('--padding', type=int, default=10, help='Padding around the ROIs (default: 10).')
     # parser.add_argument('--level', type=int, help='Enter the resolution level of the NDPI image (0 = highest resolution, 1 = second highest resolution).')
     return parser.parse_args()
 
 args = parse_args()
 
 input_folder = args.input
+
+PADDING = args.padding
 
 # ask for the channel that contains the cropping template
 CROPPING_TEMPLATE_CHANNEL_NAME = args.cropping_template_channel_name
@@ -105,10 +108,10 @@ def get_rois(template_ndpi_file,output_filename):
     rois = []
     for i, prop in enumerate(props):
         minr, minc, maxr, maxc = prop.bbox
-        minr = max(0, minr - 10)
-        minc = max(0, minc - 10)
-        maxr = min(thumbnail.height, maxr + 10)
-        maxc = min(thumbnail.width, maxc + 10)
+        minr = max(0, minr - PADDING)
+        minc = max(0, minc - PADDING)
+        maxr = min(thumbnail.height, maxr + PADDING)
+        maxc = min(thumbnail.width, maxc + PADDING)
         rois.append((minc*scaling_factor, minr*scaling_factor, (maxc-minc)*scaling_factor, (maxr-minr)*scaling_factor))
           
     return rois
