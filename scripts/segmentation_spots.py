@@ -76,7 +76,7 @@ def process_image(image_path, dim_order):
         return None
 
 
-def process_time_series_image(image_path):
+def process_time_series_image(image_path, dim_order):
     """Process a time series image and return labeled image."""
     try:
         image = imread(image_path)
@@ -144,9 +144,9 @@ def main():
         if not filename.endswith(".tif"):
             continue
         if 'T' in dim_order:
-            labeled_image = process_time_series_image(os.path.join(image_folder, filename))
+            labeled_image = process_time_series_image(os.path.join(image_folder, filename), dim_order)
         else:
-            labeled_image = process_image(os.path.join(image_folder, filename))
+            labeled_image = process_image(os.path.join(image_folder, filename), dim_order)
         if labeled_image is not None:
             output_path = os.path.join(image_folder, f"{filename[:-4]}_labels.tif")
             #tf.imwrite(output_path, labeled_image, compression='zlib')
