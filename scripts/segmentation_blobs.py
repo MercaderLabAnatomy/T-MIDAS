@@ -70,16 +70,18 @@ def process_single_image(image, is_3d, threshold):
     if threshold == 0:
         if is_3d:
             image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, RADIUS)
-            image_to = cle.gauss_otsu_labeling(image_to, None, SIGMA)
+            image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, SIGMA)
+            image_to = cle.threshold_otsu(image_to)
         else:
             image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
-            image_to = cle.gauss_otsu_labeling(image_to, None, SIGMA)
+            image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, 0.0)
+            image_to = cle.threshold_otsu(image_to)
     else:
         intensity_threshold = threshold
         print(f"Using user-defined intensity threshold: {intensity_threshold}")
         if is_3d:
-            image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, RADIUS)
-            image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, SIGMA)
+            image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0)
+            image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0)
             image_to = cle.greater_or_equal_constant(image_to, None, intensity_threshold)
         else:
             image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
