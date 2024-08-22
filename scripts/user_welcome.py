@@ -112,6 +112,7 @@ def main_menu():
     print("[2] Image Segmentation")
     print("[3] Regions of Interest (ROI) Analysis")
     print("[4] Image Segmentation Validation")
+    print("[n] Start Napari")
     print("[x] Exit \n")
     
     choice = input("\nEnter your choice: ")
@@ -129,12 +130,25 @@ def main_menu():
     if choice == "4":
         validation()
         restart_program()
+    if choice == "n" or choice == "N":
+        start_napari()
+        restart_program()
     if choice == "x" or choice == "X":
         exit_program()
     else:
         print("Invalid choice")
         restart_program()
     
+
+def start_napari():
+    os.system('clear')
+    print("\nStarting Napari. Please wait...")
+    # start napari in tmidas-env
+    subprocess.run(f"mamba run --live-stream -n tmidas-env napari".split(),
+                   capture_output=False,text=True,cwd="/mnt/")
+    print("\nNapari closed.")
+    restart_program()
+
 
 def image_preprocessing():
     
@@ -580,6 +594,7 @@ def image_segmentation():
     #                                     ' --random_seed ' + random_seed
     #                                     )                                       
     #     restart_program()
+
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":

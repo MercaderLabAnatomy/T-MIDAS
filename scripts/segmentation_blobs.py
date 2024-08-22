@@ -69,8 +69,8 @@ def process_single_image(image, is_3d, threshold):
     """Process a single image slice and return labeled image."""
     if threshold == 0:
         if is_3d:
-            image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, SIGMA)
-            image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, RADIUS)
+            image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0) # works better with 2D filters
+            image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0) # works better with 2D filters
             image_to = cle.threshold_otsu(image_to)
         else:
             image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
