@@ -56,20 +56,25 @@ def create_metadata(scene):
     # check if scale_z is defined in the dictionary
     if 3 in scene.info['scale_n']:
         scale_z = scene.info['scale_n'][3]
+        z_res = 1 / scale_z
     else:
-        scale_z = 1
+        z_res = None  # Set to None for 2D images
     
     # get resolution in um
     x_res = 1 / scale_x 
     y_res = 1 / scale_y 
-    z_res = 1 / scale_z 
     resolution = (x_res, y_res)
     metadata = {'spacing': z_res, 'unit': 'um'}
     return resolution, metadata
 
-def save_image(image,res_meta,path):
-    # save the image stack
-    tf.imwrite(path, image,resolution = res_meta[0], metadata=res_meta[1], imagej=True, compression='zlib') 
+
+def save_image(image, res_meta, path):
+    resolution, metadata = res_meta
+    if metadata['spacing'] is None:
+        # For 2D images, don't include spacing in metadata
+        metadata.pop('spacing')
+    tf.imwrite(path, image, resolution=resolution, metadata=metadata, imagej=True, compression='zlib')
+
 
 def process_scene(scene,path):
     multichannel_stack = cp.asnumpy(scene_to_stack(scene))
