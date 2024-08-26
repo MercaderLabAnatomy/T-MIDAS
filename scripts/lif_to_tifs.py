@@ -56,6 +56,9 @@ def create_metadata(scene):
     # check if scale_z is defined in the dictionary
     if 3 in scene.info['scale_n']:
         scale_z = scene.info['scale_n'][3]
+        # if it is NoneType, set it to 0
+        if scale_z is None:
+            scale_z = 0
 
     else:
         scale_z = 0
