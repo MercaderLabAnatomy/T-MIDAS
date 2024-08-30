@@ -29,10 +29,7 @@ def extract_pixel_resolution(lif_file_path):
             'PhysicalSizeY': pixels.PhysicalSizeY,
             'PhysicalSizeYUnit': pixels.PhysicalSizeYUnit,
             'PhysicalSizeZ': pixels.PhysicalSizeZ,
-            'PhysicalSizeZUnit': pixels.PhysicalSizeZUnit,
-            'SizeX': pixels.SizeX,
-            'SizeY': pixels.SizeY,
-            'SizeZ': pixels.SizeZ
+            'PhysicalSizeZUnit': pixels.PhysicalSizeZUnit
         }
     
     return resolutions
@@ -60,7 +57,7 @@ def process_lif_file(lif_file_path, output_directory):
             timepoints = reader.rdr.getSizeT()
             print(f"Processing series {series} dimensions: X={width}, Y={height}, Z={z_slices}, C={channels}, T={timepoints}")
 
-            output_filename = f"series_{series}_C{channels}_Z{z_slices}_T{timepoints}.ome.tiff"
+            output_filename = f"series_{series}.tif"
             output_path = os.path.join(output_directory, output_filename)
 
             data = np.zeros((timepoints, z_slices, channels, height, width), dtype=np.uint16)
@@ -93,7 +90,8 @@ def process_lif_file(lif_file_path, output_directory):
                 'ResolutionUnit': resolution_unit
             }
 
-            tifffile.imwrite(output_path, data, imagej=True, metadata=metadata, resolution=(1/safe_float(resolution['PhysicalSizeX']), 1/safe_float(resolution['PhysicalSizeY'])))
+            tifffile.imwrite(output_path, data, imagej=True, metadata=metadata, 
+                             resolution=(1/safe_float(resolution['PhysicalSizeX']), 1/safe_float(resolution['PhysicalSizeY'])))
 
             print(f"Series {series} saved to: {output_path}")
 
