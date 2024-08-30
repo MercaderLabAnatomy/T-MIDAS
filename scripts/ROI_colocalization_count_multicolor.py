@@ -98,7 +98,8 @@ def main():
     try:
         args = parse_args()
         parent_dir = args.input
-        channels = [c.upper() for c in args.channels]
+        #channels = [c.upper() for c in args.channels] # actually , we don't need to convert to upper case
+        channels = args.channels
         label_patterns = args.label_patterns
         # output_images = args.output_images
         get_areas = args.get_areas

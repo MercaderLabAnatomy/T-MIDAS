@@ -534,10 +534,10 @@ def image_segmentation():
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
                 ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        tissue_channel = input("\nEnter number of the color channel you want to segment: ")
+        #tissue_channel = input("\nEnter number of the color channel you want to segment: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_3D.py',
-                                        '--image_folder ' + input_folder + ' --tissue_channel ' + tissue_channel)
+                                        '--image_folder ' + input_folder)# + ' --tissue_channel ' + tissue_channel)
         restart_program()
     if choice == "6":
         os.system('clear')

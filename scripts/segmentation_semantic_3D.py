@@ -22,14 +22,14 @@ warnings.filterwarnings("ignore")
 # image_folder = "/mnt/disk1/Marco/Marwa/"
 # tissue_channel = 2
 
-def load_image(filepath, tissue_channel):
+def load_image(filepath):#, tissue_channel):
     try:
         img = imread(filepath)  
        # remove first axis 
-        img = img[0,:,:,:,:]
-        tissue_channel_img = img[:,:,:,tissue_channel]
+        #img = img[0,:,:,:,:]
+        #tissue_channel_img = img[:,:,:,tissue_channel]
 
-        return tissue_channel_img
+        return img #tissue_channel_img
     
     except FileNotFoundError as e:
         print(f"Error: {e}")
@@ -59,7 +59,7 @@ SIGMA = 2.0 # dilation of UEPs, cf. https://imagej.nih.gov/ij/docs/menus/process
 def parse_args():
     parser = argparse.ArgumentParser(description='Get 3D tissue segmentation')
     parser.add_argument('--image_folder', type=str, help='Path to folder containing TIF files')
-    parser.add_argument('--tissue_channel', type=int, help='Channel to use as tissue channel')
+    #parser.add_argument('--tissue_channel', type=int, help='Channel to use as tissue channel')
     return parser.parse_args()
 
 args = parse_args()
@@ -74,7 +74,7 @@ for image_filename in tqdm(os.listdir(image_folder), total = len(os.listdir(imag
     if image_filename.endswith(".tif") or image_filename.endswith(".tiff"):
         filepath = os.path.join(image_folder, image_filename)
         #print(f"Segmenting {filepath}")
-        tissue_image = load_image(filepath,tissue_channel)
+        tissue_image = load_image(filepath)#,tissue_channel)
         #print(tissue_image.shape)
         tissue_labels = get_3D_labels_RandomForestClassifier(tissue_image, label_threshold)
         #print(tissue_labels.shape)
