@@ -15,6 +15,15 @@ from PIL import Image
 import pyclesperanto_prototype as cle
 
 
+"""
+Description: This script reads NDPI files, extracts regions of interest (ROIs) using Mobile-SAM, and saves the ROIs as TIF files.
+
+The script uses the openslide library to read the NDPI files and the Mobile-SAM model to extract the ROIs.
+
+The output TIF files are saved in a folder named "tif_files" in the same directory as the input NDPI files.
+
+"""
+
 model_type = "vit_t"
 sam_checkpoint = "/opt/T-MIDAS/models/mobile_sam.pt"
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -77,7 +86,7 @@ def get_largest_label_id(label_image):
 def get_rois(template_ndpi_file,output_filename):
 
     slide = openslide.OpenSlide(os.path.join(input_folder, template_ndpi_file))
-    scaling_factor = 100
+    scaling_factor = 50
     slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
     thumbnail = slide.get_thumbnail(slide_dims_downscaled)
     # thumbnail = thumbnail.convert('L')
@@ -116,6 +125,12 @@ def get_rois(template_ndpi_file,output_filename):
           
     return rois
 
+def normalize_to_uint8(image):
+    min_val = np.min(image)
+    max_val = np.max(image)
+    normalized = (image - min_val) / (max_val - min_val)
+    return (normalized * 255).astype(np.uint8)
+
 
 for ndpis_file in ndpis_files:
 
@@ -137,7 +152,8 @@ for ndpis_file in ndpis_files:
                 cropped_image = slide.read_region((x, y), 0, (w, h))
                 cropped_image_dimensions = cropped_image.size
                 print("ROI %d of %d with dimensions %s saved as %s" % (i+1, number_of_rois, cropped_image_dimensions, output_filename + "_roi_0" + str(i+1) + ".tif"))
-                cropped_image = cropped_image.convert('L')
+                #cropped_image = cropped_image.convert('L')
+                cropped_image = normalize_to_uint8(np.array(cropped_image))
                 #cropped_image.save(output_filename + "_roi_0" + str(i+1) + ".tif")
                 tf.imwrite(output_filename + "_roi_0" + str(i+1) + ".tif", cropped_image, compression='zlib')
 

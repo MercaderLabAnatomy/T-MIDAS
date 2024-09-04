@@ -15,6 +15,15 @@ import warnings
 warnings.simplefilter('ignore')
 
 
+"""
+Description: This script is the main menu for the Tissue Microscopy Image Data Analysis Suite (T-MIDAS).
+
+The script provides a user-friendly interface to run different image processing pipelines.
+
+"""
+
+
+
 # if T-MIDAS is not in /opt, ask user where it is
 if not os.path.exists('/opt/T-MIDAS'):
     print("T-MIDAS is not in /opt. Please provide the path to the T-MIDAS folder.")
@@ -233,11 +242,12 @@ def image_preprocessing():
         restoration_type = input("\nChoose between denoising (dn), deblurring (db) or upsampling (us): ")
         object_type = input("\nChoose between nuclei (n) or cytoplasm (c): ")
         dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
+        num_channels = input("\nEnter the number of color channels (default=1): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/restore_cellpose.py',
                                         '--input ' + input_folder + #' --num_channels ' + num_channels + 
                                         ' --restoration_type ' + restoration_type + 
-                                        ' --object_type ' + object_type + ' --dim_order ' + dim_order)
+                                        ' --object_type ' + object_type + ' --dim_order ' + dim_order + ' --num_channels ' + num_channels)
 
         # + ' --object_type ' + object_type) 
         restart_program()
@@ -281,7 +291,7 @@ def file_conversion():
     os.system('clear') 
     print("\nFile Conversion to TIFF: Which file format would you like to convert?\n")
     print("[1] Convert .ndpi")
-    print("[2] Convert .lif")
+    print("[2] Convert bioformats-compatible series images (.lif, .czi, ...)")
     print("[3] Convert brightfield .czi")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
@@ -307,12 +317,12 @@ def file_conversion():
         restart_program()
     if choice == "2":
         os.system('clear')
-        print('''You chose to convert .lif files to .tif files.\n
-              A popup will appear in a moment asking you to select the folder containing the .lif files. 
-              Scenes of each .lif will be exported as .tif files with resolution metadata.''')
-        input_folder = popup_input("\nEnter the path to the folder containing the .lif file: ")
+        print('''You chose to extract .tif files from bioformats-compatible series images (.lif, .czi, ...).\n
+              A popup will appear in a moment asking you to select the folder containing the series images. 
+              Series of each image will be exported as .tif files with resolution metadata.''')
+        input_folder = popup_input("\nEnter the path to the folder containing the series images: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/lif_to_tifs.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/extract_tifs_from_series.py',
                                         '--input ' + input_folder)
         restart_program()
     if choice == "3":

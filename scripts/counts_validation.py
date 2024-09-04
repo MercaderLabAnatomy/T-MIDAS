@@ -1,6 +1,14 @@
 """
 
-This script validates automated segmentation results against manual segmentation results.
+This script validates automated segmentation results against manual segmentation results. 
+The F1 score is used as the evaluation metric. It represents the overlap between the predicted and ground truth objects.
+The F1 score is the harmonic mean of precision and recall. It is calculated as follows:
+
+F1 = 2 * (precision * recall) / (precision + recall)
+
+It is used here because it takes both false positives and false negatives into account. 
+The script calculates the number of ground truth objects that are inside the predicted bounding boxes.
+The results are saved in a CSV file.
 
 """
 

@@ -13,6 +13,19 @@ import torch
 from skimage.measure import label
 from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator
 
+
+"""
+Description: This script reads NDPI files, extracts regions of interest (ROIs) using Mobile-SAM, and saves the ROIs as TIF files.
+
+The script uses the openslide library to read the NDPI files and the Mobile-SAM model to extract the ROIs.
+
+The output TIF files are saved in a folder named "tif_files" in the same directory as the input NDPI files.
+
+"""
+
+
+
+
 model_type = "vit_t"
 sam_checkpoint = "/opt/T-MIDAS/models/mobile_sam.pt"
 device = "cuda" if torch.cuda.is_available() else "cpu"

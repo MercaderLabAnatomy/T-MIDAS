@@ -4,6 +4,14 @@ import tifffile as tf
 import argparse
 from tqdm import tqdm
 
+"""
+Description: This script applies Contrast Limited Adaptive Histogram Equalisation (CLAHE) to images with intensity gradients. 
+
+The script reads the images from the input folder, applies CLAHE, and saves the processed images in the same folder.
+
+"""
+
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Applies CLAHE to image with intensity gradient")

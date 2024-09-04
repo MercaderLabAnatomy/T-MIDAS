@@ -12,6 +12,14 @@ from skimage.io import imread
 from tqdm import tqdm
 import pandas as pd
 
+"""
+Description: This script reads label images from two color channels and 
+calculates regionprops of objects in the second channel that are inside ROIs in the first channel.
+
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Script for obtaining regionprops of objects in second channel in ROIs of first channel.')
     parser.add_argument('--input', type=str, required=True, help='Path to the parent folder of the channel folders.')

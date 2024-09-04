@@ -5,6 +5,19 @@ import cv2
 from PIL import Image
 from tqdm import tqdm
 
+"""
+Description: This script converts brightfield czi files to tif files.
+
+This is done using the AICSImageIO library. 
+
+The script reads the czi files, extracts the scenes, and saves them as tif files.
+
+The output tif files are resized by a scale factor. The scale factor is set by the user.
+
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Process brightfield czi files.')
     parser.add_argument('--input', type=str, help='path to the czi files')

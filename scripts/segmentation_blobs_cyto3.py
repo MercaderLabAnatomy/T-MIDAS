@@ -6,6 +6,16 @@ from tifffile import imwrite
 from cellpose import models, core
 from tqdm import tqdm
 
+
+"""
+Description: This script runs automatic instance segmentation on images. 
+
+The script reads images from the input folder, processes them using Cellpose 3, and saves the masks in the same folder.
+
+
+"""
+
+
 use_GPU = core.use_gpu()
 
 def parse_args():

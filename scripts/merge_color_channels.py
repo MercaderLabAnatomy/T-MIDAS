@@ -6,6 +6,19 @@ from tifffile import imwrite, TiffFile
 import numpy as np
 import sys
 
+"""
+Description: This script merges multiple color channels into a single image. 
+
+The script reads images from the input folder, merges the channels, and saves the merged images in a new folder.
+
+This is done by reading the images from each channel, stacking them along the channel axis, and saving the merged image.
+
+It assumes that the images are in tif format and have the same dimensions.
+
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Batch merge channels')
     parser.add_argument('--input', type=str, required=True, help='Path to the parent folder of the channel folders.')

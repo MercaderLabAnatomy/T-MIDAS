@@ -14,6 +14,16 @@ from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
+"""
+Description: This script reads NDPI files and saves them as TIF files.
+
+The script uses the openslide library to read the NDPI files and the pyclesperanto library to process the images.
+
+The output TIF files are saved in a folder named "tif_files" in the same directory as the input NDPI files.
+
+"""
+
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Convert NDPI files to TIF files.')

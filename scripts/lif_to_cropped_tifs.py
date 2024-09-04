@@ -7,6 +7,16 @@ import tifffile as tf
 import argparse
 from tqdm import tqdm
 
+"""
+Description: This script reads a lif file, crops the images to the region of interest, and saves the cropped images as tif files.
+
+This os done by selecting a channel as a template and cropping the images based on the template channel. 
+
+It uses the readlif library to read the lif files and the pyclesperanto library to process the images.
+
+"""
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Process a lif file.')
     parser.add_argument('--input_folder', type=str, help='path to the lif file')

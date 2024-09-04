@@ -15,6 +15,16 @@ from skimage.measure import label
 import torch
 from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator
 
+
+"""
+Description: This script runs automatic mask generation on 2D images.
+
+It uses the Mobile-SAM model to generate masks for the input images.
+
+"""
+
+
+
 model_type = "vit_t"
 sam_checkpoint = "/opt/T-MIDAS/models/mobile_sam.pt"
 device = "cuda" if torch.cuda.is_available() else "cpu"

@@ -4,6 +4,12 @@ import os
 import json
 from tqdm import tqdm
 
+"""
+Description: This script installs all dependencies required to run the TMIDAS pipelines.
+"""
+
+
+
 def run_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output, error = process.communicate()

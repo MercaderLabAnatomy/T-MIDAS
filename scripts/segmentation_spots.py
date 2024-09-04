@@ -7,6 +7,13 @@ import pyclesperanto_prototype as cle
 from tqdm import tqdm
 # import torch
 
+"""
+Description: This script runs automatic instance segmentation on 2D or 3D images of bright spots.
+
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")

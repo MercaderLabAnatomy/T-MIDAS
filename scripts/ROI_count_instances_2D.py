@@ -17,6 +17,22 @@ from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
+"""
+Description: This script reads label images containing instance segmentations 
+and regions of interest (ROIs) and counts the number of instances per ROI.
+
+
+The script uses the pyclesperanto library to process the images.
+
+The output is saved as a CSV file containing the following columns:
+- ROI: Name of the region of interest (ventricle_wo_injury, injury, border_zone)
+- instances: Number of instances per ROI
+- ROI area (sq. mm): Area of the ROI in square millimeters
+
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Input: Folder with all label images (ROIs and instance segmentations).")
     parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
@@ -49,13 +65,13 @@ def counter(ROI,instances):
 
 
 # define function that counts instances per ROI
-def ROI2CSV(original_filepath, instance_filepath, ventricle_wo_injury_filepath, injury_filepath, epicardium_filepath, border_zone_filepath):
+def ROI2CSV(original_filepath, instance_filepath, 
+            ventricle_wo_injury_filepath, injury_filepath, border_zone_filepath):
 
     # load label images
     instances = imread(instance_filepath)
     ventricle_wo_injury = imread(ventricle_wo_injury_filepath)
     injury = imread(injury_filepath)
-    epicardium = imread(epicardium_filepath)
     border_zone = imread(border_zone_filepath)
 
 
@@ -66,7 +82,6 @@ def ROI2CSV(original_filepath, instance_filepath, ventricle_wo_injury_filepath, 
         writer.writerow(["ROI", "instances","ROI area (sq. mm)"])#,"circularity","aspect_ratio"])
         writer.writerow(["ventricle_wo_injury", counter(ventricle_wo_injury,instances), get_area(ventricle_wo_injury)])#, get_circularity(ventricle_wo_injury), get_AR(ventricle_wo_injury)])
         writer.writerow(["injury", counter(injury,instances), get_area(injury)])#, get_circularity(injury), get_AR(injury)])
-        writer.writerow(["epicardium", counter(epicardium,instances), get_area(epicardium)])#, get_circularity(epicardium), get_AR(epicardium)])
         writer.writerow(["border_zone", counter(border_zone,instances), get_area(border_zone)])#, get_circularity(border_zone), get_AR(border_zone)])
 
 
@@ -94,7 +109,6 @@ original_filenames = list(set(new_filenames))
 instance_filenames = [f.replace(".tif", "_labels.tif") for f in original_filenames]
 ventricle_wo_injury_filenames = [f.replace(".tif", "_ventricle_wo_injury.tif").replace("CY5", "FITC") for f in original_filenames]
 injury_filenames = [f.replace(".tif", "_injury.tif").replace("CY5", "FITC") for f in original_filenames]
-epicardium_filenames = [f.replace(".tif", "_epicardium.tif").replace("CY5", "FITC") for f in original_filenames]
 border_zone_filenames = [f.replace(".tif", "_border_zone.tif").replace("CY5", "FITC") for f in original_filenames]
 
 
@@ -102,20 +116,13 @@ original_filepaths = [os.path.join(args.input, filename) for filename in origina
 instance_filepaths = [os.path.join(args.input, filename) for filename in instance_filenames]
 ventricle_wo_injury_filepaths = [os.path.join(args.input, filename) for filename in ventricle_wo_injury_filenames]
 injury_filepaths = [os.path.join(args.input, filename) for filename in injury_filenames]
-epicardium_filepaths = [os.path.join(args.input, filename) for filename in epicardium_filenames]
 border_zone_filepaths = [os.path.join(args.input, filename) for filename in border_zone_filenames]
 
 
 # iterate over length of list
 for i in tqdm(range(len(original_filepaths)), total = len(original_filepaths), desc="Processing images"):
     #print(f"Processing image: {original_filepaths[i]}")
-    ROI2CSV(original_filepaths[i], instance_filepaths[i], ventricle_wo_injury_filepaths[i], injury_filepaths[i], epicardium_filepaths[i], border_zone_filepaths[i])
+    ROI2CSV(original_filepaths[i], instance_filepaths[i], 
+            ventricle_wo_injury_filepaths[i], injury_filepaths[i], border_zone_filepaths[i])
 
 
-
-# for filename in new_filenames:
-
-#     if not filename.endswith(".tif"):
-#         continue
-#     print(f"Processing image: {filename}")
-#     ROI2CSV(os.path.join(args.input, filename))

@@ -4,6 +4,16 @@ import argparse
 import cupy as cp
 from tqdm import tqdm
 
+"""
+Description: This script creates a new image by intersecting two images. 
+This is done by setting the pixel values of the original image to zero where the mask image is zero.
+
+The script reads the mask and original images from the input folder, 
+intersects them, and saves the output images in the same folder.
+
+"""
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Blob-based crops.')
     parser.add_argument('--input', type=str, help='path to the input folder containing intensity and label images.')

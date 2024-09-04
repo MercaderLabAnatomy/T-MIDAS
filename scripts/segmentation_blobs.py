@@ -7,6 +7,16 @@ import pyclesperanto_prototype as cle
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 from tqdm import tqdm
 
+"""
+Description: This script runs automatic mask generation on images.
+
+The script reads images from the input folder, processes them using GPU-accelerated scikit-image filters, 
+and saves the masks in the same folder.
+
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")

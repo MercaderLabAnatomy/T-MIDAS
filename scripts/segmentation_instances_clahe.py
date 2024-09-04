@@ -11,6 +11,14 @@ from cucim.skimage.measure import label
 import pyclesperanto_prototype as cle
 from tqdm import tqdm
 
+"""
+Description: This script performs CLAHE and Otsu thresholding on images with intensity gradients.
+
+
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Segments CLAHE images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")

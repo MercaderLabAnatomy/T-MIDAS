@@ -5,7 +5,16 @@ import tifffile as tf
 import os
 from tqdm import tqdm
 
+"""
+Description: This script reads a tiff image, samples random tiles from the image, and saves the tiles as tiff files.
 
+The output tiff files are saved in a folder named "random_tiles" in the same directory as the input tiff images.
+
+The random sampling is based on the tile diagonal and the percentage of random tiles to be picked from the entire image.
+
+The user can also specify a random seed for reproducibility.
+
+"""
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Sample random tiles from a tiff image.')

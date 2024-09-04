@@ -18,9 +18,13 @@ from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
+"""
+Description: This script runs automatic semantic segmentation on 3D fluorescence images 
+using a pre-trained ObjectSegmenter.
 
-# image_folder = "/mnt/disk1/Marco/Marwa/"
-# tissue_channel = 2
+
+
+"""
 
 def load_image(filepath):#, tissue_channel):
     try:

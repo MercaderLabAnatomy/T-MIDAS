@@ -7,19 +7,22 @@ import numpy as np
 import tifffile
 
 """
-Description: This script extracts series from a lif file and saves them as tif files.
+Description: This script extracts series from a series file and saves them as tif files. 
 
 It should work for all file formats supported by the bioformats library.
 
 """
 
+
+
+
 def parse_args():
-    parser = argparse.ArgumentParser(description='Process a lif file.')
-    parser.add_argument('--input', type=str, help='path to the folder containing lif files')
+    parser = argparse.ArgumentParser(description='Process a series file.')
+    parser.add_argument('--input', type=str, help='path to the folder containing series files')
     return parser.parse_args()
 
-def extract_pixel_resolution(lif_file_path):
-    ome_xml_string = bioformats.get_omexml_metadata(path=lif_file_path)
+def extract_pixel_resolution(file_path):
+    ome_xml_string = bioformats.get_omexml_metadata(path=file_path)
     ome = bioformats.OMEXML(ome_xml_string)
     
     resolutions = {}
@@ -45,12 +48,10 @@ def safe_float(value, default=0.0):
     except ValueError:
         return default
 
-
-
-def process_lif_file(lif_file_path, output_directory):
+def process_file(file_path, output_directory):
     try:
-        pixel_resolutions = extract_pixel_resolution(lif_file_path)
-        reader = bioformats.get_image_reader("tmp", path=lif_file_path)
+        pixel_resolutions = extract_pixel_resolution(file_path)
+        reader = bioformats.get_image_reader("tmp", path=file_path)
         series_count = reader.rdr.getSeriesCount()
 
         for series in range(series_count):
@@ -62,7 +63,7 @@ def process_lif_file(lif_file_path, output_directory):
             timepoints = reader.rdr.getSizeT()
             print(f"Processing series {series} dimensions: X={width}, Y={height}, Z={z_slices}, C={channels}, T={timepoints}")
 
-            output_filename = f"series_{series}.tif"
+            output_filename = f"{os.path.splitext(os.path.basename(file_path))[0]}_series{series}.tif"
             output_path = os.path.join(output_directory, output_filename)
 
             data = np.zeros((timepoints, z_slices, channels, height, width), dtype=np.uint16)
@@ -90,47 +91,59 @@ def process_lif_file(lif_file_path, output_directory):
                 'frames': timepoints,
                 'spacing': safe_float(resolution['PhysicalSizeZ']),
                 'unit': unit,
-                'pixel_width': safe_float( resolution['PhysicalSizeX']),
-                'pixel_height': safe_float( resolution['PhysicalSizeY']),
+                'pixel_width': safe_float(resolution['PhysicalSizeX']),
+                'pixel_height': safe_float(resolution['PhysicalSizeY']),
                 'ResolutionUnit': resolution_unit
             }
 
+            # Ensure resolution values are not zero to avoid division by zero
+            pixel_width = safe_float(resolution['PhysicalSizeX'])
+            pixel_height = safe_float(resolution['PhysicalSizeY'])
+            if pixel_width == 0 or pixel_height == 0:
+                print(f"Skipping series {series} due to zero resolution values.")
+                continue
+
             tifffile.imwrite(output_path, data, imagej=True, metadata=metadata, 
-                             resolution=(1/safe_float(resolution['PhysicalSizeX']), 1/safe_float(resolution['PhysicalSizeY'])))
+                             resolution=(1/pixel_width, 1/pixel_height))
 
             print(f"Series {series} saved to: {output_path}")
 
         reader.close()
-        print(f"Processing complete for {lif_file_path}")
+        print(f"Processing complete for {file_path}")
 
     except Exception as e:
-        print(f"An error occurred while processing {lif_file_path}: {str(e)}")
+        print(f"An error occurred while processing {file_path}: {str(e)}")
         import traceback
         traceback.print_exc()
 
-
-
-
-
 def main():
     args = parse_args()
-    input_folder = args.input
+    input_directory = args.input
+    output_directory = os.path.join(input_directory, 'tifs')
+    os.makedirs(output_directory, exist_ok=True)
 
-    lif_files = [file for file in os.listdir(input_folder) if file.endswith(".lif")]
+    javabridge.start_vm(class_path=bioformats.JARS)
 
     try:
-        javabridge.start_vm(class_path=bioformats.JARS, run_headless=True)
-        
-        for lif_file in tqdm(lif_files, total=len(lif_files), desc="Processing lif files"):
-            lif_path = os.path.join(input_folder, lif_file)
-            output_dir = os.path.join(input_folder, lif_file.split(".")[0])
-            os.makedirs(output_dir, exist_ok=True)
-            process_lif_file(lif_path, output_dir)
+        for root, _, files in os.walk(input_directory):
+            # Skip the output directory
+            if root == output_directory:
+                continue
 
-    except Exception as e:
-        print(f"An error occurred in main: {str(e)}")
+            for file in tqdm(files):
+                # exclude tifs from processing
+                if file.lower().endswith(('.tif', '.tiff')):
+                    continue
+
+                file_path = os.path.join(root, file)
+                try:
+                    process_file(file_path, output_directory)
+                except Exception as e:
+                    print(f"An error occurred while processing {file_path}: {str(e)}. Maybe the file type is not supported by bioformats.")
+                    import traceback
+                    traceback.print_exc()
     finally:
         javabridge.kill_vm()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

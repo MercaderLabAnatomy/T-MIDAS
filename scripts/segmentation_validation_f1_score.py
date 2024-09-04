@@ -6,6 +6,24 @@ import pandas as pd
 from sklearn.metrics import f1_score
 from tqdm import tqdm
 
+"""
+Description: This script validates automated segmentation results against manual segmentation results.
+
+The F1 score is used as the evaluation metric. It represents the overlap between the predicted and ground truth objects.
+
+The F1 score is the harmonic mean of precision and recall. It is calculated as follows:
+
+F1 = 2 * (precision * recall) / (precision + recall)
+
+It is used here because it takes both false positives and false negatives into account.
+
+The results are saved in a CSV file.
+
+"""
+
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
     parser.add_argument('--input', type=str, help='Path to the folder containing the segmentation results.')

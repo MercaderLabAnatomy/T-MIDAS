@@ -6,6 +6,15 @@ from tifffile import imread, imwrite, TiffFile
 import numpy as np
 import sys
 
+"""
+Description: This script splits multi-channel images into individual color channels.
+
+It assumes that the images are in tif format and have the same dimensions.
+
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Batch split channels')
     parser.add_argument('--input', type=str, required=True, help='Path to the folder containing multi-channel images.')

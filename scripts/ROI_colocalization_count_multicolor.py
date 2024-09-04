@@ -7,6 +7,36 @@ import numpy as np
 from skimage.measure import label, regionprops
 from tqdm import tqdm
 
+"""
+This script is used to calculate the colocalization of ROIs in two or three color channels based on Napari label images.
+
+It calculates the number of ROIs in the first channel that have pixels in the second and third channels.
+It also calculates the number of ROIs in the first channel that have pixels in the second channel but not in the third channel.
+The script can also calculate the areas of ROIs in the first channel.
+The results are saved in a CSV file.
+
+
+Description: This script calculates the colocalization of ROIs in two or three color channels based on Napari label images.
+A Napari label id is considered as a region of interest (ROI). Label images of each channel are to be provided in separate folders.
+
+The following colocalizations counts are available:
+- c2_in_c1_count: Number of ROIs in the second channel that are inside ROIs in the first channel.
+- c3_in_c1_count: Number of ROIs in the third channel that are inside ROIs in the first channel.
+- c3_in_c2_in_c1_count: Number of ROIs in the third channel that are inside ROIs in the second channel 
+  that are inside ROIs in the first channel.
+- c3_not_in_c2_but_in_c1_count: Number of ROIs in the third channel that are inside ROIs in the first channel 
+  but not inside ROIs in the second channel.
+
+Colocalization is performed by Boolean masking of the ROIs in the second and third channels with the ROIs in the first channel. 
+Counts are then obtained by calculating the length of the vector of unique labels in the masked label images.
+
+The script can also calculate the size of ROIs in the first channel.
+
+The results are saved in a CSV file.
+
+
+"""
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Script for colocalization analysis of images.')
     parser.add_argument('--input', type=str, required=True, help='Path to the parent folder of the channel folders.')

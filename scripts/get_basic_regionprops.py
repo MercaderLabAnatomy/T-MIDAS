@@ -8,6 +8,12 @@ import cupy as cp
 from cucim.skimage.measure import regionprops
 from tqdm import tqdm
 
+"""
+Description: This script extracts features from label images and saves them to a csv file. 
+It is possible to quantify intensity by specifying the channel. 
+It uses the cucim library to speed up the process.
+
+"""
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Get some regionprops of all objects in all tifs in a input_folder.")

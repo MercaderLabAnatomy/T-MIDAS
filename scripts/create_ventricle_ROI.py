@@ -14,6 +14,17 @@ from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
+"""
+Description: Create a region of interest (ROI) image containing the following regions:
+- Myocardium
+- Myocardium without injury
+- Injury
+- Border zone
+
+The input images are label images containing the following labels:
+- Intact myocardium (label id: INTACT_LABEL_ID)
+- Injury region (label id: INJURY_LABEL_ID)
+"""
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Input: Folder with label images containing masks of intact myocardium and injury regions.")
@@ -27,7 +38,6 @@ args = parse_args()
 
 PIXEL_RESOLUTION = args.pixel_resolution
 
-FIBROUS_LAYER_MEDIAN_DIAMETER_PX = 43
 INJURY_LABEL_ID = args.injury_label_id
 INTACT_LABEL_ID = args.intact_label_id
 BORDER_ZONE_DIAMETER_UM = 100.0
@@ -68,7 +78,6 @@ def get_myocardium_wo_injury(image):
         print(f"Error processing {image}: {str(e)} while getting myocardium without injury.")
         return None
 
-    
 def get_injury(image):
     try:
         injury = np.copy(image)
@@ -76,25 +85,6 @@ def get_injury(image):
         return injury
     except Exception as e:
         print(f"Error processing {image}: {str(e)} while getting injury.")
-        return None
-
-def get_fibrous_layer(image): 
-    try:
-        myocardium = cle.merge_touching_labels(image)
-        myocardium_dilated = cle.dilate_labels(myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
-        myocardium_dilated = nsitk.binary_fill_holes(myocardium_dilated)
-        myocardium_dilated = cle.connected_components_labeling_box(myocardium_dilated)
-        myocardium_dilated = get_largest_label(myocardium_dilated)
-        not_myocardium = cle.binary_not(myocardium_dilated)
-        not_myocardium_dilated = cle.erode_labels(not_myocardium, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
-        not_myocardium_dilated = cle.connected_components_labeling_box(not_myocardium_dilated)
-        not_myocardium_dilated = get_largest_label(not_myocardium_dilated)
-        not_fibrous_layer = cle.combine_labels(not_myocardium_dilated, myocardium_dilated)
-        fibrous_layer = cle.binary_not(not_fibrous_layer)
-        fibrous_layer = cle.dilate_labels(fibrous_layer, None, FIBROUS_LAYER_MEDIAN_DIAMETER_PX)
-        return cle.pull(fibrous_layer)
-    except Exception as e:
-        print(f"Error processing {image}: {str(e)} while getting fibrous layer.")
         return None
 
 def get_border_zone(injury, myocardium_wo_injury):
@@ -110,10 +100,9 @@ def save_image(image, filename):
     image_uint32 = image.astype(np.uint32)
     imwrite(filename, image_uint32, compression='zlib')
 
-
 image_folder = os.path.join(args.input)
 
-for filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):
+for filename in tqdm(os.listdir(image_folder), total=len(os.listdir(image_folder)), desc="Processing images"):
     if not filename.endswith("_labels.tif"):
         continue
     
@@ -127,17 +116,11 @@ for filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_fold
     if myocardium is not None and myocardium_wo_injury is not None:
         
         injury = get_injury(image)     
-        fibrous_layer = get_fibrous_layer(myocardium)      
         border_zone = get_border_zone(injury, myocardium_wo_injury)
         ROIs = np.zeros_like(myocardium)
         ROIs[myocardium > 0] = 1
         ROIs[myocardium_wo_injury > 0] = 2
         ROIs[injury > 0] = 3
-        ROIs[fibrous_layer > 0] = 4
-        ROIs[border_zone > 0] = 5
-        # could maybe use https://github.com/seung-lab/fastremap here
+        ROIs[border_zone > 0] = 4
         
         save_image(ROIs, os.path.join(image_folder, filename.replace(".tif", "_labels.tif")))
-
-
-

@@ -19,6 +19,13 @@ import cv2
 import apoc
 
 
+"""
+Description: This script runs automatic semantic segmentation on 2D fluorescence images using a pre-trained PixelClassifier
+or Otsu thresholding for 2D brightfield images.
+
+"""
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
