@@ -15,6 +15,17 @@ and saves the masks in the same folder.
 
 """
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 
 
 def parse_args():
@@ -24,6 +35,8 @@ def parse_args():
     parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
     parser.add_argument("--dim_order", type=str, default="YX", help="Dimension order of the input images.)")
     parser.add_argument("--threshold", type=int, default=None, help="Enter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use gauss-otsu thresholding.")
+    # asku user whether to use filters (default: yes)
+    parser.add_argument("--use_filters", type=str2bool, default=True, help="Use filters for user-defined segmentation? (yes/no)")
     return parser.parse_args()
 
 args = parse_args()
@@ -34,6 +47,11 @@ SIGMA = 1.0
 RADIUS = 10.0
 LOWER_THRESHOLD = args.exclude_small
 UPPER_THRESHOLD = args.exclude_large
+use_filters = args.use_filters
+
+
+
+
 
 def process_image(image_path, dim_order, threshold):
     """Process an image (single or time series) and return labeled image."""
@@ -90,13 +108,21 @@ def process_single_image(image, is_3d, threshold):
         intensity_threshold = threshold
         print(f"Using user-defined intensity threshold: {intensity_threshold}")
         if is_3d:
-            image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0)
-            image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0)
-            image_to = cle.greater_or_equal_constant(image_to, None, intensity_threshold)
+            if use_filters:
+                image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0)
+                image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0)
+                image_to = cle.greater_or_equal_constant(image_to, None, intensity_threshold)
+            else:
+                    image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
+                    print("\n No filters applied.")
         else:
-            image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
-            image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, 0.0)
-            image_to = cle.greater_or_equal_constant(image_to, None, intensity_threshold)
+            if use_filters:
+                image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
+                image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, 0.0)
+                image_to = cle.greater_or_equal_constant(image_to, None, intensity_threshold)
+            else:
+                image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
+                print("\n No filters applied.")
 
     image_labeled = cle.connected_components_labeling_box(image_to)
     image_labeled = cle.exclude_small_labels(image_labeled, None, LOWER_THRESHOLD)

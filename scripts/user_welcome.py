@@ -171,6 +171,7 @@ def image_preprocessing():
     print("[6] Restore images using Cellpose")
     print("[7] Split color channels (2D or 3D, also time series)")
     print("[8] Merge color channels (2D or 3D, also time series)")
+    print("[9] Convert RGB images to label images")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -278,7 +279,16 @@ def image_preprocessing():
                                         '--input ' + input_folder + ' --channels ' + channel_names + 
                                         ' --dim_order ' + dim_order)# + ' --gpu ' + use_gpu)
         restart_program()
-    
+    if choice == "9":
+        os.system('clear')
+        print('''You chose to convert RGB .tif files to .tif label images. \n
+              A popup will appear in a moment asking you to select the folder containing the RGB .tif files.
+              ''')
+        input_folder = popup_input("\nEnter the path to the folder containing the RGB .tif files: ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/RGB_2_labels.py',
+                                        '--folder ' + input_folder)
+        restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":
@@ -337,6 +347,7 @@ def file_conversion():
                                         '--input ' + input_folder + 
                                         ' --scale_factor ' + scale_factor) # whitespace is important here
         restart_program()
+
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":
@@ -473,6 +484,7 @@ def image_segmentation():
         if choice == "1":
             print("\nYou chose classical gauss-otsu labeling.")
             threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
+            use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
             exclude_small = input("\nLower size threshold to exclude small objects: ")
             exclude_large = input("\nUpper size threshold to exclude large objects: ")
             dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
@@ -480,6 +492,7 @@ def image_segmentation():
                                             os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs.py',
                                             '--input ' + input_folder + 
                                             ' --threshold ' + threshold +
+                                            ' --use_filters ' + use_filters +
                                             ' --exclude_small ' + exclude_small + 
                                             ' --exclude_large ' + exclude_large +
                                             ' --dim_order ' + dim_order)
@@ -618,7 +631,7 @@ def image_segmentation():
 def ROI_analysis():
     os.system('clear')
     print("\nRegions of Interest (ROI) Analysis: What would you like to do?\n")
-    print("[1] Heart slices: Generate ROI from [intact+injured] ventricle masks")
+    print("[1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks")
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
     print("[4] Count Colocalization of ROI in 2 or 3 color channels")
