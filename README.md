@@ -27,39 +27,54 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
 ## Batch Image Processing
 <pre>
 [1] Image Preprocessing
+    
     [1] File Conversion to TIFF
         [1] Convert .ndpi
-        [2] Convert .lif
+        [2] Convert bioformats-compatible series images (.lif, .czi, ...)
         [3] Convert brightfield .czi
+
     [2] Cropping Largest Objects from Images /w Segment Anything
         [1] Slidescanner images (fluorescent, .ndpi)
         [2] Slidescanner images (brightfield, .ndpi)
         [3] Multicolor image stacks (.lif)
-    [3] Extract Blob Region from Images
+    
+    [3] Extract intersecting regions of two images
     [4] Sample Random Image Subregions
     [5] Enhance contrast of single color image using CLAHE
-    [6] Restore images /w Cellpose 3 (single color channel, 2D or 3D, also time series)
+    [6] Restore images /w Cellpose 3 (single or multiple color channel, 2D or 3D, also time series)
     [7] Split color channels (2D or 3D, also time series)
     [8] Merge color channels (2D or 3D, also time series)
+    [9] Convert RGB images to label images
+
 [2] Image Segmentation
+    
     [1] Segment bright spots (2D or 3D, also time series)
+    
     [2] Segment blobs (2D or 3D, also time series)
         [1] User-defined or automatic (Otsu) thresholding
         [2] Cellpose's (generalist) cyto3 model
+    
     [4] Semantic segmentation (2D; fluorescence or brightfield)
     [5] Semantic segmentation (2D; Segment Anything)
     [6] Semantic segmentation (3D; requires dark background and good SNR)
     [7] Improve instance segmentation using CLAHE
+
 [3] Regions of Interest (ROI) Analysis
-    [1] Heart slices: Generate ROI from [intact+injured] ventricle masks
+    
+    [1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks
     [2] Count spots within ROI (2D)
     [3] Count blobs within ROI (3D)
     [4] Count Colocalization of ROI in 2 or 3 color channels
     [5] Get properties of objects within ROI (two channels)
     [6] Get basic ROI properties (single channel)
+
 [4] Image Segmentation Validation
+    
     [1] Validate spot counts (2D)
-    [2] Validate blobs (2D or 3D; global F1 score)   
+    [2] Validate blobs (2D or 3D; global F1 score)
+
+[n] Start Napari (with useful plugins)
+
 </pre>
 
 ## WIP

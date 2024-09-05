@@ -121,7 +121,7 @@ def main_menu():
     print("[2] Image Segmentation")
     print("[3] Regions of Interest (ROI) Analysis")
     print("[4] Image Segmentation Validation")
-    print("[n] Start Napari")
+    print("[n] Start Napari (with useful plugins)")
     print("[x] Exit \n")
     
     choice = input("\nEnter your choice: ")
