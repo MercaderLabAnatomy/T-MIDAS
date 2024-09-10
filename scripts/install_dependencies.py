@@ -51,7 +51,7 @@ dependencies = [
     'napari-segment-blobs-and-things-with-membranes', 'napari-simpleitk-image-processing',
     'pandas', 'apoc', 'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
     'openslide-python', 'glob2', 'pytest', 'cucim', 'aicspylibczi', 'torch',
-    'torchvision', 'timm'
+    'torchvision', 'timm', 'python-javabridge', 'python-bioformats'
 ]
 
 print("Upgrading pip and setuptools...")
