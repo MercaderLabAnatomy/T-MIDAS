@@ -6,6 +6,8 @@ import pyclesperanto_prototype as cle
 import tifffile as tf
 import argparse
 from tqdm import tqdm
+import javabridge
+import bioformats
 
 """
 Description: This script reads a lif file, crops the images to the region of interest, and saves the cropped images as tif files.

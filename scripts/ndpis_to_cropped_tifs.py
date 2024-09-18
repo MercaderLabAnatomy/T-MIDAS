@@ -93,6 +93,11 @@ def get_rois(template_ndpi_file,output_filename):
     # labeled_thumbnail = nsbatwm.gauss_otsu_labeling(thumbnail, 10.0)
     thumbnail.save(output_filename + "_thumbnail.png")
     thumbnail_array = np.array(thumbnail)
+    # do some filtering
+    thumbnail_array = cle.push(thumbnail_array)
+    thumbnail_array = cle.gaussian_blur(thumbnail_array, None, 1.0, 1.0, 0.0)
+    thumbnail_array = cle.top_hat_box(thumbnail_array, None, 10.0, 10.0, 0)
+    thumbnail_array = cle.pull(thumbnail_array)
     thumbnail_shape = thumbnail_array.shape[:2]
     labels = np.zeros(thumbnail_shape, dtype=np.uint32)
     masks = mask_generator.generate(thumbnail_array) # generate masks using Mobile-SAM
