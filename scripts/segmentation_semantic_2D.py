@@ -30,13 +30,14 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     parser.add_argument("--image_type", type=str, required=True, help="Brightfield images? (y/n)")
+    parser.add_argument("--threshold", type=int, default=None, help="Enter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use gauss-otsu thresholding.")
     return parser.parse_args()
 
 args = parse_args()
     
 image_folder = args.input
 image_type = args.image_type
-
+threshold = args.threshold
 
 cl_filename = os.path.join(os.environ['TMIDAS_PATH'], "models/PixelClassifier_Joao_brightfield.cl")
 classifier = apoc.PixelClassifier(cl_filename)
@@ -55,8 +56,11 @@ def process_image(image_path, image_type):
             image = imread(image_path)
             image_to = cle.push(image)
             image_to = cle.gaussian_blur(image_to, None, 2.0, 2.0, 0.0)
-            image_to = cle.threshold_otsu(image_to)
-            image_to = cle.exclude_small_labels(image_to,None, 1000.0)
+            if threshold == 0:
+                image_to = cle.threshold_otsu(image_to)
+                image_to = cle.exclude_small_labels(image_to,None, 1000.0)
+            else:
+                image_to = cle.greater_or_equal_constant(image_to, None, threshold)
             image_labeled = cle.pull(image_to)
             image_labeled[image_labeled > 0] = 1    # relabel to 0 and 1
 

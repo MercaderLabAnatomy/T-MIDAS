@@ -482,7 +482,7 @@ def image_segmentation():
         print("\n")
         choice = input("\nEnter your choice: ")
         if choice == "1":
-            print("\nYou chose classical gauss-otsu labeling.")
+            print("\nYou chose classical instance segmentation.")
             threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
             use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
             exclude_small = input("\nLower size threshold to exclude small objects: ")
@@ -536,9 +536,10 @@ def image_segmentation():
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         image_type = input("\nBrightfield images? (y/n): ")
+        threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_2D.py',
-                                        '--input ' + input_folder + ' --image_type ' + image_type)
+                                        '--input ' + input_folder + ' --image_type ' + image_type + ' --threshold ' + threshold)
         restart_program()
     if choice == "4":
         os.system('clear')
