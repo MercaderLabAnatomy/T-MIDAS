@@ -40,42 +40,67 @@ def normalize_to_uint8(image):
     normalized = (image - min_val) / (max_val - min_val)
     return (normalized * 255).astype(np.uint8)
 
-def denoise_images_zyx(input_folder, output_folder, model, dim_order, num_channels):
+def restore_images(input_folder, output_folder, model, dim_order, num_channels, restoration_model):
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
     
     for input_file in tqdm(input_files, total=len(input_files), desc="Processing images"):
         img = imread(os.path.join(input_folder, input_file))
         print(f"\nImage shape: {img.shape}, dimension order: {dim_order}")
         
-        dim_indices = {dim: i for i, dim in enumerate(dim_order)}
+        # Check if image is 3D, has color channels, or is a time series
+        is_3d = 'Z' in dim_order
+        has_color = 'C' in dim_order
+        is_time_series = 'T' in dim_order
         
-        is_2d = 'Z' not in dim_indices
-        channel_axis = dim_indices.get('C', None)
+        print(f"3D: {is_3d}, Multicolor: {has_color}, Time Series: {is_time_series}")
+
+        # Determine channel axis
+        channel_axis = dim_order.index('C') if has_color else None
+        print(f"Color channels: {num_channels if has_color else 'Grayscale'}")
+
+        # Prepare transpose order
+        transpose_order = []
+        for dim in 'ZCYX':
+            if dim in dim_order:
+                transpose_order.append(dim_order.index(dim))
         
-        if is_2d:
-            transpose_order = [dim_indices['Y'], dim_indices['X']]
-            if channel_axis is not None:
-                transpose_order.append(channel_axis)
-            img = np.transpose(img, tuple(transpose_order))
-            img = np.expand_dims(img, axis=0)  # Add Z dimension
+        # Add time dimension at the beginning if it exists
+        if is_time_series:
+            transpose_order.insert(0, dim_order.index('T'))
+        
+        # Transpose image
+        img = np.transpose(img, tuple(transpose_order))
+        
+        # Add channel dimension if grayscale
+        if not has_color:
+            img = np.expand_dims(img, axis=-1)
+        
+        # Process image
+        if is_time_series:
+            restored_img = np.zeros(img.shape, dtype=np.float32)
+            for t in tqdm(range(img.shape[0]), desc="Processing time points"):
+                img_t = img[t]
+                if num_channels > 1:
+                    img_dn = model.eval(x=[img_t for _ in range(num_channels)],
+                                        channels=[[i, 0] for i in range(num_channels)],
+                                        z_axis=0 if is_3d else None)
+                else:
+                    img_dn = model.eval(img_t, channels=[0,0], z_axis=0 if is_3d else None)
+                restored_img[t] = img_dn
         else:
-            transpose_order = [dim_indices['Z'], dim_indices['Y'], dim_indices['X']]
-            if channel_axis is not None:
-                transpose_order.append(channel_axis)
-            img = np.transpose(img, tuple(transpose_order))
+            if num_channels > 1:
+                restored_img = model.eval(x=[img for _ in range(num_channels)],
+                                          channels=[[i, 0] for i in range(num_channels)],
+                                          z_axis=0 if is_3d else None)
+            else:
+                restored_img = model.eval(img, channels=[0,0], z_axis=0 if is_3d else None)
         
-        if channel_axis is not None:
-            img_dn = model.eval(x=[img for _ in range(num_channels)],
-                                channels=[[i, 0] for i in range(num_channels)],
-                                z_axis=0, channel_axis=-1)
-        else:
-            img_dn = model.eval(img, channels=[0,0], z_axis=0)
-        
-        multicolor_image = np.stack([normalize_to_uint8(np.squeeze(img_dn[i])) for i in range(len(img_dn))], axis=-1)
+        # Normalize and stack channels
+        multicolor_image = np.stack([normalize_to_uint8(np.squeeze(restored_img[i])) for i in range(len(restored_img))], axis=-1)
         print("The shape of the multicolor image is: ", multicolor_image.shape)
         
         # Reorder dimensions for ImageJ hyperstack (TZCYXS order)
-        new_order = 'CZYXT'
+        new_order = 'TZCYX'
         source_axes = [dim_order.index(d) for d in new_order if d in dim_order]
         dest_axes = list(range(len(source_axes)))
         multicolor_image = np.moveaxis(multicolor_image, source_axes, dest_axes)
@@ -86,6 +111,8 @@ def denoise_images_zyx(input_folder, output_folder, model, dim_order, num_channe
         imwrite(os.path.join(output_folder, input_file.replace(".tif", f"_{restoration_model}.tif")),
                 multicolor_image, compression='zlib', imagej=True)
 
+
+
 # Main execution
 args = parse_args()
-denoise_images_zyx(args.input, args.input, model, args.dim_order, args.num_channels)
+restore_images(args.input, args.input, model, args.dim_order, args.num_channels, args.restoration_type)
