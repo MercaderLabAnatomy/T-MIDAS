@@ -229,9 +229,10 @@ def image_preprocessing():
         kernel_size = input("\nEnter the kernel size: ")
         clip_limit = input("\nEnter the clip limit: ")
         nbins = input("\nEnter the number of bins: ")
+        dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/deep_tissue_clahe.py',
-                                        '--input ' + input_folder + ' --kernel_size ' + kernel_size + ' --clip_limit ' + clip_limit + ' --nbins ' + nbins)
+                                        '--input ' + input_folder + ' --kernel_size ' + kernel_size + ' --clip_limit ' + clip_limit + ' --nbins ' + nbins + ' --dim_order ' + dim_order)
         restart_program()
 
     if choice == "6":

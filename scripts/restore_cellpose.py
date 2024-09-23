@@ -6,6 +6,7 @@ from tifffile import imwrite
 from cellpose import models, core, denoise
 from tqdm import tqdm
 
+
 use_GPU = core.use_gpu()
 
 def parse_args():
@@ -54,30 +55,9 @@ def restore_images(input_folder, output_folder, model, dim_order, num_channels, 
         
         print(f"3D: {is_3d}, Multicolor: {has_color}, Time Series: {is_time_series}")
 
-        # Determine channel axis
-        channel_axis = dim_order.index('C') if has_color else None
-        print(f"Color channels: {num_channels if has_color else 'Grayscale'}")
-
-        # Prepare transpose order
-        transpose_order = []
-        for dim in 'ZCYX':
-            if dim in dim_order:
-                transpose_order.append(dim_order.index(dim))
-        
-        # Add time dimension at the beginning if it exists
-        if is_time_series:
-            transpose_order.insert(0, dim_order.index('T'))
-        
-        # Transpose image
-        img = np.transpose(img, tuple(transpose_order))
-        
-        # Add channel dimension if grayscale
-        if not has_color:
-            img = np.expand_dims(img, axis=-1)
-        
         # Process image
         if is_time_series:
-            restored_img = np.zeros(img.shape, dtype=np.float32)
+            restored_img = np.zeros_like(img, dtype=np.float32)
             for t in tqdm(range(img.shape[0]), desc="Processing time points"):
                 img_t = img[t]
                 if num_channels > 1:
@@ -86,7 +66,7 @@ def restore_images(input_folder, output_folder, model, dim_order, num_channels, 
                                         z_axis=0 if is_3d else None)
                 else:
                     img_dn = model.eval(img_t, channels=[0,0], z_axis=0 if is_3d else None)
-                restored_img[t] = img_dn
+                restored_img[t] = np.squeeze(img_dn)  # Squeeze any extra dimensions
         else:
             if num_channels > 1:
                 restored_img = model.eval(x=[img for _ in range(num_channels)],
@@ -94,25 +74,22 @@ def restore_images(input_folder, output_folder, model, dim_order, num_channels, 
                                           z_axis=0 if is_3d else None)
             else:
                 restored_img = model.eval(img, channels=[0,0], z_axis=0 if is_3d else None)
+            restored_img = np.squeeze(restored_img)  # Squeeze any extra dimensions
         
-        # Normalize and stack channels
-        multicolor_image = np.stack([normalize_to_uint8(np.squeeze(restored_img[i])) for i in range(len(restored_img))], axis=-1)
-        print("The shape of the multicolor image is: ", multicolor_image.shape)
+        # Normalize the image
+        processed_image = normalize_to_uint8(restored_img)
         
-        # Reorder dimensions for ImageJ hyperstack (TZCYXS order)
-        new_order = 'TZCYX'
-        source_axes = [dim_order.index(d) for d in new_order if d in dim_order]
-        dest_axes = list(range(len(source_axes)))
-        multicolor_image = np.moveaxis(multicolor_image, source_axes, dest_axes)
+        print("The shape of the processed image is: ", processed_image.shape)
         
-        new_dim_order = ''.join([new_order[i] for i in dest_axes])
-        print("Reordered dimensions:", new_dim_order)
-        
+        # Save the processed image
         imwrite(os.path.join(output_folder, input_file.replace(".tif", f"_{restoration_model}.tif")),
-                multicolor_image, compression='zlib', imagej=True)
+                processed_image, compression='zlib', imagej=True)
+        
+        print(f"Saved processed image with original dimensions preserved.")
+
 
 
 
 # Main execution
 args = parse_args()
-restore_images(args.input, args.input, model, args.dim_order, args.num_channels, args.restoration_type)
+restore_images(args.input, args.input, model, args.dim_order, args.num_channels, restoration_model)
