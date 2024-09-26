@@ -488,7 +488,9 @@ def image_segmentation():
             use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
             exclude_small = input("\nLower size threshold to exclude small objects: ")
             exclude_large = input("\nUpper size threshold to exclude large objects: ")
+            split_sigma = input("\nSplit smoothed objects? Enter value for smoothing (0 = no splitting): ")
             dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
+
             python_script_environment_setup('tmidas-env', 
                                             os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs.py',
                                             '--input ' + input_folder + 
@@ -496,6 +498,7 @@ def image_segmentation():
                                             ' --use_filters ' + use_filters +
                                             ' --exclude_small ' + exclude_small + 
                                             ' --exclude_large ' + exclude_large +
+                                            ' --split_sigma ' + split_sigma +
                                             ' --dim_order ' + dim_order)
             restart_program()
         if choice == "2":

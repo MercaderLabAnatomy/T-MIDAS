@@ -5,6 +5,7 @@ from skimage.io import imread
 from tifffile import imwrite
 import pyclesperanto_prototype as cle
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
+import napari_segment_blobs_and_things_with_membranes as nsbatwm  # version 0.3.8
 from tqdm import tqdm
 
 """
@@ -35,8 +36,8 @@ def parse_args():
     parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
     parser.add_argument("--dim_order", type=str, default="YX", help="Dimension order of the input images.)")
     parser.add_argument("--threshold", type=int, default=None, help="Enter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use gauss-otsu thresholding.")
-    # asku user whether to use filters (default: yes)
     parser.add_argument("--use_filters", type=str2bool, default=True, help="Use filters for user-defined segmentation? (yes/no)")
+    parser.add_argument("--split_sigma", type=float, default=0.0, help="Split objects by sigma?")
     return parser.parse_args()
 
 args = parse_args()
@@ -123,7 +124,9 @@ def process_single_image(image, is_3d, threshold):
             else:
                 image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
                 print("\n No filters applied.")
-
+    if args.split_sigma > 0:
+        image_to = nsbatwm.split_touching_objects(image_to, args.split_sigma)
+        print("\n Splitting objects with smoothing {args.split_sigma} applied.")
     image_labeled = cle.connected_components_labeling_box(image_to)
     image_labeled = cle.exclude_small_labels(image_labeled, None, LOWER_THRESHOLD)
     image_labeled = cle.exclude_large_labels(image_labeled, None, UPPER_THRESHOLD)
