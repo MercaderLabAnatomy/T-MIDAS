@@ -6,7 +6,9 @@ from tifffile import imwrite
 import pyclesperanto_prototype as cle
 import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 import napari_segment_blobs_and_things_with_membranes as nsbatwm  # version 0.3.8
+from skimage.transform import resize
 from tqdm import tqdm
+import torch
 
 """
 Description: This script runs automatic mask generation on images.
@@ -49,7 +51,7 @@ RADIUS = 10.0
 LOWER_THRESHOLD = args.exclude_small
 UPPER_THRESHOLD = args.exclude_large
 use_filters = args.use_filters
-
+SIZE_LIMIT = 10000000 # some problem with the cle memory allocation
 
 
 
@@ -94,17 +96,48 @@ def process_image(image_path, dim_order, threshold):
         print(f"Error processing {image_path}: {str(e)}")
         return None
 
+
+
+def calculate_downscale_factor(num_pixels, target_pixels=SIZE_LIMIT):
+    """Calculate a downscale factor using a smooth, asymptotic function."""
+    ratio = num_pixels / target_pixels
+    return np.sqrt(1 / (1 + np.log(ratio)))
+
+
+
 def process_single_image(image, is_3d, threshold):
     """Process a single image slice and return labeled image."""
     if threshold == 0:
         if is_3d:
-            image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0) # works better with 2D filters
-            image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0) # works better with 2D filters
-            image_to = cle.threshold_otsu(image_to)
+            if use_filters:
+                image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0)
+                image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0)
+                image_to = cle.threshold_otsu(image_to)
+            else:
+                image_to = cle.threshold_otsu(image)
+                print("\n No filters applied.")
         else:
-            image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
-            image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, 0.0)
-            image_to = cle.threshold_otsu(image_to)
+
+            # check if image has more than 75 million pixels, if so, downscale it
+            height, width = image.shape[dim_order.index('Y')], image.shape[dim_order.index('X')]
+            size = height * width
+            if size > SIZE_LIMIT:
+                downscale_factor = calculate_downscale_factor(size)
+                image = resize(image, (int(height * downscale_factor), int(width * downscale_factor)), anti_aliasing=True)
+                downscaled = True
+                print(f"Downscaled image to {image.shape}")
+            else:
+                downscaled = False
+
+
+            if use_filters:
+                image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
+                image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, 0.0)
+                image_to = cle.threshold_otsu(image_to)
+            else:
+                image_to = cle.threshold_otsu(image)
+                print("\n No filters applied.")
+
     else:
         intensity_threshold = threshold
         print(f"Using user-defined intensity threshold: {intensity_threshold}")
@@ -117,6 +150,16 @@ def process_single_image(image, is_3d, threshold):
                     image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
                     print("\n No filters applied.")
         else:
+            height, width = image.shape[dim_order.index('Y')], image.shape[dim_order.index('X')]
+            size = height * width
+            if size > SIZE_LIMIT:
+                downscale_factor = calculate_downscale_factor(size)
+                image = resize(image, (int(height * downscale_factor), int(width * downscale_factor)), anti_aliasing=True)
+                downscaled = True
+                print(f"Downscaled image to {image.shape}")
+            else:
+                downscaled = False
+
             if use_filters:
                 image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
                 image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, 0.0)
@@ -130,6 +173,14 @@ def process_single_image(image, is_3d, threshold):
     image_labeled = cle.connected_components_labeling_box(image_to)
     image_labeled = cle.exclude_small_labels(image_labeled, None, LOWER_THRESHOLD)
     image_labeled = cle.exclude_large_labels(image_labeled, None, UPPER_THRESHOLD)
+    del image_to
+    image_labeled = cle.pull(image_labeled)
+    if downscaled:
+        image_labeled = resize(image_labeled, (height, width), order=0, anti_aliasing=False
+                                ).astype(np.uint32)
+        print(f"Upscaled label image to {image_labeled.shape}")
+
+
     return image_labeled
 
 def save_image(image, filename):
@@ -142,9 +193,11 @@ def main():
         if not filename.endswith(".tif"):
             continue
         labeled_image = process_image(os.path.join(image_folder, filename), dim_order, threshold)
+        torch.cuda.empty_cache()
         if labeled_image is not None:
             output_path = os.path.join(image_folder, f"{filename[:-4]}_labels.tif")
             save_image(labeled_image, output_path)
+            del labeled_image
 
 if __name__ == "__main__":
     main()
