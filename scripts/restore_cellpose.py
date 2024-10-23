@@ -6,34 +6,38 @@ from tifffile import imwrite
 from cellpose import models, core, denoise
 from tqdm import tqdm
 
-
 use_GPU = core.use_gpu()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-    parser.add_argument('--restoration_type', type=str, default='dn', help='Denoise, deblur or upscale? (dn/db/us)')
+    parser.add_argument('--restoration_type', type=str, choices=['dn', 'db', 'us', 'all'], 
+                        required=True, help='Denoise (dn), deblur (db), upscale (us), or all models?')
     parser.add_argument('--dim_order', type=str, default='ZYX', help='Dimension order of the input images.')
     parser.add_argument('--object_type', type=str, default='c', help='Cells or nuclei? (c/n)')
     parser.add_argument('--num_channels', type=int, default=1, help='How many color channels?')
+    parser.add_argument('--diameter', type=float, required=True, help='Diameter for the DenoiseModel.')
     return parser.parse_args()
+
+
 
 args = parse_args()
 input_folder = args.input
 dim_order = args.dim_order
 num_channels = args.num_channels
+diam_mean = args.diameter
 
-if args.restoration_type == 'dn':
-    restoration_model = 'denoise_cyto3' if args.object_type == 'c' else 'denoise_nuclei'
-elif args.restoration_type == 'db':
-    restoration_model = 'deblur_cyto3' if args.object_type == 'c' else 'deblur_nuclei'
-elif args.restoration_type == 'us':
-    restoration_model = 'upsample_cyto3' if args.object_type == 'c' else 'upsample_nuclei'
+if args.restoration_type == 'all':
+    restoration_types = ['dn', 'db', 'us']
 else:
-    print("Invalid restoration type. Choose 'dn' for denoise, 'db' for deblur, or 'us' for upsample.")
-    exit(1)
+    restoration_types = [args.restoration_type]
 
-model = denoise.DenoiseModel(model_type=restoration_model, gpu=True)
+models_dict = {
+    'dn': 'denoise_cyto3' if args.object_type == 'c' else 'denoise_nuclei',
+    'db': 'deblur_cyto3' if args.object_type == 'c' else 'deblur_nuclei',
+    'us': 'upsample_cyto3' if args.object_type == 'c' else 'upsample_nuclei'
+}
+
 
 def normalize_to_uint8(image):
     min_val = np.min(image)
@@ -41,7 +45,7 @@ def normalize_to_uint8(image):
     normalized = (image - min_val) / (max_val - min_val)
     return (normalized * 255).astype(np.uint8)
 
-def restore_images(input_folder, output_folder, model, dim_order, num_channels, restoration_model):
+def restore_images(input_folder, output_folder, restoration_types, dim_order, num_channels, diam_mean):
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
     
     for input_file in tqdm(input_files, total=len(input_files), desc="Processing images"):
@@ -55,41 +59,48 @@ def restore_images(input_folder, output_folder, model, dim_order, num_channels, 
         
         print(f"3D: {is_3d}, Multicolor: {has_color}, Time Series: {is_time_series}")
 
-        # Process image
-        if is_time_series:
-            restored_img = np.zeros_like(img, dtype=np.float32)
-            for t in tqdm(range(img.shape[0]), desc="Processing time points"):
-                img_t = img[t]
-                if num_channels > 1:
-                    img_dn = model.eval(x=[img_t for _ in range(num_channels)],
-                                        channels=[[i, 0] for i in range(num_channels)],
-                                        z_axis=0 if is_3d else None)
-                else:
-                    img_dn = model.eval(img_t, channels=[0,0], z_axis=0 if is_3d else None)
-                restored_img[t] = np.squeeze(img_dn)  # Squeeze any extra dimensions
-        else:
-            if num_channels > 1:
-                restored_img = model.eval(x=[img for _ in range(num_channels)],
-                                          channels=[[i, 0] for i in range(num_channels)],
-                                          z_axis=0 if is_3d else None)
+        restored_img = img  # Start with original image
+
+        for restoration_type in restoration_types:
+            restoration_model = models_dict[restoration_type]
+            model = denoise.DenoiseModel(model_type=restoration_model, gpu=True)
+
+            # Process image
+            if is_time_series:
+                temp_restored_img = np.zeros_like(restored_img, dtype=np.float32)
+                for t in tqdm(range(restored_img.shape[0]), desc="Processing time points"):
+                    img_t = restored_img[t]
+                    if num_channels > 1:
+                        img_dn = model.eval(x=[img_t for _ in range(num_channels)],
+                                            channels=[[i, 0] for i in range(num_channels)],
+                                            z_axis=0 if is_3d else None,
+                                            diam=diam_mean)
+                    else:
+                        img_dn = model.eval(img_t, channels=[0,0], z_axis=0 if is_3d else None,
+                                            diam=diam_mean)
+                    temp_restored_img[t] = np.squeeze(img_dn)  # Squeeze any extra dimensions
+                restored_img = temp_restored_img
             else:
-                restored_img = model.eval(img, channels=[0,0], z_axis=0 if is_3d else None)
-            restored_img = np.squeeze(restored_img)  # Squeeze any extra dimensions
+                if num_channels > 1:
+                    restored_img = model.eval(x=[restored_img for _ in range(num_channels)],
+                                              channels=[[i, 0] for i in range(num_channels)],
+                                              z_axis=0 if is_3d else None,
+                                              diam=diam_mean)
+                else:
+                    restored_img = model.eval(restored_img, channels=[0,0], z_axis=0 if is_3d else None,
+                                               diam=diam_mean)
+                restored_img = np.squeeze(restored_img)  # Squeeze any extra dimensions
+            
+            # Normalize the image after each restoration step
+            processed_image = normalize_to_uint8(restored_img)
         
-        # Normalize the image
-        processed_image = normalize_to_uint8(restored_img)
-        
-        print("The shape of the processed image is: ", processed_image.shape)
-        
-        # Save the processed image
-        imwrite(os.path.join(output_folder, input_file.replace(".tif", f"_{restoration_model}.tif")),
-                processed_image, compression='zlib', imagej=True)
-        
-        print(f"Saved processed image with original dimensions preserved.")
-
-
-
+            print("The shape of the processed image is: ", processed_image.shape)
+            
+            # Save the processed image with a suffix indicating the restoration type
+            imwrite(os.path.join(output_folder, input_file.replace(".tif", f"_{restoration_model}.tif")),
+                    processed_image, compression='zlib', imagej=True)
+            
+            print(f"Saved processed image with original dimensions preserved.")
 
 # Main execution
-args = parse_args()
-restore_images(args.input, args.input, model, args.dim_order, args.num_channels, restoration_model)
+restore_images(args.input, args.input, restoration_types, dim_order, num_channels, diam_mean)

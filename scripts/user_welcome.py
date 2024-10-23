@@ -241,17 +241,19 @@ def image_preprocessing():
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         # num_channels= input("\nEnter the number of color channels to be restored: ")
-        restoration_type = input("\nChoose between denoising (dn), deblurring (db) or upsampling (us): ")
+        restoration_type = input("\nChoose between denoising (dn), deblurring (db), upsampling (us) or (all): ")
+        diameter = input("\nEnter the typical diameter of the objects that you want to restore: ")
         object_type = input("\nChoose between nuclei (n) or cytoplasm (c): ")
         dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
         num_channels = input("\nEnter the number of color channels (default=1): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/restore_cellpose.py',
-                                        '--input ' + input_folder + #' --num_channels ' + num_channels + 
+                                        '--input ' + input_folder + 
                                         ' --restoration_type ' + restoration_type + 
-                                        ' --object_type ' + object_type + ' --dim_order ' + dim_order + ' --num_channels ' + num_channels)
+                                        ' --diameter ' + diameter + ' --object_type ' + 
+                                        object_type + ' --dim_order ' + dim_order + 
+                                        ' --num_channels ' + num_channels)
 
-        # + ' --object_type ' + object_type) 
         restart_program()
 
 
