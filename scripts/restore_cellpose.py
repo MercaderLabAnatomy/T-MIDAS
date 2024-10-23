@@ -25,7 +25,7 @@ args = parse_args()
 input_folder = args.input
 dim_order = args.dim_order
 num_channels = args.num_channels
-diam_mean = args.diameter
+diameter = args.diameter
 
 if args.restoration_type == 'all':
     restoration_types = ['dn', 'db', 'us']
@@ -45,7 +45,7 @@ def normalize_to_uint8(image):
     normalized = (image - min_val) / (max_val - min_val)
     return (normalized * 255).astype(np.uint8)
 
-def restore_images(input_folder, output_folder, restoration_types, dim_order, num_channels, diam_mean):
+def restore_images(input_folder, output_folder, restoration_types, dim_order, num_channels, diameter):
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
     
     for input_file in tqdm(input_files, total=len(input_files), desc="Processing images"):
@@ -74,10 +74,10 @@ def restore_images(input_folder, output_folder, restoration_types, dim_order, nu
                         img_dn = model.eval(x=[img_t for _ in range(num_channels)],
                                             channels=[[i, 0] for i in range(num_channels)],
                                             z_axis=0 if is_3d else None,
-                                            diam=diam_mean)
+                                            diameter=diameter)
                     else:
                         img_dn = model.eval(img_t, channels=[0,0], z_axis=0 if is_3d else None,
-                                            diam=diam_mean)
+                                            diameter=diameter)
                     temp_restored_img[t] = np.squeeze(img_dn)  # Squeeze any extra dimensions
                 restored_img = temp_restored_img
             else:
@@ -85,10 +85,10 @@ def restore_images(input_folder, output_folder, restoration_types, dim_order, nu
                     restored_img = model.eval(x=[restored_img for _ in range(num_channels)],
                                               channels=[[i, 0] for i in range(num_channels)],
                                               z_axis=0 if is_3d else None,
-                                              diam=diam_mean)
+                                              diameter=diameter)
                 else:
                     restored_img = model.eval(restored_img, channels=[0,0], z_axis=0 if is_3d else None,
-                                               diam=diam_mean)
+                                               diameter=diameter)
                 restored_img = np.squeeze(restored_img)  # Squeeze any extra dimensions
             
             # Normalize the image after each restoration step
@@ -103,4 +103,4 @@ def restore_images(input_folder, output_folder, restoration_types, dim_order, nu
             print(f"Saved processed image with original dimensions preserved.")
 
 # Main execution
-restore_images(args.input, args.input, restoration_types, dim_order, num_channels, diam_mean)
+restore_images(args.input, args.input, restoration_types, dim_order, num_channels, diameter)
