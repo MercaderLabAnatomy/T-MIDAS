@@ -107,6 +107,7 @@ def calculate_downscale_factor(num_pixels, target_pixels=SIZE_LIMIT):
 
 def process_single_image(image, is_3d, threshold):
     """Process a single image slice and return labeled image."""
+    downscaled = False  # Initialize downscaled to False by default
     if threshold == 0:
         if is_3d:
             if use_filters:
