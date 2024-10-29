@@ -5,6 +5,7 @@ from skimage.io import imread
 from tifffile import imwrite
 from cellpose import models, core, denoise
 from tqdm import tqdm
+import gc
 
 use_GPU = core.use_gpu()
 
@@ -67,17 +68,35 @@ def restore_images(input_folder, output_folder, restoration_types, dim_order, nu
 
             # Process image
             if is_time_series:
-                temp_restored_img = np.zeros_like(restored_img, dtype=np.float32)
-                for t in tqdm(range(restored_img.shape[0]), desc="Processing time points"):
+                #temp_restored_img = np.zeros_like(restored_img, dtype=np.float32)
+                for t in tqdm(range(restored_img.shape[0]), desc=f"Running {models_dict[restoration_type]}"):
                     img_t = restored_img[t]
+
                     if num_channels > 1:
                         img_dn = model.eval(x=[img_t for _ in range(num_channels)],
                                             channels=[[i, 0] for i in range(num_channels)],
                                             z_axis=0 if is_3d else None,
                                             diameter=diameter)
+                        if t == 0:
+                            spatial_shape = np.squeeze(img_dn).shape
+                            temp_restored_img = np.zeros((restored_img.shape[dim_order.index('T')],) + spatial_shape,
+                                                        dtype=np.float32)
+                            
+
+
                     else:
                         img_dn = model.eval(img_t, channels=[0,0], z_axis=0 if is_3d else None,
                                             diameter=diameter)
+                        
+
+                        # Initialize temp_restored_img on the first iteration
+                        if t == 0:
+                            spatial_shape = np.squeeze(img_dn).shape  # Get spatial dimensions from img_dn
+                            temp_restored_img = np.zeros((restored_img.shape[dim_order.index('T')],) + spatial_shape,
+                                                           dtype=np.float32)
+
+
+
                     temp_restored_img[t] = np.squeeze(img_dn)  # Squeeze any extra dimensions
                 restored_img = temp_restored_img
             else:
@@ -91,16 +110,19 @@ def restore_images(input_folder, output_folder, restoration_types, dim_order, nu
                                                diameter=diameter)
                 restored_img = np.squeeze(restored_img)  # Squeeze any extra dimensions
             
-            # Normalize the image after each restoration step
-            processed_image = normalize_to_uint8(restored_img)
+
+        processed_image = normalize_to_uint8(restored_img)
         
-            print("The shape of the processed image is: ", processed_image.shape)
-            
+        print("The shape of the restored image is: ", processed_image.shape)
+        if args.restoration_type == 'all':
+            imwrite(os.path.join(output_folder, input_file.replace(".tif", "_restored.tif")),
+                    processed_image, compression='zlib', imagej=True)
+        else:
             # Save the processed image with a suffix indicating the restoration type
             imwrite(os.path.join(output_folder, input_file.replace(".tif", f"_{restoration_model}.tif")),
                     processed_image, compression='zlib', imagej=True)
-            
-            print(f"Saved processed image with original dimensions preserved.")
+        gc.collect()
+
 
 # Main execution
 restore_images(args.input, args.input, restoration_types, dim_order, num_channels, diameter)
