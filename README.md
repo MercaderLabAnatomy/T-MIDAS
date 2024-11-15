@@ -73,6 +73,10 @@ See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=read
     [1] Validate spot counts (2D)
     [2] Validate blobs (2D or 3D; global F1 score)
 
+[5] Postprocessing
+    [1] Compress files using zstd
+
+
 [n] Start Napari (with useful plugins)
 
 </pre>
