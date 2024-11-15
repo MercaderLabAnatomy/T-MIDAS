@@ -121,6 +121,7 @@ def main_menu():
     print("[2] Image Segmentation")
     print("[3] Regions of Interest (ROI) Analysis")
     print("[4] Image Segmentation Validation")
+    print("[5] Postprocessing")
     print("[n] Start Napari (with useful plugins)")
     print("[x] Exit \n")
     
@@ -138,6 +139,9 @@ def main_menu():
         restart_program()
     if choice == "4":
         validation()
+        restart_program()
+    if choice == "5":
+        postprocessing()
         restart_program()
     if choice == "n" or choice == "N":
         start_napari()
@@ -172,6 +176,7 @@ def image_preprocessing():
     print("[7] Split color channels (2D or 3D, also time series)")
     print("[8] Merge color channels (2D or 3D, also time series)")
     print("[9] Convert RGB images to label images")
+    print("[10] Crop out zebrafish larvae from Acquifer images (multicolor but requires brightfield)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -292,6 +297,18 @@ def image_preprocessing():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/RGB_2_labels.py',
                                         '--folder ' + input_folder)
         restart_program()
+    if choice == "10":
+        os.system('clear')
+        print('''You chose to crop out zebrafish larvae from Acquifer images. \n
+              A popup will appear in a moment asking you to select the folder containing the Acquifer images.
+              ''')
+        input_folder = popup_input("\nEnter the path to the folder containing the Acquifer images: ")
+        padding = input("\nEnter the padding in pixels (default: 20): ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/crop_acquifer_larvae.py',
+                                        '--input ' + input_folder + ' --padding ' + padding)
+        restart_program()
+
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":
@@ -833,7 +850,48 @@ def validation():
     else:
         print("Invalid choice")
         restart_program()
- 
+
+def postprocessing():
+    os.system('clear')
+    print("Postprocessing: What would you like to do?\n")
+    print("[1] Compress files using zstd")
+    print("[r] Return to Main Menu")
+    print("[x] Exit \n")
+
+    choice = input("\nEnter your choice: ")
+    if choice == "1":
+        zstd_compression()
+    elif choice.lower() == "r":
+        welcome_message()
+    elif choice.lower() == "x":
+        exit_program()
+    else:
+        print("Invalid choice")
+    restart_program()
+
+def zstd_compression():
+    os.system('clear')
+    print("""
+    Zstandard (zstd) is a fast, efficient and lossless compression algorithm.
+    It offers a good balance between compression ratio and speed, making it ideal for
+    compressing large datasets\n.
+    When you decide to remove source files after compression, 
+          this is only done after a successful integrity check.\n
+    One last thing: This algorithm uses a lot of CPU resources, 
+          so better run it when no one else is using the machine.\n
+         
+    """)
+    input_folder = popup_input("\nEnter the path to the folder containing the files to compress: ")
+    file_extension = input("\nEnter the file extension to compress (e.g., tif): ")
+    remove_source = input("\nRemove source files after compression? (y/n): ")
+    python_script_environment_setup('tmidas-env', 
+                                    os.environ.get("TMIDAS_PATH")+'/scripts/zstd_compression.py',
+                                    '--input_folder ' + input_folder + ' --file_extension ' + 
+                                    file_extension + ' --remove_source ' + remove_source)
+
+
+
+
 def restart_program():
     print("\n")
     choice = input("\nYou are finished. Press Enter to restart the Image Analysis Suite or press x to exit.\n")
