@@ -888,14 +888,14 @@ def zstd_compression():
 
     The best compromise would be to use level 19, which is the default value.\n          
     
-    One last thing: This algorithm uses a lot of CPU resources, 
+    One last thing: This algorithm uses a lot of CPU resources in the case of large files, 
           so better run it when no one else is using the machine.\n
          
     """)
     input_folder = popup_input("\nEnter the path to the folder containing the files to compress: ")
     file_extension = input("\nEnter the file extension to compress (e.g., tif): ")
     remove_source = input("\nRemove source files after compression? (y/n): ")
-    compression_level = input("\nEnter the compression level (1-19, default: 19): ")
+    compression_level = input("\nEnter the compression level (1-22, default: 19): ")
     python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/zstd_compression.py',
                                     '--input_folder ' + input_folder + ' --file_extension ' + 
