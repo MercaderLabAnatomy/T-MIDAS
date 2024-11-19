@@ -855,7 +855,7 @@ def postprocessing():
     os.system('clear')
     print("Postprocessing: What would you like to do?\n")
     print("[1] Compress files using zstd")
-    print("[2] Decompress .zst files")
+    print("[2] Decompress files using zstd")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -910,7 +910,7 @@ def zstd_decompression():
     Memory-efficient and fast decompression of .zst, .gz, .xz and .lz4 files using zstd.\n       
     """)
     input_folder = popup_input("\nEnter the path to the folder containing the .zst files to decompress: ")
-    file_extension = input("\nEnter the file extension to decompress (e.g., tif): ")
+    file_extension = input("\nEnter the file extension to decompress (e.g., tif.zst): ")
     remove_compressed = input("\nRemove source files after decompression? (y/n): ")
     python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/zstd_decompression.py',
