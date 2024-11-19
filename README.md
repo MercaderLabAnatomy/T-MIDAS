@@ -24,7 +24,8 @@ See [acknowledgements and citations](https://github.com/MercaderLabAnatomy/T-MID
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
 
-## Batch Image Processing
+## Feature overview
+More detailed information is provided via text-based user interface.
 <pre>
 [1] Image Preprocessing
     
