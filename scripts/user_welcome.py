@@ -877,6 +877,14 @@ def zstd_compression():
     compressing large datasets\n.
     When you decide to remove source files after compression, 
           this is only done after a successful integrity check.\n
+    Last parameter you can choose is the compression level. 
+          
+    Lower levels (1-3) offer faster compression but lower compression ratios.
+    Higher levels (15-19) provide better compression ratios but are slower.
+    Ultra levels (20-22) can achieve the best compression ratios but are the slowest and most memory-intensive.
+
+    The best compromise would be to use level 19, which is the default value.\n          
+    
     One last thing: This algorithm uses a lot of CPU resources, 
           so better run it when no one else is using the machine.\n
          
@@ -884,10 +892,12 @@ def zstd_compression():
     input_folder = popup_input("\nEnter the path to the folder containing the files to compress: ")
     file_extension = input("\nEnter the file extension to compress (e.g., tif): ")
     remove_source = input("\nRemove source files after compression? (y/n): ")
+    compression_level = input("\nEnter the compression level (1-19, default: 19): ")
     python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/zstd_compression.py',
                                     '--input_folder ' + input_folder + ' --file_extension ' + 
-                                    file_extension + ' --remove_source ' + remove_source)
+                                    file_extension + ' --remove_source ' + remove_source +
+                                    ' --compression_level ' + compression_level)
 
 
 
