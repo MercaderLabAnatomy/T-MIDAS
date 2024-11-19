@@ -19,7 +19,7 @@ T-MIDAS is built on established image processing libraries such as [scikit-image
 
 All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS/blob/main/scripts/install_dependencies.py). 
 
-See selected [references](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#references) for more information.
+See [acknowledgements and citations](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#acknowledgements-and-citations) for further information.
 
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
