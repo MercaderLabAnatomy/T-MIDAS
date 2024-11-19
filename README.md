@@ -103,9 +103,64 @@ To start the text-based user interface in your terminal, change directory to the
 ```
 python ./scripts/user_welcome.py
 ```
-## References
 
-- [scikit-image processing toolbox documentation](https://scikit-image.org/docs/stable/)
-- [py-clesperanto documentation](https://clesperanto.github.io/pyclesperanto/index.html)
-- [Cellpose Documentation](https://cellpose.readthedocs.io)
-- [Bio-image Analysis Notebooks](https://haesleinhuepf.github.io/BioImageAnalysisNotebooks)
+## Acknowledgements and Citations
+
+This project relies on several open-source libraries and tools. We would like to acknowledge and thank the creators of these projects:
+
+### Core Libraries
+
+- [NumPy](https://numpy.org/): Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). DOI: 10.1038/s41586-020-2649-2
+
+- [scikit-image](https://scikit-image.org/): van der Walt, S., Schönberger, J. L., Nunez-Iglesias, J., Boulogne, F., Warner, J. D., Yager, N., ... & Yu, T. (2014). scikit-image: image processing in Python. PeerJ, 2, e453.
+
+- [tifffile](https://pypi.org/project/tifffile/): Gohlke, C. (2021). tifffile (Version X.X.X) [Software]. Available from https://pypi.org/project/tifffile/
+
+- [pyclesperanto-prototype](https://github.com/clEsperanto/pyclesperanto_prototype): Haase, R., Royer, L. A., Steinbach, P., Schmidt, D., Dibrov, A., Schmidt, U., ... & Myers, E. W. (2020). CLIJ: GPU-accelerated image processing for everyone. Nature methods, 17(1), 5-6.
+
+- [Pillow](https://python-pillow.org/): Clark, A. (2015). Pillow (PIL Fork) Documentation. readthedocs.
+
+- [pandas](https://pandas.pydata.org/): McKinney, W., & others. (2010). Data structures for statistical computing in python. In Proceedings of the 9th Python in Science Conference (Vol. 445, pp. 51–56).
+
+- [OpenCV](https://opencv.org/): Bradski, G. (2000). The OpenCV Library. Dr. Dobb's Journal of Software Tools.
+
+- [SimpleITK](https://simpleitk.org/): Lowekamp, B. C., Chen, D. T., Ibáñez, L., & Blezek, D. (2013). The design of SimpleITK. Frontiers in neuroinformatics, 7, 45.
+
+- [PyTorch](https://pytorch.org/): Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J., Chanan, G., ... & Chintala, S. (2019). PyTorch: An imperative style, high-performance deep learning library. In Advances in neural information processing systems (pp. 8026-8037).
+
+### Image Analysis and Processing
+
+- [Cellpose](https://github.com/MouseLand/cellpose): Stringer, C., Wang, T., Michaelos, M., & Pachitariu, M. (2021). Cellpose: a generalist algorithm for cellular segmentation. Nature Methods, 18(1), 100-106.
+
+- [napari](https://napari.org/): Sofroniew, N., Lambert, T., Evans, K., Nunez-Iglesias, J., Yamauchi, K., Solak, A. C., ... & Eliceiri, K. (2022). napari: a multi-dimensional image viewer for python. Zenodo.
+
+- [apoc](https://github.com/haesleinhuepf/apoc): Haase, R., Royer, L. A., Steinbach, P., Schmidt, D., Dibrov, A., Schmidt, U., ... & Myers, E. W. (2020). CLIJ: GPU-accelerated image processing for everyone. Nature methods, 17(1), 5-6.
+
+- [aicsimageio](https://github.com/AllenCellModeling/aicsimageio): Mancini, M., Colon-Hernandez, P., & Amodaj, N. (2020). AICSImageIO: A Python library for reading and writing image data. Journal of Open Source Software, 5(55), 2584.
+
+- [readlif](https://github.com/nimne/readlif): Nimne. (2021). readlif: Python package to read Leica LIF files. GitHub repository.
+
+- [OpenSlide](https://openslide.org/): Goode, A., Gilbert, B., Harkes, J., Jukic, D., & Satyanarayanan, M. (2013). OpenSlide: A vendor-neutral software foundation for digital pathology. Journal of pathology informatics, 4.
+
+- [cucim](https://github.com/rapidsai/cucim): RAPIDS Team. (2021). cuCIM: GPU accelerated image processing. GitHub repository.
+
+- [aicspylibczi](https://github.com/AllenCellModeling/aicspylibczi): Allen Institute for Cell Science. (2021). aicspylibczi: Python bindings for libCZI. GitHub repository.
+
+- [python-bioformats](https://github.com/CellProfiler/python-bioformats): Carpenter, A. E., Jones, T. R., Lamprecht, M. R., Clarke, C., Kang, I. H., Friman, O., ... & Sabatini, D. M. (2006). CellProfiler: image analysis software for identifying and quantifying cell phenotypes. Genome biology, 7(10), R100.
+
+### Deep Learning Models
+
+- [torchvision](https://github.com/pytorch/vision): Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J., Chanan, G., ... & Chintala, S. (2019). PyTorch: An imperative style, high-performance deep learning library. In Advances in neural information processing systems (pp. 8026-8037).
+
+- [timm](https://github.com/rwightman/pytorch-image-models): Wightman, R. (2019). PyTorch Image Models. GitHub repository.
+
+- [MobileSAM](https://github.com/ChaoningZhang/MobileSAM): Zhang, C., Han, D., Qiao, Y., Kim, J. U., Bae, S. H., Lee, S., & Hong, C. S. (2023). Faster Segment Anything: Towards Lightweight SAM for Mobile Applications. arXiv preprint arXiv:2306.14289.
+
+### Additional Tools
+
+- [tqdm](https://github.com/tqdm/tqdm): da Costa-Luis, C., Larroque, S. K., Altendorf, K., Mary, H., richardsheridan, Korobov, M., ... & Trofimov, A. (2022). tqdm: A Fast, Extensible Progress Bar for Python and CLI. Zenodo.
+
+- [pytest](https://docs.pytest.org/): Krekel, H., Oliveira, B., Pfannschmidt, R., Bruynooghe, F., Laugher, B., & Bruhin, F. (2004). pytest: helps you write better programs. The pytest Development Team.
+
+We are grateful to the developers and maintainers of these projects for their valuable contributions to the open-source community.
+
