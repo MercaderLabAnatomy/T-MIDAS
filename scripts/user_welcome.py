@@ -894,7 +894,7 @@ def zstd_compression():
 
 def restart_program():
     print("\n")
-    choice = input("\nYou are finished. Press Enter to restart the Image Analysis Suite or press x to exit.\n")
+    choice = input("\nYou are finished. Press Enter to restart T-MIDAS or press x to exit.\n")
     if choice == "":
         os.system('clear')
         welcome_message()
