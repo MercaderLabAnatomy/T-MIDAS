@@ -15,11 +15,7 @@
 - [Quick installation](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#installation-ubuntu)
 
   
-T-MIDAS is built on established image processing libraries such as [scikit-image](https://github.com/scikit-image/scikit-image), [py-clesperanto](https://github.com/clEsperanto/pyclesperanto_prototype) and [CuPy](https://github.com/cupy/cupy). 
-
-All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS/blob/main/scripts/install_dependencies.py). 
-
-See [acknowledgements and citations](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#acknowledgements-and-citations) for further information.
+T-MIDAS is built on established image processing libraries. All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS/blob/main/scripts/install_dependencies.py). See [acknowledgements and citations](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#acknowledgements-and-citations) for further information.
 
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
@@ -43,6 +39,7 @@ More detailed information is provided via text-based user interface.
     [7] Split color channels (2D or 3D, time series)
     [8] Merge color channels (2D or 3D, time series)
     [9] Convert RGB images to Napari label images
+    [10] Crop out zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)
 
 [2] Image Segmentation
     [1] Segment bright spots (2D or 3D, time series) 
@@ -102,6 +99,8 @@ This project relies on several open-source libraries and tools. We would like to
 ### Core Libraries
 
 - [NumPy](https://numpy.org/): Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). DOI: 10.1038/s41586-020-2649-2
+
+- [CuPy](https://github.com/cupy/cupy): Nishino, R. O. Y. U. D., & Loomis, S. H. C. (2017). Cupy: A numpy-compatible library for nvidia gpu calculations. 31st confernce on neural information processing systems, 151(7). 
 
 - [scikit-image](https://scikit-image.org/): van der Walt, S., Schönberger, J. L., Nunez-Iglesias, J., Boulogne, F., Warner, J. D., Yager, N., ... & Yu, T. (2014). scikit-image: image processing in Python. PeerJ, 2, e453.
 

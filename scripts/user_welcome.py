@@ -176,7 +176,7 @@ def image_preprocessing():
     print("[7] Split color channels (2D or 3D, also time series)")
     print("[8] Merge color channels (2D or 3D, also time series)")
     print("[9] Convert RGB images to label images")
-    print("[10] Crop out zebrafish larvae from Acquifer images (multicolor but requires brightfield)")
+    print("[10] Crop out zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
