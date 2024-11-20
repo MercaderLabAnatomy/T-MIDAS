@@ -26,7 +26,7 @@ More detailed information is provided via text-based user interface.
 [1] Image Preprocessing   
     [1] File Conversion to TIFF
         [1] Convert .ndpi
-        [2] Export series (.lif, .czi, ...)
+        [2] Export series from .lif, .czi, ...
         [3] Convert brightfield .czi
     [2] Cropping largest objects from images using mobile SAM
         [1] Slidescanner images (fluorescent, .ndpi)
@@ -65,6 +65,7 @@ More detailed information is provided via text-based user interface.
 
 [5] Postprocessing
     [1] Compress files using zstd
+    [2] Decompress files using zstd 
 
 [n] Start Napari (with useful plugins)
 </pre>
