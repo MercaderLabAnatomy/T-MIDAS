@@ -15,11 +15,8 @@ from PIL import Image
 import pyclesperanto_prototype as cle
 
 """
-Description: This script reads NDPI files, extracts regions of interest (ROIs) using Mobile-SAM, 
+Description: This script reads NDPI files using openslide, extracts regions of interest (ROIs) using Mobile-SAM, 
 and saves the ROIs as grayscale TIF files based on the color channel order in the NDPIS file.
-
-The script uses the openslide library to read the NDPI files and the Mobile-SAM model to extract the ROIs.
-
 The output TIF files are saved in a folder named "tif_files" in the same directory as the input NDPI files.
 """
 

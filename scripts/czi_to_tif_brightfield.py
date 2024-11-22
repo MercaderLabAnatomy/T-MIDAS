@@ -16,8 +16,6 @@ The output tif files are resized by a scale factor. The scale factor is set by t
 
 """
 
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Process brightfield czi files.')
     parser.add_argument('--input', type=str, help='path to the czi files')
@@ -28,9 +26,6 @@ args = parse_args()
 
 folder = args.input
 scale_factor = args.scale_factor
-
-# filepath = "/home/marco/Pictures/ImagesBene/20221219__94.czi"
-# scale_factor = 0.5
 
 def czi_scenes_to_tifs(filepath):
 

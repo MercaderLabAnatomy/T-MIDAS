@@ -1,14 +1,7 @@
 
 import openslide
 import os
-import re
-from PIL import ImageFilter
-import cv2
-import numpy as np
 import argparse
-import tifffile as tf
-import pyclesperanto_prototype as cle
-import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 from tqdm import tqdm
 # ignore warnings
 import warnings
@@ -22,8 +15,6 @@ The script uses the openslide library to read the NDPI files and the pyclesperan
 The output TIF files are saved in a folder named "tif_files" in the same directory as the input NDPI files.
 
 """
-
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Convert NDPI files to TIF files.')
@@ -44,7 +35,6 @@ output_dir = input_folder + "/tif_files"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-#input_folder = "/media/geffjoldblum/DATA/Romario"
 
 ndpis_files = []
 for file in os.listdir(input_folder):

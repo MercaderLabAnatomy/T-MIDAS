@@ -1,29 +1,15 @@
-# this script takes two folders with TIF files as input: one with nuclei channel and one with tissue channel
-# it requires to be run in the napari-apoc conda environment
-# https://github.com/haesleinhuepf/napari-accelerated-pixel-and-object-classification
-
-
-
 import os
-import numpy as np
 import argparse
 import pyclesperanto_prototype as cle
 from napari.utils import io as napari_io
-from skimage.io import imread, imsave
-import pandas as pd
+from skimage.io import imread
 import apoc
-import napari_segment_blobs_and_things_with_membranes as nsbatwm 
 from tqdm import tqdm
-# ignore warnings
-import warnings
-warnings.filterwarnings("ignore")
+
 
 """
 Description: This script runs automatic semantic segmentation on 3D fluorescence images 
 using a pre-trained ObjectSegmenter.
-
-
-
 """
 
 def load_image(filepath):#, tissue_channel):
@@ -36,7 +22,7 @@ def load_image(filepath):#, tissue_channel):
         return img #tissue_channel_img
     
     except FileNotFoundError as e:
-        print(f"Error: {e}")
+        print(f"Error: {e}. Could not load image {filepath}")
         return None
 
 cl_filename = "/opt/scripts/ObjectSegmenter_weaker_tissues.cl"
@@ -77,11 +63,8 @@ image_folder = args.image_folder
 for image_filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):
     if image_filename.endswith(".tif") or image_filename.endswith(".tiff"):
         filepath = os.path.join(image_folder, image_filename)
-        #print(f"Segmenting {filepath}")
         tissue_image = load_image(filepath)#,tissue_channel)
-        #print(tissue_image.shape)
         tissue_labels = get_3D_labels_RandomForestClassifier(tissue_image, label_threshold)
-        #print(tissue_labels.shape)
         napari_io.imsave(os.path.join(image_folder,image_filename.split(".")[0] + "_tissue.tif"), tissue_labels)
                 
 

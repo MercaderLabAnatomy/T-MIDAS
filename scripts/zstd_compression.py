@@ -76,7 +76,7 @@ def main():
                     space_freed = (file_size - compressed_size) // (1000 * 1000)  # Using SI units (1 MB = 1,000,000 bytes)
                     total_space_freed += space_freed
                     processed_files += 1
-                    pbar.set_postfix({"Processed": processed_files, "Skipped": skipped_files, "Space Freed": f"{total_space_freed} MB"})
+                    pbar.set_postfix({"Processed": processed_files, "Skipped": skipped_files, "Space freed": f"{total_space_freed} MB"})
                 else:
                     print(f"Failed to compress: {file_path}", file=sys.stderr)
                     skipped_files += 1

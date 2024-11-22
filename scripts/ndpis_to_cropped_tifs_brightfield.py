@@ -1,6 +1,6 @@
 import openslide
 import os
-from PIL import Image, ImageOps
+from PIL import Image
 import argparse
 from skimage.measure import regionprops, label
 from tqdm import tqdm
@@ -10,7 +10,6 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import torch
 from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator
-import io
 import tifffile as tf
 
 """

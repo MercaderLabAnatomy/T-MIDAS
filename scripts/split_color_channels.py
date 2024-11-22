@@ -2,7 +2,7 @@ import os
 import argparse
 import glob
 from tqdm import tqdm
-from tifffile import imread, imwrite, TiffFile
+from tifffile import imwrite, TiffFile
 import numpy as np
 import sys
 

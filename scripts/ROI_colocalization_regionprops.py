@@ -1,24 +1,19 @@
 import os
 import glob
-import csv
-from skimage import io
 import argparse
 import numpy as np
+import pandas as pd
 import cupy as cp
 from cucim.skimage.measure import regionprops
-import numpy as np
 from skimage.io import imread
-#from skimage.measure import regionprops
 from tqdm import tqdm
-import pandas as pd
+
 
 """
 Description: This script reads label images from two color channels and 
 calculates regionprops of objects in the second channel that are inside ROIs in the first channel.
 
 """
-
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Script for obtaining regionprops of objects in second channel in ROIs of first channel.')

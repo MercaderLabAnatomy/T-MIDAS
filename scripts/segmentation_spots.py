@@ -5,7 +5,6 @@ from skimage.io import imread
 from tifffile import imwrite
 import pyclesperanto_prototype as cle
 from tqdm import tqdm
-# import torch
 
 """
 Description: This script runs automatic instance segmentation on 2D or 3D images of bright spots.
@@ -34,8 +33,6 @@ BG = args.bg
 def calculate_threshold(image):
     """Calculate intensity threshold for image segmentation."""
     gray_areas = image[image > 0]
-    #gray_areas = image.flatten()[np.flatnonzero(image)]
-
     intensity_threshold = np.percentile(gray_areas, 75) + np.mean(gray_areas)
     return intensity_threshold
 

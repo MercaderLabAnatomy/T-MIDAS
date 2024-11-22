@@ -1,19 +1,18 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import os
 import argparse
 import numpy as np
 from skimage.io import imread
 from tifffile import imwrite
-import napari_simpleitk_image_processing as nsitk
 import pyclesperanto_prototype as cle
 from skimage.measure import regionprops
-import warnings
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-warnings.filterwarnings("ignore")
+"""
+This script creates a region of interest (ROI) image 
+from a label image containing masks of the intact myocardium and injury regions.
+"""
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Input: Folder with label images containing masks of intact myocardium and injury regions.")

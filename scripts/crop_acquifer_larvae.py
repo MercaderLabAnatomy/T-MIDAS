@@ -3,12 +3,16 @@ import numpy as np
 import argparse
 import tifffile as tf
 from skimage.measure import regionprops, label
-import warnings
 import re
 from collections import defaultdict
 from tqdm import tqdm
-warnings.filterwarnings("ignore")
 import pyclesperanto_prototype as cle
+
+
+"""
+This script extracts elongated ROIs from Acquifer TIF files to crop them and save them as multi-color TIF files.
+"""
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Extract elongated ROIs from Acquifer TIF files and save them as multi-color TIF files.')

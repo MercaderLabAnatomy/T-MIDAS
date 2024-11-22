@@ -17,8 +17,6 @@ Description: This script performs CLAHE and Otsu thresholding on images with int
 
 """
 
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Segments CLAHE images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
@@ -87,7 +85,6 @@ def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma
 for idx, (mask_file, intensity_file) in enumerate(tqdm(zip(mask_files, intensity_files), 
                                                        total = len(intensity_files), 
                                                        desc="Processing images"), start=1):
-    #print(f"Processing {idx} of {len(intensity_files)}")
     image_gol = intersect_clahe_go(mask_file, intensity_file, args.kernel_size, args.clip_limit, args.nbins, args.outline_sigma)
     output_path = os.path.join(input_folder, f"{os.path.basename(intensity_file)[:-4]}_reseg_clahe.tif")
     tf.imwrite(output_path, image_gol, compression='zlib')

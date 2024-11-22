@@ -1,20 +1,10 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import os
 import argparse
 import numpy as np
 from skimage.io import imread
-from skimage.color import rgb2gray
 import tifffile as tf
 import pyclesperanto_prototype as cle
-import napari_segment_blobs_and_things_with_membranes as nsbatwm
 from tqdm import tqdm
-# ignore warnings
-import warnings
-warnings.filterwarnings("ignore")
-
-from skimage.measure import label
 import cv2
 import apoc
 
@@ -22,7 +12,6 @@ import apoc
 """
 Description: This script runs automatic semantic segmentation on 2D fluorescence images using a pre-trained PixelClassifier
 or Otsu thresholding for 2D brightfield images.
-
 """
 
 

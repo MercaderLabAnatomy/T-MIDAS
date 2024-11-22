@@ -1,15 +1,18 @@
 import subprocess
 import os 
-import tkinter as tk
-from tkinter import filedialog
+import tkinter
+import shlex
 import csv
 import datetime
 now = datetime.datetime.now()
 import textwrap
 wrapper = textwrap.TextWrapper(width=80)
 date = now.strftime("%Y-%m-%d %H:%M:%S")
-
+current_date = now.strftime("%Y-%m-%d %H:%M:%S")
 import warnings
+
+# Constants
+TMIDAS_PATH = '/opt/T-MIDAS'
 
 # Ignore all warnings
 warnings.simplefilter('ignore')
@@ -25,14 +28,14 @@ The script provides a user-friendly interface to run different image processing 
 
 
 # if T-MIDAS is not in /opt, ask user where it is
-if not os.path.exists('/opt/T-MIDAS'):
-    print("T-MIDAS is not in /opt. Please provide the path to the T-MIDAS folder.")
+if not os.path.exists(TMIDAS_PATH):
+    print(f"T-MIDAS is not in {TMIDAS_PATH}. Please provide the path to the T-MIDAS folder.")
     # make a popup window appear to ask for the path to T-MIDAS
-    tmidas_path = filedialog.askdirectory(title="Please provide the path to the T-MIDAS folder.")
+    tmidas_path = tkinter.filedialog.askdirectory(title="Please provide the path to the T-MIDAS folder.")
     os.environ["TMIDAS_PATH"] = tmidas_path
     print("T-MIDAS path set to " + os.environ["TMIDAS_PATH"])
 else:
-    os.environ["TMIDAS_PATH"] = "/opt/T-MIDAS" 
+    os.environ["TMIDAS_PATH"] = TMIDAS_PATH
 
     
 
@@ -92,7 +95,7 @@ def logging(env_name, script_name, input_parameters=None, user_name=None):
     with open(f'{input_folder}/{env_name}_log.csv', mode='a') as file:
         writer = csv.writer(file)
         writer.writerow([date, env_name, script_name, input_parameters, user_name])
-
+        writer.writerow([current_date, env_name, script_name, input_parameters, user_name])
 
 def python_script_environment_setup(env_name, script_name, input_parameters=None):
     print("\n")
@@ -109,7 +112,12 @@ def popup_input(prompt):
     root = tk.Tk()
     root.withdraw()  # Hide the main window
     user_input = filedialog.askdirectory(title=prompt, initialdir="/mnt/")
-    return user_input
+    
+    # Escape spaces and special characters in the path
+    escaped_input = shlex.quote(user_input)
+    
+    return escaped_input
+
 
 
 
@@ -706,11 +714,17 @@ def ROI_analysis():
         input_folder = popup_input("\nEnter the path to the folder containing blob and ROI label image subfolders: ")
         blob_folder = input("\nEnter the name of the folder containing blob label images: ")
         ROI_folder = input("\nEnter the name of the folder containing ROI label images: ")
+        pixel_width = input("\nEnter the pixel width of the images in um/px: ")
+        pixel_height = input("\nEnter the pixel height of the images in um/px: ")
+        pixel_depth = input("\nEnter the pixel depth of the images in um/px: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/ROI_count_instances_3D.py',
                                         '--input_folder ' + input_folder +
                                         '--blob_folder ' + blob_folder + 
-                                        ' --ROI_folder ' + ROI_folder)
+                                        ' --ROI_folder ' + ROI_folder +
+                                        ' --pixel_width ' + pixel_width +
+                                        ' --pixel_height ' + pixel_height +
+                                        ' --pixel_depth ' + pixel_depth)
         restart_program()
     if choice == "4":
         os.system('clear')

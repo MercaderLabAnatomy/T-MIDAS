@@ -4,6 +4,12 @@ import sys
 import argparse
 from tqdm import tqdm
 
+"""
+This script decompresses files using pzstd.
+"""
+
+
+
 def get_file_size(file_path):
     return os.path.getsize(file_path)
 

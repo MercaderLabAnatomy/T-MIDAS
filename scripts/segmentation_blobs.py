@@ -4,7 +4,6 @@ import numpy as np
 from skimage.io import imread
 from tifffile import imwrite
 import pyclesperanto_prototype as cle
-import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 import napari_segment_blobs_and_things_with_membranes as nsbatwm  # version 0.3.8
 from skimage.transform import resize
 from tqdm import tqdm

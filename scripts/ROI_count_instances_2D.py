@@ -20,8 +20,6 @@ warnings.filterwarnings("ignore")
 """
 Description: This script reads label images containing instance segmentations 
 and regions of interest (ROIs) and counts the number of instances per ROI.
-
-
 The script uses the pyclesperanto library to process the images.
 
 The output is saved as a CSV file containing the following columns:

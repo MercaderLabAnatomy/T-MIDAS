@@ -13,9 +13,6 @@ It should work for all file formats supported by the bioformats library.
 
 """
 
-
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Process a series file.')
     parser.add_argument('--input', type=str, help='path to the folder containing series files')
