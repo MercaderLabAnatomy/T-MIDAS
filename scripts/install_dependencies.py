@@ -17,6 +17,18 @@ def run_command(command):
         sys.exit(1)
     return output.decode()
 
+def install_jdk():
+    """Install OpenJDK 8 if not already installed."""
+    print("Checking for Java Development Kit (JDK)...")
+    try:
+        run_command("javac -version")
+        print("JDK is already installed.")
+    except SystemExit:
+        print("JDK not found. Installing OpenJDK 8...")
+        run_command("sudo apt-get update")
+        run_command("sudo apt-get install -y openjdk-8-jdk")
+        print("OpenJDK 8 installed successfully.")
+
 # Get the path to the conda executable
 conda_executable = os.path.join(os.path.dirname(sys.executable), 'conda')
 mamba_executable = os.path.join(os.path.dirname(sys.executable), 'mamba')
@@ -42,6 +54,9 @@ cmd_prefix = f"{conda_executable} run -n {env_name} "
 # Initialize mamba
 print("Initializing mamba...")
 run_command(cmd_prefix + f"{mamba_executable} init")
+
+# Install JDK before installing python-javabridge
+install_jdk()
 
 # Install dependencies
 dependencies = [
