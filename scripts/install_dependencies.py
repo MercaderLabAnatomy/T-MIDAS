@@ -17,17 +17,38 @@ def run_command(command):
         sys.exit(1)
     return output.decode()
 
-def install_jdk():
-    """Install OpenJDK 8 if not already installed."""
-    print("Checking for Java Development Kit (JDK)...")
+# Function to check if JDK is installed
+def check_jdk_installed():
     try:
-        run_command("javac -version")
+        output = run_command("javac -version")
         print("JDK is already installed.")
+        return True
     except SystemExit:
-        print("JDK not found. Installing OpenJDK 8...")
-        run_command("sudo apt-get update")
-        run_command("sudo apt-get install -y openjdk-8-jdk")
-        print("OpenJDK 8 installed successfully.")
+        print("JDK is not installed.")
+        return False
+
+# Function to prompt user to install JDK
+def prompt_install_jdk():
+    print("To install the required dependencies, please install the default JDK (bioformats needs Java).")
+    print("You can do this by running:")
+    print("sudo apt install default-jdk")
+    
+    # Ask for user confirmation to install JDK
+    response = input("Do you want to install the default JDK now? (y/n): ").strip().lower()
+    if response == 'y':
+        run_command("sudo apt update")
+        run_command("sudo apt install default-jdk -y")
+        
+        # Set JAVA_HOME environment variable after installation
+        os.environ['JAVA_HOME'] = '/usr/lib/jvm/default-java'
+        print(f"JAVA_HOME is set to: {os.environ['JAVA_HOME']}")
+    else:
+        print("JDK installation skipped. The script may not work correctly without JDK.")
+        sys.exit(1)
+
+# Check for JDK installation
+if not check_jdk_installed():
+    prompt_install_jdk()
 
 # Get the path to the conda executable
 conda_executable = os.path.join(os.path.dirname(sys.executable), 'conda')
@@ -54,9 +75,6 @@ cmd_prefix = f"{conda_executable} run -n {env_name} "
 # Initialize mamba
 print("Initializing mamba...")
 run_command(cmd_prefix + f"{mamba_executable} init")
-
-# Install JDK before installing python-javabridge
-install_jdk()
 
 # Install dependencies
 dependencies = [
