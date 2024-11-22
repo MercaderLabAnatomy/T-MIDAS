@@ -1,6 +1,7 @@
 import subprocess
 import os 
-import tkinter
+import tkinter as tk
+from tkinter import filedialog
 import shlex
 import csv
 import datetime
