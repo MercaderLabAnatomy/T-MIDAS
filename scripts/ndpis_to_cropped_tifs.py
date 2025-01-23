@@ -64,6 +64,50 @@ def get_largest_label_id(label_image):
     max_area_label = np.argmax(areas) + 1 
     return max_area_label
 
+# def get_rois(template_ndpi_file, output_filename):
+#     try:
+#         slide = openslide.OpenSlide(os.path.join(input_folder, template_ndpi_file))
+#         scaling_factor = 50
+#         slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
+#         thumbnail = slide.get_thumbnail(slide_dims_downscaled)
+#         thumbnail.save(output_filename + "_thumbnail.png")
+#         thumbnail_array = np.array(thumbnail)
+#         thumbnail_array = cle.push(thumbnail_array)
+#         thumbnail_array = cle.gaussian_blur(thumbnail_array, None, 1.0, 1.0, 0.0)
+#         thumbnail_array = cle.top_hat_box(thumbnail_array, None, 10.0, 10.0, 0)
+#         thumbnail_array = cle.pull(thumbnail_array)
+#         thumbnail_shape = thumbnail_array.shape[:2]
+#         labels = np.zeros(thumbnail_shape, dtype=np.uint32)
+#         masks = mask_generator.generate(thumbnail_array)
+#         for i, mask_data in enumerate(masks):
+#             mask = mask_data["segmentation"]
+#             labeled_mask = label(mask, return_num=False)
+#             labels[labeled_mask > 0] = labeled_mask[labeled_mask > 0] + (i * labeled_mask.max()) 
+
+#         largest_label_id = get_largest_label_id(labels)
+#         labels[labels == largest_label_id] = 0
+
+#         labels = cle.push(labels)
+#         labels = cle.dilate_labels(labels, None, 10.0)
+#         labels = cle.merge_touching_labels(labels)
+#         labels = cle.pull(labels)
+
+#         Image.fromarray(labels).save(output_filename + "_thumbnail_labels.png")
+#         props = regionprops(labels)
+#         rois = []
+#         for prop in props:
+#             minr, minc, maxr, maxc = prop.bbox
+#             minr = max(0, minr - PADDING)
+#             minc = max(0, minc - PADDING)
+#             maxr = min(thumbnail.height, maxr + PADDING)
+#             maxc = min(thumbnail.width, maxc + PADDING)
+#             rois.append((minc*scaling_factor, minr*scaling_factor, (maxc-minc)*scaling_factor, (maxr-minr)*scaling_factor))
+              
+#         return rois
+#     except Exception as e:
+#         print(f"Error processing {template_ndpi_file}: {str(e)}")
+#         return None
+
 def get_rois(template_ndpi_file, output_filename):
     try:
         slide = openslide.OpenSlide(os.path.join(input_folder, template_ndpi_file))
@@ -76,8 +120,8 @@ def get_rois(template_ndpi_file, output_filename):
         thumbnail_array = cle.gaussian_blur(thumbnail_array, None, 1.0, 1.0, 0.0)
         thumbnail_array = cle.top_hat_box(thumbnail_array, None, 10.0, 10.0, 0)
         thumbnail_array = cle.pull(thumbnail_array)
-        thumbnail_shape = thumbnail_array.shape[:2]
-        labels = np.zeros(thumbnail_shape, dtype=np.uint32)
+        
+        labels = np.zeros(thumbnail_array.shape[:2], dtype=np.uint32)
         masks = mask_generator.generate(thumbnail_array)
         for i, mask_data in enumerate(masks):
             mask = mask_data["segmentation"]
@@ -86,27 +130,38 @@ def get_rois(template_ndpi_file, output_filename):
 
         largest_label_id = get_largest_label_id(labels)
         labels[labels == largest_label_id] = 0
-
         labels = cle.push(labels)
-        labels = cle.dilate_labels(labels, None, 10.0)
-        labels = cle.merge_touching_labels(labels)
-        labels = cle.pull(labels)
-
+        dilated_labels = cle.dilate_labels(labels, None, 10.0)
+        merged_dilated_labels = cle.merge_touching_labels(dilated_labels)
+        merged_labels = (merged_dilated_labels * (labels > 0)).astype(np.uint32)
+        labels = cle.pull(cle.connected_components_labeling_box(merged_labels))
         Image.fromarray(labels).save(output_filename + "_thumbnail_labels.png")
-        props = regionprops(labels)
+        # Upscale labels to full slide resolution
+        labels_upscaled = np.zeros(slide.dimensions[::-1], dtype=np.uint32)
+        for y in range(labels.shape[0]):
+            for x in range(labels.shape[1]):
+                if labels[y, x] > 0:
+                    start_y = int(y * scaling_factor)
+                    start_x = int(x * scaling_factor)
+                    labels_upscaled[start_y:start_y+scaling_factor, start_x:start_x+scaling_factor] = labels[y, x]
+
+
+        
+        props = regionprops(labels_upscaled)
         rois = []
         for prop in props:
             minr, minc, maxr, maxc = prop.bbox
             minr = max(0, minr - PADDING)
             minc = max(0, minc - PADDING)
-            maxr = min(thumbnail.height, maxr + PADDING)
-            maxc = min(thumbnail.width, maxc + PADDING)
-            rois.append((minc*scaling_factor, minr*scaling_factor, (maxc-minc)*scaling_factor, (maxr-minr)*scaling_factor))
+            maxr = min(slide.dimensions[1], maxr + PADDING)
+            maxc = min(slide.dimensions[0], maxc + PADDING)
+            rois.append((minc, minr, maxc - minc, maxr - minr))
               
         return rois
     except Exception as e:
         print(f"Error processing {template_ndpi_file}: {str(e)}")
         return None
+
 
 def normalize_to_uint8(image):
     min_val = np.min(image)
