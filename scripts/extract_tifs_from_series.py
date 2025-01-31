@@ -1,11 +1,11 @@
 import os
 import argparse
 from tqdm import tqdm
-import javabridge
+import javabridge as jb
 import bioformats
 import numpy as np
 import tifffile
-
+import microscoper
 
 """
 Description: This script extracts series from a series file and saves them as tif files. 
@@ -14,11 +14,11 @@ The user has the option to filter series by a string in the series name.
 """
 
 
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Process a series file.')
     parser.add_argument('--input', type=str, help='path to the folder containing series files')
     parser.add_argument('--filter', type=str, nargs='?', default='', help='string to filter series names (optional)')
+    parser.add_argument('--file_format', type=str, required=True, help='file format to process (e.g., .lif, .czi)')
     return parser.parse_args()
 
 def extract_pixel_resolution(file_path: str) -> dict:
@@ -140,14 +140,42 @@ def process_file(file_path: str, output_directory: str, filter_string: str):
         import traceback
         traceback.print_exc()
 
+def init_logger():
+    """This is so that Javabridge doesn't spill out a lot of DEBUG messages
+    during runtime.
+    From CellProfiler/python-bioformats.
+    https://github.com/pskeshu/microscoper/blob/master/microscoper/io.py#L141-L162
+    """
+    rootLoggerName = jb.get_static_field("org/slf4j/Logger",
+                                         "ROOT_LOGGER_NAME",
+                                         "Ljava/lang/String;")
+
+    rootLogger = jb.static_call("org/slf4j/LoggerFactory",
+                                "getLogger",
+                                "(Ljava/lang/String;)Lorg/slf4j/Logger;",
+                                rootLoggerName)
+
+    logLevel = jb.get_static_field("ch/qos/logback/classic/Level",
+                                   "WARN",
+                                   "Lch/qos/logback/classic/Level;")
+
+    jb.call(rootLogger,
+            "setLevel",
+            "(Lch/qos/logback/classic/Level;)V",
+            logLevel)
+
+
+
 def main():
     args = parse_args()
     input_directory = args.input
     filter_string = args.filter
+    file_format = args.file_format.lstrip('.')  
     output_directory = os.path.join(input_directory, 'tifs')
     os.makedirs(output_directory, exist_ok=True)
 
-    javabridge.start_vm(class_path=bioformats.JARS)
+    jb.start_vm(class_path=bioformats.JARS)
+    init_logger()
 
     try:
         for root, _, files in os.walk(input_directory):
@@ -156,19 +184,23 @@ def main():
                 continue
 
             for file in tqdm(files):
-                # exclude tifs from processing
-                if file.lower().endswith(('.tif', '.tiff')):
+                # Only process files with the specified format
+                if not file.lower().endswith(file_format.lower()):
+                    continue
+
+                if file.lower().endswith(('.tif', '.tiff')):  # Exclude tif files from processing
                     continue
 
                 file_path = os.path.join(root, file)
-                try:
-                    process_file(file_path, output_directory, filter_string)
-                except Exception as e:
-                    print(f"An error occurred while processing {file_path}: {str(e)}. Maybe the file type is not supported by bioformats.")
-                    import traceback
-                    traceback.print_exc()
+                if os.path.isfile(file_path) and os.access(file_path, os.R_OK):
+                    try:
+                        process_file(file_path, output_directory, filter_string)
+                    except Exception as e:
+                        print(f"An error occurred while processing {file_path}: {str(e)}. Skipping this file.")
+                        import traceback
+                        traceback.print_exc()
     finally:
-        javabridge.kill_vm()
+        jb.kill_vm()
 
 if __name__ == '__main__':
     main()

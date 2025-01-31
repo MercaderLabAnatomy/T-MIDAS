@@ -361,9 +361,10 @@ def file_conversion():
               Series of each image will be exported as .tif files with resolution metadata.''')
         input_folder = popup_input("\nEnter the path to the folder containing the series images: ")
         filter = input("\nEnter a string to filter series names (optional): ")
+        file_format = input("\nEnter the file format to process (e.g., .lif, .czi): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/extract_tifs_from_series.py',
-                                        '--input ' + input_folder + ' --filter ' + filter)
+                                        '--input ' + input_folder + ' --filter ' + filter + ' --file_format ' + file_format)
         restart_program()
     if choice == "3":
         os.system('clear')
