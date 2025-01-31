@@ -18,7 +18,7 @@ The user has the option to filter series by a string in the series name.
 def parse_args():
     parser = argparse.ArgumentParser(description='Process a series file.')
     parser.add_argument('--input', type=str, help='path to the folder containing series files')
-    parser.add_argument('--filter', type=str, default='', help='string to filter series names (optional)')
+    parser.add_argument('--filter', type=str, nargs='?', default='', help='string to filter series names (optional)')
     return parser.parse_args()
 
 def extract_pixel_resolution(file_path: str) -> dict:
@@ -60,7 +60,7 @@ def extract_series_info(file_path: str, filter_string: str) -> dict:
         
         if not filter_string or filter_string in series_name:
             series_info[i] = series_name
-            print(f"Found series {i} ({series_name})")
+            #print(f"Found series {i} ({series_name})")
 
     return series_info
 
