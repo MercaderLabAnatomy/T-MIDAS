@@ -6,6 +6,15 @@ import bioformats
 import numpy as np
 import tifffile
 
+
+"""
+Description: This script extracts series from a series file and saves them as tif files. 
+It should work for all file formats supported by the bioformats library.
+The user has the option to filter series by a string in the series name.
+"""
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Process a series file.')
     parser.add_argument('--input', type=str, help='path to the folder containing series files')
@@ -49,11 +58,12 @@ def extract_series_info(file_path: str, filter_string: str) -> dict:
         image = ome.image(i)
         series_name = image.get_Name()
         
-        if filter_string in series_name:
+        if not filter_string or filter_string in series_name:
             series_info[i] = series_name
             print(f"Found series {i} ({series_name})")
 
     return series_info
+
 
 def process_file(file_path: str, output_directory: str, filter_string: str):
     try:
