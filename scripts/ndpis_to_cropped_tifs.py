@@ -87,7 +87,7 @@ def get_rois(template_ndpi_file, output_filename):
         largest_label_id = get_largest_label_id(labels)
         labels[labels == largest_label_id] = 0
         labels = cle.push(labels)
-        dilated_labels = cle.dilate_labels(labels, None, 10.0)
+        dilated_labels = cle.dilate_labels(labels, None, 25.0)
         merged_dilated_labels = cle.merge_touching_labels(dilated_labels)
         merged_labels = (merged_dilated_labels * (labels > 0)).astype(np.uint32)
         labels = cle.pull(cle.connected_components_labeling_box(merged_labels))

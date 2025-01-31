@@ -6,19 +6,13 @@ import bioformats
 import numpy as np
 import tifffile
 
-"""
-Description: This script extracts series from a series file and saves them as tif files. 
-
-It should work for all file formats supported by the bioformats library.
-
-"""
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Process a series file.')
     parser.add_argument('--input', type=str, help='path to the folder containing series files')
+    parser.add_argument('--filter', type=str, default='', help='string to filter series names (optional)')
     return parser.parse_args()
 
-def extract_pixel_resolution(file_path):
+def extract_pixel_resolution(file_path: str) -> dict:
     ome_xml_string = bioformats.get_omexml_metadata(path=file_path)
     ome = bioformats.OMEXML(ome_xml_string)
     
@@ -45,22 +39,45 @@ def safe_float(value, default=0.0):
     except ValueError:
         return default
 
-def process_file(file_path, output_directory):
+def extract_series_info(file_path: str, filter_string: str) -> dict:
+    ome_xml_string = bioformats.get_omexml_metadata(path=file_path)
+    ome = bioformats.OMEXML(ome_xml_string)
+    
+    series_info = {}
+    
+    for i in range(ome.image_count):
+        image = ome.image(i)
+        series_name = image.get_Name()
+        
+        if filter_string in series_name:
+            series_info[i] = series_name
+            print(f"Found series {i} ({series_name})")
+
+    return series_info
+
+def process_file(file_path: str, output_directory: str, filter_string: str):
     try:
         pixel_resolutions = extract_pixel_resolution(file_path)
+        series_info = extract_series_info(file_path, filter_string)
+        
+        if not series_info:
+            print(f"No series found matching filter '{filter_string}' in {file_path}.")
+            return
+        
         reader = bioformats.get_image_reader("tmp", path=file_path)
-        series_count = reader.rdr.getSeriesCount()
-
-        for series in range(series_count):
+        
+        for series, series_name in series_info.items():
             reader.rdr.setSeries(series)
+            
             width = reader.rdr.getSizeX()
             height = reader.rdr.getSizeY()
             z_slices = reader.rdr.getSizeZ()
             channels = reader.rdr.getSizeC()
             timepoints = reader.rdr.getSizeT()
-            print(f"Processing series {series} dimensions: X={width}, Y={height}, Z={z_slices}, C={channels}, T={timepoints}")
+            print(f"Processing series {series} ({series_name}) dimensions: X={width}, Y={height}, Z={z_slices}, C={channels}, T={timepoints}")
 
-            output_filename = f"{os.path.splitext(os.path.basename(file_path))[0]}_series{series}.tif"
+            # Use series number instead of series name
+            output_filename = f"{os.path.splitext(os.path.basename(file_path))[0]}_series_{str(series).zfill(2)}.tif"
             output_path = os.path.join(output_directory, output_filename)
 
             data = np.zeros((timepoints, z_slices, channels, height, width), dtype=np.uint16)
@@ -116,6 +133,7 @@ def process_file(file_path, output_directory):
 def main():
     args = parse_args()
     input_directory = args.input
+    filter_string = args.filter
     output_directory = os.path.join(input_directory, 'tifs')
     os.makedirs(output_directory, exist_ok=True)
 
@@ -134,7 +152,7 @@ def main():
 
                 file_path = os.path.join(root, file)
                 try:
-                    process_file(file_path, output_directory)
+                    process_file(file_path, output_directory, filter_string)
                 except Exception as e:
                     print(f"An error occurred while processing {file_path}: {str(e)}. Maybe the file type is not supported by bioformats.")
                     import traceback
