@@ -186,6 +186,7 @@ def image_preprocessing():
     print("[8] Merge color channels (2D or 3D, also time series)")
     print("[9] Convert RGB images to label images")
     print("[10] Crop out zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)")
+    print("[11] Combine label images")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -316,6 +317,19 @@ def image_preprocessing():
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/crop_acquifer_larvae.py',
                                         '--input ' + input_folder + ' --padding ' + padding)
+        restart_program()
+    if choice == "11":
+        os.system('clear')
+        print('''You chose to combine label images. \n
+              A popup will appear in a moment asking you to select the folder containing the label images.
+              ''')
+        input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        label1_tag = input("\nEnter the tag of the first label images: ")
+        label2_tag = input("\nEnter the tag of the second label images: ")
+        output_tag = input("\nEnter the tag of the output images: ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/combine_labels.py',
+                                        '--input ' + input_folder + ' --label1_tag ' + label1_tag + ' --label2_tag ' + label2_tag + ' --output_tag ' + output_tag)
         restart_program()
 
     if choice == "r" or choice == "R":
@@ -517,7 +531,7 @@ def image_segmentation():
             threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
             use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
             exclude_small = input("\nLower size threshold to exclude small objects: ")
-            exclude_large = input("\nUpper size threshold to exclude large objects: ")
+            exclude_large = input("\nUpper size threshold to exclude large objects (optional): ")
             split_sigma = input("\nSplit smoothed objects? Enter value for smoothing (0 = no splitting): ")
             dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
 

@@ -53,7 +53,7 @@ def process_image(image_path, image_type):
             image_labeled = cle.pull(image_to)
             image_labeled[image_labeled > 0] = 1    # relabel to 0 and 1
 
-        return image_labeled
+        return image_labeled.astype(np.uint32)
     except Exception as e:
         print(f"Error processing {image_path}: {str(e)}")
         return None

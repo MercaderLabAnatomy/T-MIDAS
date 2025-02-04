@@ -27,15 +27,12 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
-    parser.add_argument("--exclude_large", type=float, default=50000.0, help="Exclude large objects.")
-    parser.add_argument("--dim_order", type=str, default="YX", help="Dimension order of the input images.)")
+    parser.add_argument("--exclude_large", type=float,nargs="?", default=None, help="Exclude large objects. Set to 0 or omit for no upper limit.")
+    parser.add_argument("--dim_order", type=str, default="YX", help="Dimension order of the input images.")
     parser.add_argument("--threshold", type=int, default=None, help="Enter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use gauss-otsu thresholding.")
     parser.add_argument("--use_filters", type=str2bool, default=True, help="Use filters for user-defined segmentation? (yes/no)")
     parser.add_argument("--split_sigma", type=float, default=0.0, help="Split objects by sigma?")
@@ -52,13 +49,13 @@ UPPER_THRESHOLD = args.exclude_large
 use_filters = args.use_filters
 SIZE_LIMIT = 10000000 # some problem with the cle memory allocation
 
-
-
-
 def process_image(image_path, dim_order, threshold):
     """Process an image (single or time series) and return labeled image."""
     try:
         image = imread(image_path)
+        # make sure that the image is 8bit
+        if image.dtype != np.uint8:
+            image = (image / np.amax(image) * 255).astype(np.uint8)
         print("\n")
         print("Check if image shape corresponds to the dim order that you have given:\n")
         print(f"Image shape: {image.shape}, dimension order: {dim_order}")
@@ -95,14 +92,10 @@ def process_image(image_path, dim_order, threshold):
         print(f"Error processing {image_path}: {str(e)}")
         return None
 
-
-
 def calculate_downscale_factor(num_pixels, target_pixels=SIZE_LIMIT):
     """Calculate a downscale factor using a smooth, asymptotic function."""
     ratio = num_pixels / target_pixels
     return np.sqrt(1 / (1 + np.log(ratio)))
-
-
 
 def process_single_image(image, is_3d, threshold):
     """Process a single image slice and return labeled image."""
@@ -117,8 +110,6 @@ def process_single_image(image, is_3d, threshold):
                 image_to = cle.threshold_otsu(image)
                 print("\n No filters applied.")
         else:
-
-            # check if image has more than 75 million pixels, if so, downscale it
             height, width = image.shape[dim_order.index('Y')], image.shape[dim_order.index('X')]
             size = height * width
             if size > SIZE_LIMIT:
@@ -128,7 +119,6 @@ def process_single_image(image, is_3d, threshold):
                 print(f"Downscaled image to {image.shape}")
             else:
                 downscaled = False
-
 
             if use_filters:
                 image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
@@ -147,16 +137,20 @@ def process_single_image(image, is_3d, threshold):
                 image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0)
                 image_to = cle.greater_or_equal_constant(image_to, None, intensity_threshold)
             else:
-                    image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
-                    print("\n No filters applied.")
+                image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
+                print("\n No filters applied.")
         else:
             height, width = image.shape[dim_order.index('Y')], image.shape[dim_order.index('X')]
             size = height * width
             if size > SIZE_LIMIT:
                 downscale_factor = calculate_downscale_factor(size)
-                image = resize(image, (int(height * downscale_factor), int(width * downscale_factor)), anti_aliasing=True)
+                original_dtype = image.dtype  # Store the original data type
+                image_float = image.astype(np.float32) / np.iinfo(original_dtype).max  # Normalize to float32
+                image_float = resize(image_float, (int(height * downscale_factor), int(width * downscale_factor)), anti_aliasing=True)
+                image = (image_float * np.iinfo(original_dtype).max).astype(original_dtype)  # Cast back to original dtype
                 downscaled = True
                 print(f"Downscaled image to {image.shape}")
+
             else:
                 downscaled = False
 
@@ -169,17 +163,20 @@ def process_single_image(image, is_3d, threshold):
                 print("\n No filters applied.")
     if args.split_sigma > 0:
         image_to = nsbatwm.split_touching_objects(image_to, args.split_sigma)
-        print("\n Splitting objects with smoothing {args.split_sigma} applied.")
+        print(f"\n Splitting objects with smoothing {args.split_sigma} applied.")
     image_labeled = cle.connected_components_labeling_box(image_to)
     image_labeled = cle.exclude_small_labels(image_labeled, None, LOWER_THRESHOLD)
-    image_labeled = cle.exclude_large_labels(image_labeled, None, UPPER_THRESHOLD)
+    
+    # Check if upper threshold is set before applying it
+    if UPPER_THRESHOLD is not None:
+        image_labeled = cle.exclude_large_labels(image_labeled, None, UPPER_THRESHOLD)
+    
     del image_to
     image_labeled = cle.pull(image_labeled)
     if downscaled:
         image_labeled = resize(image_labeled, (height, width), order=0, anti_aliasing=False
                                 ).astype(np.uint32)
         print(f"Upscaled label image to {image_labeled.shape}")
-
 
     return image_labeled
 

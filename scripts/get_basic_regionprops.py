@@ -33,9 +33,16 @@ def get_regionprops(label_img_path, intensity_img_path=None):
     
     df = pd.DataFrame()
     label_img = cp.asarray(io.imread(label_img_path))
-    # Get the regionprops
+    
     if channel != -1:
-        intensity_img = cp.asarray(io.imread(intensity_img_path)[:,:,channel])
+        intensity_img_np = io.imread(intensity_img_path)
+        if intensity_img_np.ndim == 2:
+            intensity_img = cp.asarray(intensity_img_np)
+        elif intensity_img_np.ndim == 3:
+            intensity_img = cp.asarray(intensity_img_np[:,:,channel])
+        else:
+            raise ValueError(f"Unexpected number of dimensions: {intensity_img_np.ndim}")
+        
         props = regionprops(label_img, intensity_img)
         for i, prop in enumerate(props):
             df.loc[i, 'Filename'] = os.path.basename(label_img_path)
@@ -47,7 +54,7 @@ def get_regionprops(label_img_path, intensity_img_path=None):
             df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
             df.loc[i, 'MeanIntensity'] =  prop.intensity_mean.get()
             df.loc[i, 'MaxIntensity'] =  prop.intensity_max.get()
-        
+    
     else:
         props = regionprops(label_img)
         for i, prop in enumerate(props):
@@ -61,9 +68,10 @@ def get_regionprops(label_img_path, intensity_img_path=None):
 
     return df
 
+
 def main():
     # Get the label images
-    label_imgs = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(label_pattern)]
+    label_imgs = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith('.tif') and f.endswith(label_pattern)]
     label_imgs = sorted(label_imgs)
    
    
