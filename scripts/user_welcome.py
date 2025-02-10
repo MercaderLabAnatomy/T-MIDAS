@@ -131,6 +131,7 @@ def main_menu():
     print("[3] Regions of Interest (ROI) Analysis")
     print("[4] Image Segmentation Validation")
     print("[5] Postprocessing")
+    print("[6] Label Inspection with Napari")
     print("[n] Start Napari (with useful plugins)")
     print("[x] Exit \n")
     
@@ -152,6 +153,9 @@ def main_menu():
     if choice == "5":
         postprocessing()
         restart_program()
+    if choice == "6":
+        label_inspection()
+        restart_program()
     if choice == "n" or choice == "N":
         start_napari()
         restart_program()
@@ -169,6 +173,16 @@ def start_napari():
     subprocess.run(f"mamba run --live-stream -n tmidas-env napari".split(),
                    capture_output=False,text=True,cwd="/mnt/")
     print("\nNapari closed.")
+    restart_program()
+
+def label_inspection():
+    os.system('clear')
+    print(wrapper.fill("You chose to inspect and edit label images using Napari. A popup will appear in a moment asking you to select the folder containing the label images. After inspecting/editing the labels, select File > CLose Window, not Exit!"))
+    input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+    label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
+    python_script_environment_setup('tmidas-env', 
+                                    os.environ.get("TMIDAS_PATH")+'/scripts/label_inspection.py',
+                                    '--input ' + input_folder + ' --suffix ' + label_suffix)
     restart_program()
 
 
@@ -471,7 +485,7 @@ def image_segmentation():
     print("[2] Segment blobs (2D or 3D, also time series)")
     # print("[3] Segment blobs (3D; requires dark background and good SNR)")
     print("[3] Semantic segmentation (2D, fluorescence or brightfield)")
-    print("[4] Semantic segmentation (2D; Segment Anything)")   
+    print("[4] Semi-automated segmentation (2D; Segment Anything)")   
     print("[5] Semantic segmentation (3D; requires dark background and good SNR)")
     print("[6] Improve instance segmentation using CLAHE")
     # print("[7] Segment multicolor images of cell cultures (2D)")
@@ -554,11 +568,14 @@ def image_segmentation():
             print("\n")
             print(wrapper.fill("Next, you will be asked to enter the channels to use. Gray=0, Red=1, Green=2, Blue=3. Single (gray) channel, enter 0 0. For green cytoplasm and blue nuclei, enter 2 3."))
             print("\n")
-            channels = input("\nEnter the channels to use (example: 0 0):")
+            model_type = input("\nChoose between nuclei or cyto: ")
+            channels = input("\nEnter the channels to use (example for grayscale: 0 0):")
             dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
+
             python_script_environment_setup('tmidas-env', 
                                             os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_cyto3.py',
                                             '--input ' + input_folder +
+                                            ' --model_type ' + model_type +
                                             ' --diameter ' + diameter +
                                             ' --channels ' + channels +
                                             ' --dim_order ' + dim_order)
@@ -591,13 +608,14 @@ def image_segmentation():
         restart_program()
     if choice == "4":
         os.system('clear')
-        print('''You chose semantic segmentation (2D; Segment Anything).\n
+        print('''You chose semi-automated segmentation (2D; Segment Anything).\n
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
                 
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
+  
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_SAM_2D.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_SAM_2D.py',
                                         '--input ' + input_folder)
         restart_program()
     if choice == "5":

@@ -13,6 +13,7 @@ from skimage.measure import label
 from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator
 from PIL import Image
 import pyclesperanto_prototype as cle
+import napari
 
 """
 Description: This script reads NDPI files using openslide, extracts regions of interest (ROIs) using Mobile-SAM, 
@@ -67,17 +68,20 @@ def get_largest_label_id(label_image):
 def get_rois(template_ndpi_file, output_filename):
     try:
         slide = openslide.OpenSlide(os.path.join(input_folder, template_ndpi_file))
-        scaling_factor = 50
+        scaling_factor = 30
         slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
         thumbnail = slide.get_thumbnail(slide_dims_downscaled)
         thumbnail.save(output_filename + "_thumbnail.png")
         thumbnail_array = np.array(thumbnail)
+        snapshot = thumbnail_array.copy()
         thumbnail_array = cle.push(thumbnail_array)
-        thumbnail_array = cle.gaussian_blur(thumbnail_array, None, 1.0, 1.0, 0.0)
+        thumbnail_array = cle.gaussian_blur(thumbnail_array, None, 2.0, 2.0, 0.0)
         thumbnail_array = cle.top_hat_box(thumbnail_array, None, 10.0, 10.0, 0)
         thumbnail_array = cle.pull(thumbnail_array)
         
         labels = np.zeros(thumbnail_array.shape[:2], dtype=np.uint32)
+        # print shape of thumbnail_array
+        print(f"Thumbnail array shape: {thumbnail_array.shape}")
         masks = mask_generator.generate(thumbnail_array)
         for i, mask_data in enumerate(masks):
             mask = mask_data["segmentation"]
@@ -92,6 +96,20 @@ def get_rois(template_ndpi_file, output_filename):
         merged_labels = (merged_dilated_labels * (labels > 0)).astype(np.uint32)
         labels = cle.pull(cle.connected_components_labeling_box(merged_labels))
         Image.fromarray(labels).save(output_filename + "_thumbnail_labels.png")
+
+        # --- Napari Viewer for interactive label editing ---
+        viewer = napari.Viewer()
+        viewer.add_image(snapshot, name='Thumbnail Image')
+        labels_layer = viewer.add_labels(labels, name='Labels (Initial)')
+        print("Napari viewer opened. Please refine the labels in the 'Labels (Initial)' layer using Napari's tools.")
+        print("Once you are satisfied with the labels, close the Napari viewer window (not exit!).")
+        napari.run() # blocks until viewer is closed
+        labels = labels_layer.data
+        print("Napari viewer closed. Continuing with processing...")
+
+
+
+
         # Upscale labels to full slide resolution
         labels_upscaled = np.zeros(slide.dimensions[::-1], dtype=np.uint32)
         for y in range(labels.shape[0]):
@@ -101,6 +119,8 @@ def get_rois(template_ndpi_file, output_filename):
                     start_x = int(x * scaling_factor)
                     labels_upscaled[start_y:start_y+scaling_factor, start_x:start_x+scaling_factor] = labels[y, x]
     
+
+
         props = regionprops(labels_upscaled)
         rois = []
         for prop in props:

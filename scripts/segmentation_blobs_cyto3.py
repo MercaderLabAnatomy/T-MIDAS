@@ -6,7 +6,6 @@ from tifffile import imwrite
 from cellpose import models, core
 from tqdm import tqdm
 
-
 """
 Description: This script runs automatic instance segmentation on images. 
 
@@ -14,7 +13,6 @@ The script reads images from the input folder, processes them using Cellpose 3, 
 
 
 """
-
 
 use_GPU = core.use_gpu()
 
@@ -24,6 +22,9 @@ def parse_args():
     parser.add_argument("--diameter", type=float, default=40.0, help="Diameter of objects.")
     parser.add_argument("--channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
     parser.add_argument('--dim_order', type=str, default='ZYX', help='Dimension order of the input images.')
+    parser.add_argument("--model_type", type=str, default='cyto3',
+                    choices=['cyto', 'cyto2', 'cyto3', 'nuclei'],
+                    help="Model type: 'cyto'/'cyto2'/'cyto3' for cells, 'nuclei' for nuclei")
     return parser.parse_args()
 
 def process_image(input_file, input_folder, model, channels, diameter, flow_threshold, dim_order):
@@ -56,7 +57,18 @@ def process_image(input_file, input_folder, model, channels, diameter, flow_thre
     output_file = os.path.join(input_folder, input_file.replace(".tif", "_labels.tif"))
     imwrite(output_file, result.astype(np.uint32), compression='zlib')
 
+def check_image_size(input_file, input_folder, max_pixels=4000000):
+    """Check if a 2D image is larger than max_pixels squared."""
+    img = imread(os.path.join(input_folder, input_file))
+    if len(img.shape) == 3 and 'Z' not in args.dim_order and 'T' not in args.dim_order:
+        # For 2D images
+        total_pixels = img.shape[0] * img.shape[1]
+        return total_pixels > max_pixels
+    else:
+        return False
+
 def main():
+    global args
     args = parse_args()
     
     channels = args.channels if isinstance(args.channels, list) else [args.channels]
@@ -65,11 +77,14 @@ def main():
     dim_order = args.dim_order
     
     flow_threshold = 0.4
-    model = models.Cellpose(gpu=use_GPU, model_type='cyto3')
+    model = models.Cellpose(gpu=use_GPU, model_type=args.model_type)
     
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
     
     for input_file in tqdm(input_files, desc="Processing images"):
+        if check_image_size(input_file, input_folder):
+            print(f"Skipping {input_file} as it exceeds the maximum size of 4,000,000 pixels squared.")
+            continue
         process_image(input_file, input_folder, model, channels, diameter, flow_threshold, dim_order)
 
 if __name__ == "__main__":

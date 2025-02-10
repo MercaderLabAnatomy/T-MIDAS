@@ -43,7 +43,10 @@ def process_image(image_path, image_type):
 
         else:
             image = imread(image_path)
-            image_to = cle.push(image)
+            # Normalize the image manually
+            min_val, max_val = np.min(image), np.max(image)
+            normalized_image = (image - min_val) / (max_val - min_val)
+            image_to = cle.push(normalized_image)
             image_to = cle.gaussian_blur(image_to, None, 2.0, 2.0, 0.0)
             if threshold == 0:
                 image_to = cle.threshold_otsu(image_to)
