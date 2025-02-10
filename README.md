@@ -47,7 +47,7 @@ More detailed information is provided via text-based user interface.
     [2] Segment blobs (2D or 3D, time series)
         [1] User-defined or automatic (Otsu) thresholding
         [2] Cellpose's (generalist) cyto3 model 
-    [4] Semantic segmentation (2D; fluorescence or brightfield)
+    [4] Semi-automated segmentation (2D; Segment Anything)
     [5] Semantic segmentation (2D; Segment Anything)
     [6] Semantic segmentation (3D; requires dark background and good SNR)
     [7] Improve instance segmentation using CLAHE
@@ -67,6 +67,8 @@ More detailed information is provided via text-based user interface.
 [5] Postprocessing
     [1] Compress files using zstd
     [2] Decompress files using zstd 
+
+[6] Label Inspection with Napari
 
 [n] Start Napari (with useful plugins)
 </pre>
