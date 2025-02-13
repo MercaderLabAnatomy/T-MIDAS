@@ -5,7 +5,7 @@ import javabridge as jb
 import bioformats
 import numpy as np
 import tifffile
-import microscoper
+
 
 """
 Description: This script extracts series from a series file and saves them as tif files. 
