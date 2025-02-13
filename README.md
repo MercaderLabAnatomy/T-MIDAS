@@ -32,7 +32,7 @@ More detailed information is provided via text-based user interface.
         [1] Slidescanner images (fluorescent, .ndpi)
         [2] Slidescanner images (brightfield, .ndpi)
         [3] Multicolor image stacks (.lif)
-    [3] Extract intersecting regions of two images
+    [3] Extract intersecting regions of two (label) images
     [4] Sample random image subregions
     [5] Enhance contrast of single color image using CLAHE
     [6] Restore images with Cellpose (single or multiple color channel, 2D or 3D, also time series)

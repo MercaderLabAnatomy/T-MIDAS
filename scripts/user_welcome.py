@@ -192,7 +192,7 @@ def image_preprocessing():
     print("Image Preprocessing: What would you like to do?\n")
     print("[1] File Conversion to TIFF")
     print("[2] Cropping Largest Objects from Images")
-    print("[3] Extract intersecting regions of two images")
+    print("[3] Extract intersecting regions of two (label) images")
     print("[4] Sample Random Image Subregions")
     print("[5] Enhance contrast of single color image using CLAHE")
     print("[6] Restore images using Cellpose")
@@ -201,6 +201,7 @@ def image_preprocessing():
     print("[9] Convert RGB images to label images")
     print("[10] Crop out zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)")
     print("[11] Combine label images")
+    print("[12] Colocalize label images")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -215,17 +216,19 @@ def image_preprocessing():
         restart_program()
     if choice == "3":
         os.system('clear')
-        print(wrapper.fill("Extract intersecting regions of two images: A popup will appear in a moment asking you to select the folder containing the images. Image sets will be discriminated by unique suffixes. You will be asked to enter the suffixes of the two sets images you want to intersect. The first set of images will be used as a mask to extract the intersecting regions from the second set of images."))
+        print(wrapper.fill("Extract intersecting regions of two (label) images: A popup will appear in a moment asking you to select the folder containing the images. Image sets will be discriminated by unique suffixes. You will be asked to enter the suffixes of the two sets images you want to intersect. The first set of images will be used as a mask to extract the intersecting regions from the second set of images."))
         input_folder = popup_input("\nEnter the path to the folder containing the images: ")
         maskfiles = input("\nEnter the suffix of mask images (example: _labels.tif): ")
         intersectfiles = input("\nEnter suffix of images to be intersected: ")
         output_tag = input("\nEnter the suffix of the output images: ")
+        save_as_label = input("\nSave the intersected regions as label images? (y/n): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/intersection.py',
                                         '--input ' + input_folder + 
                                         ' --maskfiles ' + maskfiles + 
                                         ' --intersectfiles ' + intersectfiles +
-                                        ' --output_tag ' + output_tag)
+                                        ' --output_tag ' + output_tag +
+                                        ' --save_as_label ' + save_as_label)
         restart_program()
     if choice == "4":
         os.system('clear')
@@ -345,7 +348,19 @@ def image_preprocessing():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/combine_labels.py',
                                         '--input ' + input_folder + ' --label1_tag ' + label1_tag + ' --label2_tag ' + label2_tag + ' --output_tag ' + output_tag)
         restart_program()
-
+    if choice == "12":
+        os.system('clear')
+        print('''You chose to colocalize label images. \n
+              A popup will appear in a moment asking you to select the folder containing the label images.
+              ''')
+        parent_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        label_folders = input("\nEnter the names of the label folders (example: FITC DAPI): ")
+        label_patterns = input("\nEnter the label patterns for each channel (example: *_labels.tif *_labels.tif): ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/colocalize_labels.py',
+                                        '--parent_folder ' + parent_folder + ' --label_folders ' + label_folders + ' --label_patterns ' + label_patterns)
+        
+        restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":
