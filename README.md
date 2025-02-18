@@ -24,30 +24,30 @@ T-MIDAS is built on established image processing libraries. All dependencies are
 More detailed information is provided via text-based user interface.
 <pre>
 [1] Image Preprocessing   
-    [1] File Conversion to TIFF
+    [1] File Conversion to TIF format
         [1] Convert .ndpi
-        [2] Export series from .lif, .czi, ...
+        [2] Export (selected) series from bioformats-compatible files (.lif,.czi,...)
         [3] Convert brightfield .czi
-    [2] Cropping largest objects from images using mobile SAM
+    [2] Crop largest objects from images using Segment Anything
         [1] Slidescanner images (fluorescent, .ndpi)
         [2] Slidescanner images (brightfield, .ndpi)
         [3] Multicolor image stacks (.lif)
     [3] Extract intersecting regions of two (label) images
-    [4] Sample random image subregions
-    [5] Enhance contrast of single color image using CLAHE
+    [4] Sample random image subregions (/w random seed)
+    [5] Enhance local contrast (CLAHE, 8bit)
     [6] Restore images with Cellpose (single or multiple color channel, 2D or 3D, also time series)
     [7] Split color channels (2D or 3D, time series)
     [8] Merge color channels (2D or 3D, time series)
     [9] Convert RGB images to Napari label images
-    [10] Crop out zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)
+    [10] Crop zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)
     [11] Combine label images
 
 [2] Image Segmentation
     [1] Segment bright spots (2D or 3D, time series) 
     [2] Segment blobs (2D or 3D, time series)
         [1] User-defined or automatic (Otsu) thresholding
-        [2] Cellpose's (generalist) cyto3 model 
-    [4] Semi-automated segmentation (2D; Segment Anything)
+        [2] Cellpose (cells or nuclei)
+    [4] Human in-the-loop (instance or semantic) segmentation (2D; Segment Anything)
     [5] Semantic segmentation (2D; Segment Anything)
     [6] Semantic segmentation (3D; requires dark background and good SNR)
     [7] Improve instance segmentation using CLAHE
@@ -64,11 +64,11 @@ More detailed information is provided via text-based user interface.
     [1] Validate spot counts (2D)
     [2] Validate blobs (2D or 3D; global F1 score)
 
-[5] Postprocessing
+[5] File compression
     [1] Compress files using zstd
     [2] Decompress files using zstd 
 
-[6] Label Inspection with Napari
+[6] Label image inspection with Napari
 
 [n] Start Napari (with useful plugins)
 </pre>
