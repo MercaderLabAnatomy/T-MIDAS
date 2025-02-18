@@ -717,7 +717,7 @@ def ROI_analysis():
     print("[1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks")
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
-    print("[4] Colocalize ROI in 2 or 3 color channels")
+    print("[4] Colocalize ROI in 2 or 3 color channels *counts and sizes")
     print("[5] Get properties of objects within ROI (two channels)")
     print("[6] Get basic ROI properties (single channel)")
     print("[7] Detect colocalization of labels in two label images")
@@ -782,7 +782,7 @@ def ROI_analysis():
         os.system('clear')
         print("\n")
         print("------------------------------------------------")
-        print("You chose to colocalize ROI in different color channels.")
+        print("You chose to count colocalizing ROI of different color channels. Optionally, you can get the area of the ROIs of all channels.")
         print("------------------------------------------------")
         print("\n")
         print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing subfolders for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. Then enter the suffix of the label images of each channel in the same order. Example: *_labels.tif *_labels.tif *_labels.tif. 
