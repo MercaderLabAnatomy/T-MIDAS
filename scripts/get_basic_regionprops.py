@@ -1,5 +1,3 @@
-# Script to get some regionprops of all objects in all tifs in a input_folder
-
 import os
 import argparse
 import pandas as pd
@@ -7,6 +5,8 @@ from skimage import io
 import cupy as cp
 from cucim.skimage.measure import regionprops
 from tqdm import tqdm
+import numpy as np
+
 
 """
 Description: This script extracts features from label images and saves them to a csv file. 
@@ -36,10 +36,14 @@ def get_regionprops(label_img_path, intensity_img_path=None):
     
     if channel != -1:
         intensity_img_np = io.imread(intensity_img_path)
-        if intensity_img_np.ndim == 2:
+        
+        # Handle 3D images
+        if intensity_img_np.ndim == 3:
+            # For 3D images, no channel selection is needed
             intensity_img = cp.asarray(intensity_img_np)
-        elif intensity_img_np.ndim == 3:
-            intensity_img = cp.asarray(intensity_img_np[:,:,channel])
+        elif intensity_img_np.ndim == 4:
+            # For 4D images (e.g., ZYX with a channel), select the specified channel
+            intensity_img = cp.asarray(intensity_img_np[:,:,:,channel])
         else:
             raise ValueError(f"Unexpected number of dimensions: {intensity_img_np.ndim}")
         
@@ -48,8 +52,14 @@ def get_regionprops(label_img_path, intensity_img_path=None):
             df.loc[i, 'Filename'] = os.path.basename(label_img_path)
             df.loc[i, 'Label'] = int(prop.label) 
             df.loc[i, 'Area'] = prop.area.get()
-            df.loc[i, 'Perimeter'] = prop.perimeter.get()
-            df.loc[i, 'Eccentricity'] = prop.eccentricity
+            #df.loc[i, 'Perimeter'] = prop.perimeter.get()
+            
+            # Check if the image is 3D and skip eccentricity
+            if label_img.ndim == 3:
+                df.loc[i, 'Eccentricity'] = np.nan  # Set to NaN for 3D images
+            else:
+                df.loc[i, 'Eccentricity'] = prop.eccentricity
+            
             df.loc[i, 'MajorAxisLength'] = prop.major_axis_length
             df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
             df.loc[i, 'MeanIntensity'] =  prop.intensity_mean.get()
@@ -61,12 +71,19 @@ def get_regionprops(label_img_path, intensity_img_path=None):
             df.loc[i, 'Filename'] = os.path.basename(label_img_path)
             df.loc[i, 'Label'] = int(prop.label) 
             df.loc[i, 'Area'] = prop.area.get()
-            df.loc[i, 'Perimeter'] = prop.perimeter.get()
-            df.loc[i, 'Eccentricity'] = prop.eccentricity
+            #df.loc[i, 'Perimeter'] = prop.perimeter.get()
+            
+            # Check if the image is 3D and skip eccentricity
+            if label_img.ndim == 3:
+                df.loc[i, 'Eccentricity'] = np.nan  # Set to NaN for 3D images
+            else:
+                df.loc[i, 'Eccentricity'] = prop.eccentricity
+            
             df.loc[i, 'MajorAxisLength'] = prop.major_axis_length
             df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
 
     return df
+
 
 
 def main():
@@ -111,5 +128,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

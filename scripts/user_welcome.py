@@ -180,9 +180,10 @@ def label_inspection():
     print(wrapper.fill("You chose to inspect and edit label images using Napari. A popup will appear in a moment asking you to select the folder containing the label images. After inspecting/editing the labels, select File > CLose Window, not Exit!"))
     input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
     label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
+    intensity = input("\nAlso load original images? (y/n): ")
     python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/label_inspection.py',
-                                    '--input ' + input_folder + ' --suffix ' + label_suffix)
+                                    '--input ' + input_folder + ' --suffix ' + label_suffix + ' --intensity ' + intensity)
     restart_program()
 
 
@@ -201,7 +202,7 @@ def image_preprocessing():
     print("[9] Convert RGB images to label images")
     print("[10] Crop out zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)")
     print("[11] Combine label images")
-    print("[12] Colocalize label images")
+    print("[12] Remove small labels from label images")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -348,18 +349,18 @@ def image_preprocessing():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/combine_labels.py',
                                         '--input ' + input_folder + ' --label1_tag ' + label1_tag + ' --label2_tag ' + label2_tag + ' --output_tag ' + output_tag)
         restart_program()
+
     if choice == "12":
         os.system('clear')
-        print('''You chose to colocalize label images. \n
+        print('''You chose to remove small labels from label images. \n
               A popup will appear in a moment asking you to select the folder containing the label images.
               ''')
-        parent_folder = popup_input("\nEnter the path to the folder containing the label images: ")
-        label_folders = input("\nEnter the names of the label folders (example: FITC DAPI): ")
-        label_patterns = input("\nEnter the label patterns for each channel (example: *_labels.tif *_labels.tif): ")
+        input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
+        min_size = input("\nEnter the minimum size of the labels to keep: ")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/colocalize_labels.py',
-                                        '--parent_folder ' + parent_folder + ' --label_folders ' + label_folders + ' --label_patterns ' + label_patterns)
-        
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/remove_small_labels.py',
+                                        '--input ' + input_folder + ' --label_suffix ' + label_suffix + ' --min_size ' + min_size)
         restart_program()
     if choice == "r" or choice == "R":
         welcome_message()
@@ -716,9 +717,10 @@ def ROI_analysis():
     print("[1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks")
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
-    print("[4] Count Colocalization of ROI in 2 or 3 color channels")
+    print("[4] Colocalize ROI in 2 or 3 color channels")
     print("[5] Get properties of objects within ROI (two channels)")
     print("[6] Get basic ROI properties (single channel)")
+    print("[7] Detect colocalization of labels in two label images")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -792,15 +794,19 @@ def ROI_analysis():
         label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif *_labels.tif): ")
         #add_intensity = input("\nDo you want to quantify average intensity of the last channel in the ROI of the second last channel? (y/n): ")
         # output_images = input("\nDo you want to save colocalization images? (y/n): ")
-        get_area = input("\nDo you want to get the area of the ROI of the first channel? (y/n): ")
+        get_area = input("\nDo you want to get the area of the ROI of all channels? (y/n): ")
+        # onlz get area_method if get_area is true
+        area_method = input("\nWhich area stats? Type average or sum ") if get_area == "y" else "0"
+
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_count_multicolor.py',
                                     '--input ' + input_folder +
                                     ' --channels ' + channels +
                                     ' --label_patterns ' + label_patterns +
                                     # ' --output_images ' + output_images +
-                                    ' --get_area ' + get_area
-                                    )
+                                    ' --get_area ' + get_area +
+                                    ' --area_method ' + area_method)
+                                    
                                     #' --add_intensity ' + add_intensity
                                     
         restart_program()
@@ -852,6 +858,25 @@ def ROI_analysis():
                                         ' --label_pattern ' + label_pattern +
                                         ' --channel ' + channel)
         restart_program()
+    if choice == "7":
+        os.system('clear')
+        print("\n")
+        print("----------------------------------------------------")
+        print("You chose to detect colocalization of labels in two label images.")
+        print("----------------------------------------------------")
+        print("\n")
+        print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
+
+        input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        label1_pattern = input("\nEnter the label pattern of the first label images (example: _labels.tif): ")
+        label2_pattern = input("\nEnter the label pattern of the second label images (example: _labels.tif): ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_labels.py',
+                                        '--input ' + input_folder +
+                                        ' --label1_pattern ' + label1_pattern +
+                                        ' --label2_pattern ' + label2_pattern)
+        restart_program()
+
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":

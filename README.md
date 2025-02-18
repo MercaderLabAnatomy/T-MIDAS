@@ -56,7 +56,7 @@ More detailed information is provided via text-based user interface.
     [1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks
     [2] Count spots within ROI (2D)
     [3] Count blobs within ROI (3D)
-    [4] Count colocalization of ROI in 2 or 3 color channels
+    [4] Colocalize ROI in 2 or 3 color channels
     [5] Get properties of objects within ROI (two channels)
     [6] Get basic ROI properties (single channel)
 
