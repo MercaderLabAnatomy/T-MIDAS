@@ -41,6 +41,8 @@ More detailed information is provided via text-based user interface.
     [9] Convert RGB images to Napari label images
     [10] Crop zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)
     [11] Combine label images
+    [12] Remove small labels from label images
+    [13] Convert label files from instance to semantic
 
 [2] Image Segmentation
     [1] Segment bright spots (2D or 3D, time series) 
