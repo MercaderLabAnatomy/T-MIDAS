@@ -887,13 +887,13 @@ def ROI_analysis():
         print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
 
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
-        label1_pattern = input("\nEnter the label pattern of the first label images (example: _labels.tif): ")
-        label2_pattern = input("\nEnter the label pattern of the second label images (example: _labels.tif): ")
+        label_folders = input("\nFolder names of the two label label_folders. Example: 'conditions labels'")
+        label_patterns = input("\nEnter the label patterns of the label images. Example: '*_labels.tif *_labels.tif'")
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/colocalization_labels.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/colocalize_labels.py',
                                         '--input ' + input_folder +
-                                        ' --label1_pattern ' + label1_pattern +
-                                        ' --label2_pattern ' + label2_pattern)
+                                        ' --label_folders ' + label_folders +
+                                        ' --label_patterns ' + label_patterns)
         restart_program()
 
     if choice == "r" or choice == "R":
