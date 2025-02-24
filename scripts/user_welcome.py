@@ -734,7 +734,7 @@ def ROI_analysis():
     print("[1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks")
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
-    print("[4] Colocalize ROI in 2 or 3 color channels *counts and sizes")
+    print("[4] Colocalize ROI in 2 or 3 color channels (counts and sizes)")
     print("[5] Get properties of objects within ROI (two channels)")
     print("[6] Get basic ROI properties (single channel)")
     print("[7] Detect colocalization of labels in two label images")
@@ -801,7 +801,7 @@ def ROI_analysis():
         os.system('clear')
         print("\n")
         print("------------------------------------------------")
-        print("You chose to count colocalizing ROI of different color channels. Optionally, you can get the area of the ROIs of all channels.")
+        print("You chose to count colocalizing ROI of different color channels. Optionally, you can get the size of the ROIs of all channels.")
         print("------------------------------------------------")
         print("\n")
         print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing subfolders for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. Then enter the suffix of the label images of each channel in the same order. Example: *_labels.tif *_labels.tif *_labels.tif. 
@@ -813,9 +813,9 @@ def ROI_analysis():
         label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif *_labels.tif): ")
         #add_intensity = input("\nDo you want to quantify average intensity of the last channel in the ROI of the second last channel? (y/n): ")
         # output_images = input("\nDo you want to save colocalization images? (y/n): ")
-        get_area = input("\nDo you want to get the area of the ROI of all channels? (y/n): ")
-        # onlz get area_method if get_area is true
-        area_method = input("\nWhich area stats? Type average or sum ") if get_area == "y" else "0"
+        get_size = input("\nDo you want to get the size of the ROI of all channels? (y/n): ")
+        # only get size_method if get_size is true
+        size_method = input("\nWhich size stats? Type median or sum: ") if get_size == "y" else "0"
 
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_count_multicolor.py',
@@ -823,8 +823,8 @@ def ROI_analysis():
                                     ' --channels ' + channels +
                                     ' --label_patterns ' + label_patterns +
                                     # ' --output_images ' + output_images +
-                                    ' --get_area ' + get_area +
-                                    ' --area_method ' + area_method)
+                                    ' --get_size ' + get_size +
+                                    ' --size_method ' + size_method)
                                     
                                     #' --add_intensity ' + add_intensity
                                     
