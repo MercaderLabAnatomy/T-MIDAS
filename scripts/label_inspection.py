@@ -31,7 +31,6 @@ def load_and_edit_labels(folder_path, label_suffix, intensity=False):
     # Filter files based on the label suffix
     label_files = [file for file in files if file.endswith(label_suffix)]
 
-    
     # Load and edit each label file (add tqdm for progress bar)
     for file in tqdm(label_files, desc="Processing label images"):
         file_path = os.path.join(folder_path, file)
@@ -46,21 +45,19 @@ def load_and_edit_labels(folder_path, label_suffix, intensity=False):
         viewer = napari.Viewer()
         if intensity == True:
             viewer.add_image(image, name='Image')
-        viewer.add_labels(label_image, name='Label Image')
+        viewer.add_labels(label_image, name=file)  # Use the filename as the layer name
     
-
-
-        
         print(f"Napari viewer opened for {file}.")
         print("Once you are satisfied with the labels, close the Napari viewer window.")
         
         # Run napari event loop
         napari.run()
         # save the edited labels
-        edited_labels = viewer.layers['Label Image'].data
+        edited_labels = viewer.layers[file].data  # Use the filename to access the layer
         save_image(edited_labels, file_path)
 
         print(f"Napari viewer closed for {file}.")
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Loads label images from a folder for inspection and editing with napari.")

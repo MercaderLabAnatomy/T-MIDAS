@@ -203,6 +203,7 @@ def image_preprocessing():
     print("[10] Crop out zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)")
     print("[11] Combine label images")
     print("[12] Remove small labels from label images")
+    print("[13] Convert label files from instance to semantic")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -292,14 +293,14 @@ def image_preprocessing():
 
     if choice == "7":
         os.system('clear')
-        print(wrapper.fill("You chose to split the color channels of multicolor images. A popup will appear in a moment asking you to select the folder containing the multicolor images. You will be asked to enter the dimension order of the images and the names of the color channel output folders."))
+        print(wrapper.fill("You chose to split the color channels of multicolor images. A popup will appear in a moment asking you to select the folder containing the multicolor images. You will be asked the names of the color channel output folders and number of time steps in case of time lapse."))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the multicolor images: ")
-        dim_order = input("\nEnter the dimension order of the images (example: XYZCT): ")
         channels = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
+        time_steps = input("\nEnter the number of time steps for timelapse images. Leave empty if not a timelapse: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/split_color_channels.py',
-                                        '--input ' + input_folder + ' --dim_order ' + dim_order + ' --channels ' + channels)
+                                        '--input ' + input_folder + ' --channels ' + channels + ' --time_steps ' + time_steps )
         restart_program()
         
     if choice == "8":
@@ -308,12 +309,12 @@ def image_preprocessing():
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the color channel folders: ")
         channel_names = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
-        dim_order = input("\nEnter the dimension order of the images (example: XYZCT): ")
+        time_steps = input("\nEnter the number of time steps for timelapse images. Leave empty if not a timelapse: ")
         # use_gpu = input("\nUse GPU for processing? May terminate if images are too large (y/n): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/merge_color_channels.py',
                                         '--input ' + input_folder + ' --channels ' + channel_names + 
-                                        ' --dim_order ' + dim_order)# + ' --gpu ' + use_gpu)
+                                        ' --time_steps ' + time_steps)
         restart_program()
     if choice == "9":
         os.system('clear')
@@ -362,6 +363,20 @@ def image_preprocessing():
                                         os.environ.get("TMIDAS_PATH")+'/scripts/remove_small_labels.py',
                                         '--input ' + input_folder + ' --label_suffix ' + label_suffix + ' --min_size ' + min_size)
         restart_program()
+    if choice == "13":
+        os.system('clear')
+        print('''You chose to convert label files from instance to semantic. \n
+              A popup will appear in a moment asking you to select the folder containing the label images.
+              ''')
+        input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
+        label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
+        python_script_environment_setup('tmidas-env',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/convert_instance_to_semantic.py',
+                                        '--input ' + input_folder + ' --suffix ' + label_suffix)
+        restart_program()
+
+
+
     if choice == "r" or choice == "R":
         welcome_message()
     if choice == "x" or choice == "X":
@@ -618,9 +633,11 @@ def image_segmentation():
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         image_type = input("\nBrightfield images? (y/n): ")
         threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
+        use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
+        normalize = input("\nnormalize the images (percentile)? (yes/no): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_2D.py',
-                                        '--input ' + input_folder + ' --image_type ' + image_type + ' --threshold ' + threshold)
+                                        '--input ' + input_folder + ' --image_type ' + image_type + ' --threshold ' + threshold + ' --use_filters ' + use_filters + ' --normalize ' + normalize)
         restart_program()
     if choice == "4":
         os.system('clear')
@@ -735,12 +752,14 @@ def ROI_analysis():
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
         intact_label_id = input("\nEnter the label id of the intact myocardium: ")
         injury_label_id = input("\nEnter the label id of the injury region: ")
+        label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/create_ventricle_ROI.py',
                                         '--input ' + input_folder + 
                                         ' --pixel_resolution ' + pixel_resolution +
                                         ' --intact_label_id ' + intact_label_id +
-                                        ' --injury_label_id ' + injury_label_id)
+                                        ' --injury_label_id ' + injury_label_id +
+                                        ' --label_suffix ' + label_suffix)
         restart_program()
     if choice == "2":
         os.system('clear')

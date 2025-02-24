@@ -36,9 +36,9 @@ def get_regionprops(label_img_path, intensity_img_path=None):
     
     if channel != -1:
         intensity_img_np = io.imread(intensity_img_path)
-        
+
         # Handle 3D images
-        if intensity_img_np.ndim == 3:
+        if intensity_img_np.ndim == 2 or intensity_img_np.ndim == 3:
             # For 3D images, no channel selection is needed
             intensity_img = cp.asarray(intensity_img_np)
         elif intensity_img_np.ndim == 4:
