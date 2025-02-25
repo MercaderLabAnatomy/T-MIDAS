@@ -109,13 +109,14 @@ def safe_sum(arr):
         return np.sum(arr)
 
 
-def coloc_counts(image_c1, image_c2, image_c3=None):
+def coloc_counts(image_c1, image_c2, label_id, image_c3=None):
     """
-    Calculate colocalization counts between images.
+    Calculate colocalization counts for a specific ROI label.
     
     Args:
         image_c1: First channel image with ROI labels
         image_c2: Second channel image
+        label_id: Label ID to analyze
         image_c3: Optional third channel image
         
     Returns:
@@ -123,55 +124,33 @@ def coloc_counts(image_c1, image_c2, image_c3=None):
     """
     xp = cp if GPU_AVAILABLE else np
     
-    # Ensure we're working with valid arrays
-    if image_c1 is None or image_c2 is None:
-        raise ValueError("Input images cannot be None")
+    # Create mask for the specific ROI
+    mask_roi = image_c1 == label_id
     
-    # Ensure both arrays have the same shape
-    if image_c1.shape != image_c2.shape:
-        raise ValueError(f"Input images must have the same shape. Got {image_c1.shape} and {image_c2.shape}")
-    
-    if image_c3 is not None and image_c1.shape != image_c3.shape:
-        raise ValueError(f"Third image must have the same shape. Got {image_c1.shape} and {image_c3.shape}")
-    
-    # Create boolean masks for nonzero entries
-    mask_c1 = image_c1 != 0
+    # Create boolean masks for nonzero entries within this ROI
     mask_c2 = image_c2 != 0
     
-    # Check if masks have any True values
-    if not xp.any(mask_c1):
-        print("Warning: First channel image contains no nonzero values")
+    # Count unique c2 labels within this specific c1 ROI
+    c2_in_c1_count = len(xp.unique(image_c2[mask_roi & mask_c2]))
+    if c2_in_c1_count > 0 and 0 in xp.unique(image_c2[mask_roi & mask_c2]):
+        c2_in_c1_count -= 1  # Subtract 1 if 0 is included in the unique values
     
-    if not xp.any(mask_c2):
-        print("Warning: Second channel image contains no nonzero values")
-
-    # 1. Find unique label IDs in each channel
-    label_ids = xp.unique(image_c1[mask_c1])  # Nonzero values in c1
-    label_ids = label_ids[label_ids != 0]  # remove zero label
-
-    # Convert the NumPy/CuPy array to Python integers:
-    if GPU_AVAILABLE:
-        label_ids = [int(x) for x in label_ids.get()]  # Convert to Python integers if using GPU
-    else:
-        label_ids = [int(x) for x in label_ids]  # Convert to Python integers
-
-    # 2. Count unique c2 labels within c1 regions
-    c2_in_c1_count = len(xp.unique(image_c2[mask_c1 & mask_c2]))
-
     results = {
-        "c2_in_c1_count": c2_in_c1_count,
-        "label_ids": label_ids
+        "c2_in_c1_count": c2_in_c1_count
     }
 
-    # 3. If a third channel is provided, calculate additional stats
+    # If a third channel is provided, calculate additional stats
     if image_c3 is not None:
         mask_c3 = image_c3 != 0
         
-        if not xp.any(mask_c3):
-            print("Warning: Third channel image contains no nonzero values")
+        # Calculate counts specifically for this ROI
+        c3_in_c2_in_c1_count = len(xp.unique(image_c3[mask_roi & mask_c2 & mask_c3]))
+        if c3_in_c2_in_c1_count > 0 and 0 in xp.unique(image_c3[mask_roi & mask_c2 & mask_c3]):
+            c3_in_c2_in_c1_count -= 1
             
-        c3_in_c2_in_c1_count = len(xp.unique(image_c3[mask_c1 & mask_c2 & mask_c3]))
-        c3_not_in_c2_but_in_c1_count = len(xp.unique(image_c3[mask_c1 & ~mask_c2 & mask_c3]))
+        c3_not_in_c2_but_in_c1_count = len(xp.unique(image_c3[mask_roi & ~mask_c2 & mask_c3]))
+        if c3_not_in_c2_but_in_c1_count > 0 and 0 in xp.unique(image_c3[mask_roi & ~mask_c2 & mask_c3]):
+            c3_not_in_c2_but_in_c1_count -= 1
 
         results["c3_in_c2_in_c1_count"] = c3_in_c2_in_c1_count
         results["c3_not_in_c2_but_in_c1_count"] = c3_not_in_c2_but_in_c1_count
@@ -250,7 +229,6 @@ def calculate_coloc_size(image_c1, image_c2, label_id, mask_c2=None, image_c3=No
     
     return int(size)  # Ensure we return a Python integer
 
-
 def coloc_channels(file_lists, channels, get_sizes, size_method=None, num_workers=1, batch_size=10):
     """
     Calculate colocalization between channels for multiple images.
@@ -297,35 +275,66 @@ def coloc_channels(file_lists, channels, get_sizes, size_method=None, num_worker
                 image_c1, image_c2 = images[:2]
                 image_c3 = images[2] if len(channels) == 3 else None
 
-                # Calculate colocalization counts using the efficient method
-                coloc_results = coloc_counts(image_c1, image_c2, image_c3)
-
-                label_ids = coloc_results["label_ids"]
-                c2_in_c1_count = coloc_results["c2_in_c1_count"]
+                # Find unique label IDs in image_c1
+                mask_c1 = image_c1 != 0
+                label_ids = xp.unique(image_c1[mask_c1])
+                label_ids = label_ids[label_ids != 0]  # remove zero label
                 
-                if image_c3 is not None:
-                    c3_in_c2_in_c1_count = coloc_results["c3_in_c2_in_c1_count"]
-                    c3_not_in_c2_but_in_c1_count = coloc_results["c3_not_in_c2_but_in_c1_count"]
+                if GPU_AVAILABLE:
+                    label_ids = [int(x) for x in label_ids.get()]  # Convert to Python integers if using GPU
+                else:
+                    label_ids = [int(x) for x in label_ids]  # Convert to Python integers
 
                 # Pre-calculate sizes for each label in image_c1 only once
                 image_c1_sizes = {}  # Initialize to prevent errors
                 if get_sizes.lower() == 'y':
                     image_c1_sizes = calculate_all_rois_size(image_c1)
 
-                for idx, label_id in enumerate(label_ids):
+                for label_id in label_ids:
                     label_id_int = int(label_id)  # Convert to Python integer
+                    
+                    # Create mask for this specific ROI
+                    mask_roi = image_c1 == label_id_int
+                    mask_c2 = image_c2 != 0
+                    
+                    # Calculate counts specifically for this ROI
+                    c2_in_c1_count = len(xp.unique(image_c2[mask_roi & mask_c2]))
+                    # Remove 0 from count if present
+                    if c2_in_c1_count > 0:
+                        unique_vals = xp.unique(image_c2[mask_roi & mask_c2])
+                        if GPU_AVAILABLE and 0 in unique_vals.get() or not GPU_AVAILABLE and 0 in unique_vals:
+                            c2_in_c1_count -= 1
+                    
                     row = [os.path.basename(file_path), label_id_int, c2_in_c1_count]
 
                     if get_sizes.lower() == 'y':
                         size = image_c1_sizes.get(label_id_int, 0)
-                        c2_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id)
+                        c2_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id_int)
                         row.extend([size, c2_in_c1_size])
 
                     if image_c3 is not None:
+                        mask_c3 = image_c3 != 0
+                        
+                        # Calculate counts for third channel within this specific ROI
+                        c3_in_c2_in_c1_count = len(xp.unique(image_c3[mask_roi & mask_c2 & mask_c3]))
+                        # Remove 0 from count if present
+                        if c3_in_c2_in_c1_count > 0:
+                            unique_vals = xp.unique(image_c3[mask_roi & mask_c2 & mask_c3])
+                            if GPU_AVAILABLE and 0 in unique_vals.get() or not GPU_AVAILABLE and 0 in unique_vals:
+                                c3_in_c2_in_c1_count -= 1
+                                
+                        c3_not_in_c2_but_in_c1_count = len(xp.unique(image_c3[mask_roi & ~mask_c2 & mask_c3]))
+                        # Remove 0 from count if present
+                        if c3_not_in_c2_but_in_c1_count > 0:
+                            unique_vals = xp.unique(image_c3[mask_roi & ~mask_c2 & mask_c3])
+                            if GPU_AVAILABLE and 0 in unique_vals.get() or not GPU_AVAILABLE and 0 in unique_vals:
+                                c3_not_in_c2_but_in_c1_count -= 1
+                        
                         row.extend([c3_in_c2_in_c1_count, c3_not_in_c2_but_in_c1_count])
+                        
                         if get_sizes.lower() == 'y':
-                            c3_in_c2_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id, mask_c2=True, image_c3=image_c3)
-                            c3_not_in_c2_but_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id, mask_c2=False, image_c3=image_c3)
+                            c3_in_c2_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id_int, mask_c2=True, image_c3=image_c3)
+                            c3_not_in_c2_but_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id_int, mask_c2=False, image_c3=image_c3)
                             row.extend([c3_in_c2_in_c1_size, c3_not_in_c2_but_in_c1_size])
                     
                     batch_rows.append(row)
