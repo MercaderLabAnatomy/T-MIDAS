@@ -886,12 +886,12 @@ def ROI_analysis():
         print("\n")
         print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
 
-        input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
-        label_folders = input("\nFolder names of the two label label_folders. Example: 'conditions labels'")
-        label_patterns = input("\nEnter the label patterns of the label images. Example: '*_labels.tif *_labels.tif'")
+        parent_folder = popup_input("\nEnter the path to the parent folder: ")
+        label_folders = input("\nFolder names of the two label label_folders. Example: 'conditions labels' ")
+        label_patterns = input("\nEnter the label patterns of the label images. Example: '*_labels.tif *_labels.tif' ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/colocalize_labels.py',
-                                        '--input ' + input_folder +
+                                        '--parent_folder ' + parent_folder +
                                         ' --label_folders ' + label_folders +
                                         ' --label_patterns ' + label_patterns)
         restart_program()
