@@ -16,7 +16,7 @@ label IDs, are saved in a CSV file for easy analysis.
 def parse_args():
     parser = argparse.ArgumentParser(description='Script for colocalization analysis of labeled images.')
     parser.add_argument('--parent_folder', type=str, required=True, help='Path to the parent folder containing the label folders.')
-    parser.add_argument('--label_folders', nargs=2, type=str, required=True, help='Folder names of the two label label_folders. Example: "conditions labels"')
+    parser.add_argument('--label_folders', nargs=2, type=str, required=True, help='Folder names of the two label folders. Example: "conditions labels"')
     parser.add_argument('--label_patterns', nargs=2, type=str, required=True, help='Label patterns for each folder. Example: "*_conditions.tif *_labels.tif"')
     return parser.parse_args()
 
@@ -44,9 +44,33 @@ def bounding_box_overlap(box1, box2):
         box1[0] >= box2[2]     # Top edge of box1 is below box2
     )
 
+def find_matching_file(base_filename, file_list):
+    """
+    Find the corresponding file in the second folder based on the base filename.
+    
+    :param base_filename: Base filename to match
+    :param file_list: List of files to search in
+    :return: Matching file path or None if not found
+    """
+    base_name = os.path.basename(base_filename)
+    # Extract the part of the filename without the folder-specific suffix
+    parts = base_name.split('_')
+    if len(parts) > 1:
+        # Remove the last part (e.g., "_conditions.tif")
+        base_part = '_'.join(parts[:-1])
+    else:
+        base_part = os.path.splitext(base_name)[0]
+    
+    # Look for files in the second list that contain the base part
+    for file_path in file_list:
+        if base_part in os.path.basename(file_path):
+            return file_path
+    
+    return None
+
 def colocalize(file_lists, label_folders):
     """
-    Perform colocalization analysis between two label_folders.
+    Perform colocalization analysis between two label folders.
     :param file_lists: Dictionary containing lists of file paths for each folder.
     :param label_folders: List of folder names.
     :return: List of rows for the output CSV file.
@@ -54,17 +78,31 @@ def colocalize(file_lists, label_folders):
     csv_rows = []
     
     # Process files from the first folder
-    file_paths = file_lists[label_folders[0]]
+    files_c1 = file_lists[label_folders[0]]
+    files_c2 = file_lists[label_folders[1]]
     
-    for file_path in tqdm(file_paths, total=len(file_paths), desc="Processing images"):
+    for file_path in tqdm(files_c1, total=len(files_c1), desc="Processing images"):
         try:
-            # Load corresponding images from both label_folders
+            # Load the first image
             image_c1 = load_image(file_path)
-            print(f"Loaded image {file_path} with shape {image_c1.shape}")
-            image_c2 = load_image(file_lists[label_folders[1]][file_paths.index(file_path)])
-            
-            if image_c1 is None or image_c2 is None:
+            if image_c1 is None:
                 continue
+                
+            print(f"Loaded image {file_path} with shape {image_c1.shape}")
+            
+            # Find the corresponding file in the second folder
+            matching_file = find_matching_file(file_path, files_c2)
+            
+            if matching_file is None:
+                print(f"No matching file found for {os.path.basename(file_path)} in {label_folders[1]} folder")
+                continue
+                
+            # Load the second image
+            image_c2 = load_image(matching_file)
+            if image_c2 is None:
+                continue
+                
+            print(f"Loaded matching image {matching_file} with shape {image_c2.shape}")
             
             # Get region properties for both images
             props_c1 = regionprops(image_c1.astype(np.int32))
@@ -89,19 +127,23 @@ def main():
     label_patterns = args.label_patterns
     
     if len(label_folders) != 2:
-        raise ValueError("Exactly two label_folders must be provided.")
+        raise ValueError("Exactly two label folders must be provided.")
     
-    # Collect files matching patterns in both label_folders
+    # Collect files matching patterns in both label folders
     file_lists = {
         folder: sorted(glob.glob(os.path.join(parent_dir, folder, pattern)))
         for folder, pattern in zip(label_folders, label_patterns)
     }
     
+    # Log the number of files found in each folder
+    for folder, files in file_lists.items():
+        print(f"Found {len(files)} files in {folder} folder")
+    
     # Perform colocalization analysis
     csv_rows = colocalize(file_lists, label_folders)
     
     # Save results to a CSV file in the parent directory
-    output_csv = os.path.join(parent_dir, 'colocalization_results.csv')
+    output_csv = os.path.join(parent_dir, 'label_colocalization_results.csv')
     
     with open(output_csv, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
@@ -109,6 +151,7 @@ def main():
         writer.writerows(csv_rows)
     
     print(f"Colocalization results saved to {output_csv}")
+    print(f"Total colocalized regions found: {len(csv_rows)}")
 
 if __name__ == "__main__":
     main()
