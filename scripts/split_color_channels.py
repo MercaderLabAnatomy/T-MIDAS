@@ -11,6 +11,7 @@ def parse_args():
     parser.add_argument('--input', type=str, required=True, help='Path to the folder containing multi-channel images.')
     parser.add_argument('--channels', nargs='+', type=str, required=True, help='Names of the color channels to split. Example: "TRITC DAPI FITC"')
     parser.add_argument('--time_steps', type=int, default=None,nargs='?', help='Number of time steps for timelapse images. Leave empty if not a timelapse.')
+
     return parser.parse_args()
 
 def infer_dimension_order(shape, num_channels, time_steps):
@@ -27,6 +28,8 @@ def infer_dimension_order(shape, num_channels, time_steps):
     elif len(shape) == 3:
         if shape[0] == num_channels:
             dim_order = 'CYX'
+        elif shape[2] == num_channels:
+            dim_order = 'YXC'
         elif time_steps and shape[0] == time_steps:
             dim_order = 'TYX'
         else:

@@ -42,7 +42,7 @@ More detailed information is provided via text-based user interface.
     [10] Crop zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)
     [11] Combine label images
     [12] Remove small labels from label images
-    [13] Convert label files from instance to semantic
+    [13] Convert instance label images to binary
 
 [2] Image Segmentation
     [1] Segment bright spots (2D or 3D, time series) 
@@ -61,6 +61,7 @@ More detailed information is provided via text-based user interface.
     [4] Colocalize ROI in 2 or 3 color channels (counts and sizes)
     [5] Get properties of objects within ROI (two color channels)
     [6] Get basic ROI properties (single channel)
+    [7] Get ROI properties in semantic label images
 
 [4] Image Segmentation Validation
     [1] Validate spot counts (2D)

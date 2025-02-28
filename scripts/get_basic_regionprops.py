@@ -50,7 +50,7 @@ def get_regionprops(label_img_path, intensity_img_path=None):
         props = regionprops(label_img, intensity_img)
         for i, prop in enumerate(props):
             df.loc[i, 'Filename'] = os.path.basename(label_img_path)
-            df.loc[i, 'Label'] = int(prop.label) 
+            df.loc[i, 'Labels_ID'] = int(prop.label) 
             df.loc[i, 'Area'] = prop.area.get()
             #df.loc[i, 'Perimeter'] = prop.perimeter.get()
             

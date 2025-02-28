@@ -203,7 +203,7 @@ def image_preprocessing():
     print("[10] Crop out zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)")
     print("[11] Combine label images")
     print("[12] Remove small labels from label images")
-    print("[13] Convert label files from instance to semantic")
+    print("[13] Convert instance label images to binary")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
 
@@ -365,13 +365,13 @@ def image_preprocessing():
         restart_program()
     if choice == "13":
         os.system('clear')
-        print('''You chose to convert label files from instance to semantic. \n
+        print('''You chose to convert label images from instance to binary. \n
               A popup will appear in a moment asking you to select the folder containing the label images.
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
         python_script_environment_setup('tmidas-env',
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/convert_instance_to_semantic.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/convert_instance_to_binary.py',
                                         '--input ' + input_folder + ' --suffix ' + label_suffix)
         restart_program()
 
@@ -737,7 +737,7 @@ def ROI_analysis():
     print("[4] Colocalize ROI in 2 or 3 color channels (counts and sizes)")
     print("[5] Get properties of objects within ROI (two channels)")
     print("[6] Get basic ROI properties (single channel)")
-    print("[7] Detect colocalization of labels in two label images")
+    print("[7] Get ROI properties in semantic label images")
     print("[r] Return to main menu")
     print("[x] Exit \n")
     choice = input("\nEnter your choice: ")
@@ -815,7 +815,7 @@ def ROI_analysis():
         # output_images = input("\nDo you want to save colocalization images? (y/n): ")
         get_size = input("\nDo you want to get the size of the ROI of all channels? (y/n): ")
         # only get size_method if get_size is true
-        size_method = input("\nWhich size stats? Type median or sum: ") if get_size == "y" else "0"
+        size_method = input("\nWhich size stats? Type median or sum: ") if get_size == "y" else ""
 
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_count_multicolor.py',
@@ -881,19 +881,24 @@ def ROI_analysis():
         os.system('clear')
         print("\n")
         print("----------------------------------------------------")
-        print("You chose to detect colocalization of labels in two label images.")
+        print("You chose to extract ROI properties in semantic label images.")
         print("----------------------------------------------------")
         print("\n")
         print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
 
         parent_folder = popup_input("\nEnter the path to the parent folder: ")
-        label_folders = input("\nFolder names of the two label label_folders. Example: 'conditions labels' ")
-        label_patterns = input("\nEnter the label patterns of the label images. Example: '*_labels.tif *_labels.tif' ")
+        label_pattern = input("\nEnter the label pattern of the label images. Example: '*_labels.tif' ")
+        intensity = input("\nDo you want to quantify intensity? (y/n): ")
+        additional_args = ""
+        if intensity == "y":
+            # add --use_intensity flag
+            additional_args += " --use_intensity"
+
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/colocalize_labels.py',
-                                        '--parent_folder ' + parent_folder +
-                                        ' --label_folders ' + label_folders +
-                                        ' --label_patterns ' + label_patterns)
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/get_class_regionprops.py',
+                                        '--input ' + parent_folder +
+                                        ' --label_pattern ' + label_pattern +
+                                        additional_args)
         restart_program()
 
     if choice == "r" or choice == "R":
