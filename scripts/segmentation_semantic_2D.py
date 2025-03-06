@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument("--image_type", type=str, required=True, help="Brightfield images? (y/n)")
     parser.add_argument("--threshold", type=int, default=None, help="Enter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use gauss-otsu thresholding.")
     parser.add_argument("--use_filters", type=str2bool, default=True, help="Use filters for user-defined segmentation? (yes/no)")
-    parser.add_argument("--normalize", type=str2bool, default=True, help="Normalize the image?")
+    parser.add_argument("--gamma", type=float, default=1.0, help="Gamma value for gamma correction.")
     return parser.parse_args()
 
 args = parse_args()
@@ -38,7 +38,7 @@ image_folder = args.input
 image_type = args.image_type
 threshold = args.threshold
 use_filters = args.use_filters
-normalize = args.normalize
+GAMMA = args.gamma
 
 cl_filename = os.path.join(os.environ['TMIDAS_PATH'], "models/PixelClassifier_brightfield.cl")
 classifier = apoc.PixelClassifier(cl_filename)
@@ -55,12 +55,8 @@ def process_image(image_path, image_type):
 
         else:
             image = imread(image_path)
-            # Normalize the image manually
-            # min_val, max_val = np.min(image), np.max(image)
-            # normalized_image = (image - min_val) / (max_val - min_val)
-            # rather user percentile normalization
-            if normalize:
-                image = (image - np.percentile(image, 1)) / (np.percentile(image, 99) - np.percentile(image, 1))
+            if GAMMA != 1.0:
+                image = cle.gamma_correction(image, None, GAMMA)
             image_to = cle.push(image)
             if use_filters:
                 image_to = cle.gaussian_blur(image_to, None, 2.0, 2.0, 0.0)

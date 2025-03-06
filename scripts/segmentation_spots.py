@@ -16,8 +16,8 @@ Description: This script runs automatic instance segmentation on 2D or 3D images
 def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
-    parser.add_argument("--bg", type=int, choices=[1, 2], required=True, help="Background type (1 for dark or 2 for tissue).")
-    # allow manual choice of intensity threshold
+    parser.add_argument("--gamma", type=float, default=1.0, help="Gamma value for gamma correction.")
+    parser.add_argument("--use_filters", type=bool, default=True, help="Use filters for user-defined segmentation? (yes/no)")
     parser.add_argument("--intensity_threshold", type=float, default=None, help="Intensity threshold for image segmentation.")
     parser.add_argument("--dim_order", type=str, default="YX", help="Dimension order of the input images.)")
     return parser.parse_args()
@@ -27,14 +27,20 @@ args = parse_args()
 image_folder = args.input
 dim_order = args.dim_order
 SIZE_THRESHOLD = 100.0  # square pixels
-BG = args.bg
+GAMMA = args.gamma
+use_filters = args.use_filters
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+    
 
-def calculate_threshold(image):
-    """Calculate intensity threshold for image segmentation."""
-    gray_areas = image[image > 0]
-    intensity_threshold = np.percentile(gray_areas, 75) + np.mean(gray_areas)
-    return intensity_threshold
 
 def process_image(image_path, dim_order):
     """Process a single image and return labeled image."""
@@ -56,22 +62,22 @@ def process_image(image_path, dim_order):
                 transpose_order = [dim_order.index(d) for d in 'YX']
                 image = np.transpose(image, transpose_order)
                 
-        if BG == 1:
-            if args.intensity_threshold is not None:
-                intensity_threshold = args.intensity_threshold
-                print(f"Using user-defined intensity threshold: {intensity_threshold}")
-            else:
-                intensity_threshold = calculate_threshold(image)
-                print(f"Calculated intensity threshold: {intensity_threshold}")
-            image = cle.top_hat_box(image, None, 10.0, 10.0, 0.0)
-            image = cle.gaussian_blur(image, None, 1.0, 1.0, 0.0)
-            image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
-            image_l = cle.connected_components_labeling_box(image_to)
-            print("Segmenting bright spots with tissue background")
-        elif BG == 2:
-            image_thb = cle.top_hat_box(image, None, 10.0, 10.0, 0.0)
-            image_l = cle.gauss_otsu_labeling(image_thb, None, 1.0)
-            print("Segmenting bright spots with dark background")
+        if GAMMA != 1.0:
+            image = cle.gamma_correction(image, None, GAMMA)
+        if use_filters:
+            image = cle.gaussian_blur(image, None, 2.0, 2.0, 0.0)
+        if args.intensity_threshold is not None:
+            intensity_threshold = args.intensity_threshold
+            if intensity_threshold == 0:
+                label_image = cle.threshold_otsu(image)
+            elif intensity_threshold > 0:
+                label_image = cle.greater_or_equal_constant(image, None, intensity_threshold)
+        else:
+            # error handling for the case when intensity threshold is not provided
+            print("Please provide an intensity threshold value.")
+            return None
+        image_l = cle.connected_components_labeling_box(label_image)
+
 
         image_labeled = cle.pull(image_l)
         return image_labeled
@@ -110,22 +116,21 @@ def process_time_series_image(image_path, dim_order):
             img_t = np.take(image, t, axis=0)
             intensity_threshold = None  # Initialize intensity_threshold with a default value
 
-            if BG == 1:
-                if args.intensity_threshold is not None:
-                    intensity_threshold = args.intensity_threshold
-                    print(f"Using user-defined intensity threshold: {intensity_threshold}")
-                else:
-                    intensity_threshold = calculate_threshold(img_t)
-                    print(f"Calculated intensity threshold: {intensity_threshold}")
-                img = cle.top_hat_box(img_t, None, 10.0, 10.0, 0.0)
-                img = cle.gaussian_blur(img, None, 1.0, 1.0, 0.0)
-                img_to = cle.greater_or_equal_constant(img, None, intensity_threshold)
-                img_l = cle.connected_components_labeling_box(img_to)
-                print("Segmenting bright spots with tissue background")
-            elif BG == 2:
-                img_thb = cle.top_hat_box(img_t, None, 10.0, 10.0, 0.0)
-                img_l = cle.gauss_otsu_labeling(img_thb, None, 1.0)
-                print("Segmenting bright spots with dark background")
+            if GAMMA != 1.0:
+                img_t = cle.gamma_correction(img_t, None, GAMMA)
+            if use_filters:
+                img_t = cle.gaussian_blur(img_t, None, 2.0, 2.0, 0.0)
+            if args.intensity_threshold is not None:
+                intensity_threshold = args.intensity_threshold
+                if intensity_threshold == 0:
+                    label_image = cle.threshold_otsu(img_t)
+                elif intensity_threshold > 0:
+                    label_image = cle.greater_or_equal_constant(img_t, None, intensity_threshold)
+            else:
+                # error handling for the case when intensity threshold is not provided
+                print("Please provide an intensity threshold value.")
+                return None
+            img_l = cle.connected_components_labeling_box(label_image)
 
             labeled_time_points[t] = cle.pull(img_l)
 

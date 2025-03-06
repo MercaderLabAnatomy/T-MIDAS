@@ -532,24 +532,17 @@ def image_segmentation():
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the intensity images: ")
         dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
-        bg = input("\nWhat kind of background? (1 = gray, 2 = dark): ")
-        if bg == "1":
-            print("\n")
-            print(wrapper.fill('''You chose to segment bright spots with background. You will be asked to enter an intensity threshold.'''))
-            intensity_threshold = input("\nEnter the intensity threshold (0 < value < 255): ")
-            python_script_environment_setup('tmidas-env', 
-                                  os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots.py',
-                                  '--input ' + input_folder + ' --dim_order ' + dim_order +
-                                  ' --bg ' + bg + ' --intensity_threshold ' + intensity_threshold)
-        if bg == "2":
-            print("\n")
-            print(wrapper.fill('''You chose to segment bright spots with dark background.'''))
-            python_script_environment_setup('tmidas-env', 
-                                  os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots.py',
-                                  '--input ' + input_folder + ' --dim_order ' + dim_order + ' --bg ' + bg)
-        else:
-            print("Invalid choice")
-            restart_program()
+        gamma = input("\n Enter gamma correction value (brighten darker regions < 1.0 < suppress darker regions), or type Enter to not use it:  ")
+        intensity_threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
+        use_filters = input("\nUse gaussian blur? (yes/no): ")
+        python_script_environment_setup('tmidas-env', 
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots.py',
+                                        '--input ' + input_folder + 
+                                        ' --dim_order ' + dim_order + 
+                                        ' --gamma ' + gamma + 
+                                        ' --intensity_threshold ' + intensity_threshold + 
+                                        ' --use_filters ' + use_filters)
+        restart_program()
 
 
         restart_program()
@@ -631,13 +624,12 @@ def image_segmentation():
                 
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        image_type = input("\nBrightfield images? (y/n): ")
         threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
         use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
-        normalize = input("\nnormalize the images (percentile)? (yes/no): ")
+        gamma = input("\n Enter gamma correction value (brighten darker regions < 1.0 < suppress darker regions), or type Enter to not use it:  ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_2D.py',
-                                        '--input ' + input_folder + ' --image_type ' + image_type + ' --threshold ' + threshold + ' --use_filters ' + use_filters + ' --normalize ' + normalize)
+                                        '--input ' + input_folder + ' --threshold ' + threshold + ' --use_filters ' + use_filters + ' --gamma ' + gamma)
         restart_program()
     if choice == "4":
         os.system('clear')

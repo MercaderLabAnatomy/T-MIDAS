@@ -6,3 +6,4 @@ RGB_to_BiomedParse.py
 injury_inference_BiomedParse.py
 track_ROI.py
 merge_csvs.py
+metadata_validation.py
