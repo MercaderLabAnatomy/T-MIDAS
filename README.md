@@ -93,6 +93,10 @@ or by downloading and unpacking the [ZIP](https://github.com/MercaderLabAnatomy/
 python ./scripts/install_dependencies.py
 ```
 This will create the T-MIDAS environment and install all its dependencies.
+
+### Napari T-MIDAS plugin
+If you want to use T-MIDAS in Napari, please follow [these installation instructions](https://github.com/macromeer/napari-tmidas?tab=readme-ov-file#installation) for the plugin. Currently, you have to install it in its own virtual environment (call it `napari-tmidas`).
+
 ## Usage
 To start the text-based user interface in your terminal, change directory to the T-MIDAS folder and type 
 ```

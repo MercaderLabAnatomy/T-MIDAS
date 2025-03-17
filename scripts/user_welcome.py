@@ -132,7 +132,7 @@ def main_menu():
     print("[4] Image Segmentation Validation")
     print("[5] Postprocessing")
     print("[6] Label Inspection with Napari")
-    print("[n] Start Napari (with useful plugins)")
+    print("[n] Start T-MIDAS in Napari")
     print("[x] Exit \n")
     
     choice = input("\nEnter your choice: ")
@@ -168,9 +168,9 @@ def main_menu():
 
 def start_napari():
     os.system('clear')
-    print("\nStarting Napari. Please wait...")
+    print("\nStarting Napari T-MIDAS plugin. Please wait...")
     # start napari in tmidas-env
-    subprocess.run(f"mamba run --live-stream -n tmidas-env napari".split(),
+    subprocess.run(f"mamba run --live-stream -n napari-tmidas napari".split(),
                    capture_output=False,text=True,cwd="/mnt/")
     print("\nNapari closed.")
     restart_program()
