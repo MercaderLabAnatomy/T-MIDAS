@@ -359,9 +359,11 @@ def image_preprocessing():
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
         min_size = input("\nEnter the minimum size of the labels to keep: ")
+        output_type = input("\nEnter output type (semantic or instance): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/remove_small_labels.py',
-                                        '--input ' + input_folder + ' --label_suffix ' + label_suffix + ' --min_size ' + min_size)
+                                        '--input ' + input_folder + ' --label_suffix ' + label_suffix + ' --min_size ' + min_size +
+                                        ' --output_type ' + output_type)
         restart_program()
     if choice == "13":
         os.system('clear')

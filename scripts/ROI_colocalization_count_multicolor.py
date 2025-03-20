@@ -1,4 +1,6 @@
 import os
+from difflib import SequenceMatcher
+from collections import defaultdict
 import glob
 import csv
 import argparse
@@ -78,19 +80,102 @@ def parse_args():
     
     return args
 
-def validate_file_lists(file_lists, channels):
-    """Ensures all channels have the same number of files and they exist."""
-    lengths = [len(file_lists[channel]) for channel in channels]
-    if len(set(lengths)) != 1:
-        raise ValueError(f"Channel folders contain different numbers of files: {lengths}")
+# def validate_file_lists(file_lists, channels):
+#     """Ensures all channels have the same number of files and they exist."""
+#     lengths = [len(file_lists[channel]) for channel in channels]
+#     if len(set(lengths)) != 1:
+#         raise ValueError(f"Channel folders contain different numbers of files: {lengths}")
 
+#     # Check file existence
+#     for channel in channels:
+#         for filepath in file_lists[channel]:
+#             if not os.path.exists(filepath):
+#                 raise FileNotFoundError(f"File not found: {filepath}")
+
+#     return True
+
+
+
+def longest_common_substring(s1, s2):
+    """Finds the longest common substring between two strings."""
+    matcher = SequenceMatcher(None, s1, s2)
+    match = matcher.find_longest_match(0, len(s1), 0, len(s2))
+    return s1[match.a: match.a + match.size]
+
+def group_files_by_common_substring(file_lists, channels):
+    """
+    Groups files across channels based on the longest common substring in their filenames.
+
+    Args:
+        file_lists (dict): A dictionary where keys are channel names and values are lists of file paths.
+        channels (list): A list of channel names corresponding to the keys in file_lists.
+
+    Returns:
+        dict: A dictionary where keys are common substrings and values are lists of file paths grouped by substring.
+    """
+    all_files = [os.path.basename(file) for channel in channels for file in file_lists[channel]]
+    groups = defaultdict(list)
+
+    while all_files:
+        current = all_files.pop(0)
+        group = [current]
+        to_remove = []
+
+        for other in all_files:
+            common_substring = longest_common_substring(current, other)
+            if len(common_substring) > 1:  # Only consider substrings of length > 1
+                group.append(other)
+                to_remove.append(other)
+
+        for item in to_remove:
+            all_files.remove(item)
+
+        # Use the longest substring as the key for this group
+        common_key = current
+        for file in group:
+            common_key = longest_common_substring(common_key, file)
+
+        groups[common_key].extend(group)
+
+    return groups
+
+
+
+def validate_file_lists(file_lists, channels):
+    """Ensures all channels have the same number of files, they exist, and identifies files without common substrings."""
     # Check file existence
     for channel in channels:
         for filepath in file_lists[channel]:
             if not os.path.exists(filepath):
                 raise FileNotFoundError(f"File not found: {filepath}")
 
+    # Group files by common substrings
+    grouped_files = group_files_by_common_substring(file_lists, channels)
+
+    # Identify files without common substrings across all channels
+    files_without_common_substring = []
+    for channel in channels:
+        for file in file_lists[channel]:
+            basename = os.path.basename(file)
+            if not any(basename in group for group in grouped_files.values()):
+                files_without_common_substring.append(basename)
+
+    if files_without_common_substring:
+        print("Files without common substrings across all folders:")
+        for file in set(files_without_common_substring):
+            print(f"- {file}")
+
+    # Check if all channels have the same number of files
+    lengths = [len(file_lists[channel]) for channel in channels]
+    if len(set(lengths)) != 1:
+        raise ValueError(f"Channel folders contain different numbers of files: {lengths}")
+
     return True
+
+
+
+
+
 
 def load_image(file_path, output_shape=None):
     """Load an image file with proper error handling."""
