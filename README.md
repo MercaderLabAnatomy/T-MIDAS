@@ -1,8 +1,11 @@
 [![DOI](https://zenodo.org/badge/743431268.svg)](https://zenodo.org/doi/10.5281/zenodo.10728503)
 
+
+
 ![T-MIDAS Logo](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/aada2d33-f5f7-4395-bf36-c0466b304d0d) 
 # Tissue Microscopy Image Data Analysis Suite
 
+Latest news (03/2025): Check out the [T-MIDAS Napari plugin](https://github.com/macromeer/napari-tmidas)!
 
 #### T-MIDAS was created with a focus on the reproducibility of batch image processing and quantification 
 - Batch processing pipelines for image format conversion, preprocessing, segmentation, ROI analysis
