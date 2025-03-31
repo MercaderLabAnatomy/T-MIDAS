@@ -484,7 +484,7 @@ def crop_images():
         print('''You chose to crop blobs from multicolor .ndpi files.  \n
               A popup will appear in a moment asking you to select the folder containing ndpi(s) files.''')
         input_folder = popup_input("\nEnter the path to the folder containing ndpi(s) files: ")
-        padding = input("\nEnter the padding in pixels (default: 10): ")
+        padding = input("\nEnter the padding in pixels (default: 100): ")
         CROPPING_TEMPLATE_CHANNEL_NAME = input('''
                                                Enter the channel name 
                                                that represents the cropping template 

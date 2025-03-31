@@ -3,6 +3,8 @@ import os
 from PIL import Image
 import argparse
 from skimage.measure import regionprops, label
+from skimage.color import rgb2gray
+from skimage.filters import gaussian
 from tqdm import tqdm
 import pyclesperanto_prototype as cle
 import warnings
@@ -33,7 +35,7 @@ mask_generator = SamAutomaticMaskGenerator(mobile_sam)
 def parse_args():
     parser = argparse.ArgumentParser(description='Extract ROIs from NDPI files and save them as TIF files.')
     parser.add_argument('--input', type=str, help='Path to the folder containing the NDPI(s) files.')
-    parser.add_argument('--padding', type=int, default=10, help='Padding around the ROIs (default: 10).')
+    parser.add_argument('--padding', type=int, default=100, help='Padding around the ROIs (default: 100).')
     return parser.parse_args()
 
 args = parse_args()
@@ -66,14 +68,7 @@ def get_rois(slide, output_filename):
         thumbnail.save(output_filename + "_thumbnail.png")
         thumbnail_array = np.array(thumbnail)
         snapshot = thumbnail_array.copy()
-        thumbnail_array = cle.push(thumbnail_array)
-        thumbnail_array = cle.gaussian_blur(thumbnail_array, None, 2.0, 2.0, 0.0)
-        thumbnail_array = cle.top_hat_box(thumbnail_array, None, 10.0, 10.0, 0)
-        thumbnail_array = cle.pull(thumbnail_array)
-
-
-
-
+        thumbnail_array = gaussian(thumbnail_array, sigma=2.0, channel_axis=-1)
         labels = np.zeros(thumbnail_array.shape[:2], dtype=np.uint32)
         print(f"Thumbnail array shape: {thumbnail_array.shape}")
 
