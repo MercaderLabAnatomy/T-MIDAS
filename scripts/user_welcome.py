@@ -86,11 +86,11 @@ def welcome_message():
 
     # first ask user whether they want to use T-MIDAS (Enter), access the terminal (x), or start fiji (f)
 
-    print("\n Press Enter to start T-MIDAS or 'x' to access the terminal.")
+    print("\n Press Enter to start T-MIDAS or type 'x' and then press Enter to access the terminal.")
     choice = input("\nEnter your choice: ")
     if choice == "x":
         os.system('clear')
-        print("Accessing the terminal. Type 'exit' to return to the T-MIDAS menu.")
+        print("Accessing the terminal...")
         exit_program()
     if choice == "":
         os.system('clear')
@@ -1046,7 +1046,7 @@ def zstd_decompression():
 
 def restart_program():
     print("\n")
-    choice = input("\nYou are finished. Press Enter to restart T-MIDAS or press x to exit.\n")
+    choice = input("\nYou are finished. Press Enter to restart T-MIDAS or type x and then Enter to exit.\n")
     if choice == "":
         os.system('clear')
         welcome_message()
