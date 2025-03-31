@@ -70,6 +70,7 @@ def get_rois(template_ndpi_file, output_filename):
         slide = openslide.OpenSlide(os.path.join(input_folder, template_ndpi_file))
         scaling_factor = 30
         slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
+        
         thumbnail = slide.get_thumbnail(slide_dims_downscaled)
         thumbnail.save(output_filename + "_thumbnail.png")
         thumbnail_array = np.array(thumbnail)

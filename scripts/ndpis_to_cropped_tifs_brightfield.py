@@ -4,13 +4,14 @@ from PIL import Image
 import argparse
 from skimage.measure import regionprops, label
 from tqdm import tqdm
-import pyclesperanto_prototype as cle  # version 0.24.2
+import pyclesperanto_prototype as cle
 import warnings
 warnings.filterwarnings("ignore")
 import numpy as np
 import torch
 from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator
 import tifffile as tf
+import napari
 
 """
 Description: This script reads NDPI files, extracts regions of interest (ROIs) using Mobile-SAM, and saves the ROIs as TIF files.
@@ -49,74 +50,84 @@ if not os.path.exists(output_dir):
 
 ndpi_files = [file for file in os.listdir(input_folder) if file.endswith(".ndpi")]
 
-def get_rois(slide, output_filename):
-    scaling_factor = 100
-    slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
-    thumbnail = slide.get_thumbnail(slide_dims_downscaled)
-    thumbnail.save(output_filename + "_thumbnail.png")
-    thumbnail_array = np.array(thumbnail)
-    thumbnail_shape = thumbnail_array.shape[:2]
-    labels = np.zeros(thumbnail_shape, dtype=np.uint32)
-    masks = mask_generator.generate(thumbnail_array) # generate masks using Mobile-SAM
-    for i, mask_data in enumerate(masks):
-        mask = mask_data["segmentation"]
-        labeled_mask = label(mask, return_num=False)
-        labels[labeled_mask > 0] = labeled_mask[labeled_mask > 0] + (i * labeled_mask.max())
-    props = regionprops(labels)
-    areas = [region.area for region in props]
+
+def get_largest_label_id(label_image):
+    label_props = regionprops(label_image)
+    areas = [region.area for region in label_props]
     max_area_label = np.argmax(areas) + 1 
-    labels[labels == max_area_label] = 0     # remove the largest label
-    labels = cle.dilate_labels(labels, None, 2.0)
-    labels = cle.merge_touching_labels(labels)
-    labels = cle.pull(labels)
-    Image.fromarray(labels).save(output_filename + "_thumbnail_labels.png")
+    return max_area_label
 
-    rois = []
-    for i, prop in enumerate(props):
-        minr, minc, maxr, maxc = prop.bbox
-        minr = max(0, minr - PADDING)
-        minc = max(0, minc - PADDING)
-        maxr = min(thumbnail.height, maxr + PADDING)
-        maxc = min(thumbnail.width, maxc + PADDING)
-        rois.append((minc*scaling_factor, minr*scaling_factor, (maxc-minc)*scaling_factor, (maxr-minr)*scaling_factor))
-    
-    # drop rois that are 5x the size of the median roi
-    median_roi_size = sorted([roi[2]*roi[3] for roi in rois])[int(len(rois)/2)]
-    rois = [roi for roi in rois if roi[2]*roi[3] < 5*median_roi_size]    
+def get_rois(slide, output_filename):
+    try:
+        scaling_factor = 30
+        slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
 
-    # Calculate the centroids of the ROIs
-    centroids = [(x + w // 2, y + h // 2) for x, y, w, h in rois]
+        thumbnail = slide.get_thumbnail(slide_dims_downscaled)
+        thumbnail.save(output_filename + "_thumbnail.png")
+        thumbnail_array = np.array(thumbnail)
+        snapshot = thumbnail_array.copy()
+        thumbnail_array = cle.push(thumbnail_array)
+        thumbnail_array = cle.gaussian_blur(thumbnail_array, None, 2.0, 2.0, 0.0)
+        thumbnail_array = cle.top_hat_box(thumbnail_array, None, 10.0, 10.0, 0)
+        thumbnail_array = cle.pull(thumbnail_array)
 
-    # Calculate the distances between all pairs of centroids
-    distances = []
-    for i in range(len(rois)):
-        for j in range(i+1, len(rois)):
-            cx1, cy1 = centroids[i]
-            cx2, cy2 = centroids[j]
-            distance = np.sqrt((cx1 - cx2)**2 + (cy1 - cy2)**2)
-            distances.append(distance)
 
-    # Calculate the median distance
-    median_distance = np.median(distances)
 
-    # Merge ROIs that are closer than a third of the median distance
-    for i in range(len(rois)):
-        for j in range(i+1, len(rois)):
-            cx1, cy1 = centroids[i]
-            cx2, cy2 = centroids[j]
-            distance = np.sqrt((cx1 - cx2)**2 + (cy1 - cy2)**2)
-            if distance < median_distance / 5:
-                # Merge the ROIs
-                x = min(rois[i][0], rois[j][0])
-                y = min(rois[i][1], rois[j][1])
-                w = max(rois[i][0] + rois[i][2], rois[j][0] + rois[j][2]) - x
-                h = max(rois[i][1] + rois[i][3], rois[j][1] + rois[j][3]) - y
-                rois[i] = (x, y, w, h)
-                rois[j] = (0, 0, 0, 0)
 
-    rois = [roi for roi in rois if roi[2] > 0 and roi[3] > 0]
-    return rois
+        labels = np.zeros(thumbnail_array.shape[:2], dtype=np.uint32)
+        print(f"Thumbnail array shape: {thumbnail_array.shape}")
 
+        masks = mask_generator.generate(thumbnail_array) # generate masks using Mobile-SAM
+
+        for i, mask_data in enumerate(masks):
+            mask = mask_data["segmentation"]
+            labeled_mask = label(mask, return_num=False)
+            labels[labeled_mask > 0] = labeled_mask[labeled_mask > 0] + (i * labeled_mask.max())
+
+        largest_label_id = get_largest_label_id(labels)
+        labels[labels == largest_label_id] = 0
+        labels = cle.push(labels)
+        dilated_labels = cle.dilate_labels(labels, None, 25.0)
+        merged_dilated_labels = cle.merge_touching_labels(dilated_labels)
+        merged_labels = (merged_dilated_labels * (labels > 0)).astype(np.uint32)
+        labels = cle.pull(cle.connected_components_labeling_box(merged_labels))
+        Image.fromarray(labels).save(output_filename + "_thumbnail_labels.png") 
+
+
+        # --- Napari Viewer for interactive label editing ---
+        viewer = napari.Viewer()
+        viewer.add_image(snapshot, name='Thumbnail Image')
+        labels_layer = viewer.add_labels(labels, name='Labels (Initial)')
+        print("Napari viewer opened. Please refine the labels in the 'Labels (Initial)' layer using Napari's tools.")
+        print("Once you are satisfied with the labels, close the Napari viewer window (not exit!).")
+        napari.run() # blocks until viewer is closed
+        labels = labels_layer.data
+        print("Napari viewer closed. Continuing with processing...")
+
+        # Upscale labels to full slide resolution
+        labels_upscaled = np.zeros(slide.dimensions[::-1], dtype=np.uint32)
+        for y in range(labels.shape[0]):
+            for x in range(labels.shape[1]):
+                if labels[y, x] > 0:
+                    start_y = int(y * scaling_factor)
+                    start_x = int(x * scaling_factor)
+                    labels_upscaled[start_y:start_y+scaling_factor, start_x:start_x+scaling_factor] = labels[y, x]
+
+        props = regionprops(labels_upscaled)
+        rois = []
+        for prop in props:
+            minr, minc, maxr, maxc = prop.bbox
+            minr = max(0, minr - PADDING)
+            minc = max(0, minc - PADDING)
+            maxr = min(slide.dimensions[1], maxr + PADDING)
+            maxc = min(slide.dimensions[0], maxc + PADDING)
+            rois.append((minc, minr, maxc - minc, maxr - minr))
+
+
+        return rois
+    except (Exception, RuntimeError) as e:
+        print(f"Error processing {template_ndpi_file}: {str(e)}")
+        return None
 
 
 for ndpi_file in tqdm(ndpi_files, total=len(ndpi_files), desc="Processing images"):

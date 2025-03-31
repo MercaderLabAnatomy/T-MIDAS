@@ -83,9 +83,28 @@ def welcome_message():
     print(f"- a {get_model_name_GPU()} GPU. \n") 
     print(f" Currently, {get_available_RAM()} RAM and {get_available_VRAM()} VRAM are available. \n")
 
-    global user_name
-    if 'user_name' not in globals():
-        user_name = input("\n What's your name? ")
+
+    # first ask user whether they want to use T-MIDAS (Enter), access the terminal (x), or start fiji (f)
+
+    print("\n Press Enter to start T-MIDAS or 'x' to access the terminal.")
+    choice = input("\nEnter your choice: ")
+    if choice == "x":
+        os.system('clear')
+        print("Accessing the terminal. Type 'exit' to return to the T-MIDAS menu.")
+        exit_program()
+    if choice == "":
+        os.system('clear')
+        print("Starting T-MIDAS. Please wait...")
+        print("\n")
+        global user_name
+        if 'user_name' not in globals():
+            user_name = input("\n What's your name? ")
+    else:
+        print("Invalid choice")
+        restart_program()
+
+
+
 
     main_menu() # go straight ahead into the image processing menu
 
