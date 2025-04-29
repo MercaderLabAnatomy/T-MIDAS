@@ -86,7 +86,7 @@ def welcome_message():
 
     # first ask user whether they want to use T-MIDAS (Enter), access the terminal (x), or start fiji (f)
 
-    print("\n Press Enter to start T-MIDAS or type 'x' and then press Enter to access the terminal.")
+    print("\n Start T-MIDAS or access terminal? (Enter/x)\n")
     choice = input("\nEnter your choice: ")
     if choice == "x":
         os.system('clear')
