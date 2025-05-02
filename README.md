@@ -66,15 +66,18 @@ More detailed information is provided via text-based user interface.
     [6] Get basic ROI properties (single channel)
     [7] Get ROI properties in semantic label images
 
-[4] Image Segmentation Validation
+[4] Cell/Nuclei/Particle Tracking
+   [1] Trackastra
+
+[5] Image Segmentation Validation
     [1] Validate spot counts (2D)
     [2] Validate blobs (2D or 3D; global F1 score)
 
-[5] File compression
+[6] File compression
     [1] Compress files using zstd
     [2] Decompress files using zstd 
 
-[6] Label image inspection with Napari
+[7] Label image inspection with Napari
 
 [n] Start Napari (with useful plugins)
 </pre>

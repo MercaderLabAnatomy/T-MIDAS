@@ -146,12 +146,13 @@ def main_menu():
     os.system('clear')
     print(f"\nHi {user_name}! What would you like to do?\n")
     print("[1] Image Preprocessing")
-    print("[2] Image Segmentation")
+    print("[2] Image Segmentation (Classic, Cellpose, SAM)")
     print("[3] Regions of Interest (ROI) Analysis")
-    print("[4] Image Segmentation Validation")
-    print("[5] Postprocessing")
-    print("[6] Label Inspection with Napari")
-    print("[n] Start T-MIDAS in Napari")
+    print("[4] Cell/Nuclei/Particle Tracking")
+    print("[5] Image Segmentation Validation")
+    print("[6] Postprocessing")
+    print("[7] Label Inspection with Napari")
+    print("[n] Napari with plugins")
     print("[x] Exit \n")
     
     choice = input("\nEnter your choice: ")
@@ -167,12 +168,15 @@ def main_menu():
         ROI_analysis()
         restart_program()
     if choice == "4":
-        validation()
+        cell_tracking()
         restart_program()
     if choice == "5":
-        postprocessing()
+        validation()
         restart_program()
     if choice == "6":
+        postprocessing()
+        restart_program()
+    if choice == "7":
         label_inspection()
         restart_program()
     if choice == "n" or choice == "N":
@@ -922,6 +926,57 @@ def ROI_analysis():
         print("Invalid choice")
         restart_program()
 
+def cell_tracking():
+    os.system('clear')
+    print("\nCell/Nuclei/Particle Tracking: What would you like to do?\n")
+    print("[1] Trackastra (2D or 3D)")
+    print("[r] Return to Main Menu")
+    print("[x] Exit \n")
+    
+    choice = input("\nEnter your choice: ")
+    
+    if choice == "1":
+        os.system('clear')
+        print(wrapper.fill("You chose to track cells using Trackastra, a deep learning-based cell tracking tool. Trackastra can track cells in 2D and 3D time-lapse microscopy images and can handle cell divisions. A popup will appear asking you to select the folder containing your time series images and their corresponding instance segmentation masks with the same name but with suffix _labels.tif."))
+        
+        input_folder = popup_input("\nEnter the path to the folder containing time series images and their masks: ")
+        
+        print("\nAvailable models:")
+        print("- general_2d: For tracking fluorescent nuclei, bacteria, whole cells, epithelial cells, yeast, particles, etc.")
+        print("- ctc: For Cell Tracking Challenge datasets (winner of the ISBI 2024 CTC generalizable linking challenge)")
+        
+        model = input("\nChoose a model [general_2d, bacteria_2d, nuclei_3d, ctc] (default: general_2d): ") or "general_2d"
+        
+        print("\nTracking modes:")
+        print("- greedy: Fast tracking without performance optimization (best for quick results)")
+        print("- greedy_nodiv: Like greedy but without considering cell divisions")
+        print("- ilp: Integer Linear Programming for optimal tracking (handles divisions, more accurate but slower)")
+        
+        mode = input("\nChoose tracking mode [greedy, ilp, greedy_nodiv] (default: greedy): ") or "greedy"
+        
+        label_suffix = input("\nEnter label suffix (default: _labels.tif): ") or "_labels.tif"
+        
+        print("\nOutput formats:")
+        print("- tif: Save tracked masks as TIF files with '_tracked.tif' suffix")
+        print("- napari: Save as napari_tracks.npy for visualization in Napari")
+        print("- both: Save all formats")
+        
+        output_format = input("\nChoose output format [napari, tif, both] (default: both): ") or "both"
+        
+        python_script_environment_setup(
+            'tmidas-env', 
+            os.environ.get("TMIDAS_PATH") + '/scripts/tracking_trackastra.py',
+            f'--input {input_folder} --model {model} --mode {mode} --label_suffix {label_suffix} --output_format {output_format}'
+        )
+        restart_program()
+        
+    elif choice.lower() == "r":
+        welcome_message()
+    elif choice.lower() == "x":
+        exit_program()
+    else:
+        print("Invalid choice")
+        restart_program()
 
 def validation():
     os.system('clear')
