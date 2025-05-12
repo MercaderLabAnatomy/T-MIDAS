@@ -32,7 +32,7 @@ The script provides a user-friendly interface to run different image processing 
 if not os.path.exists(TMIDAS_PATH):
     print(f"T-MIDAS is not in {TMIDAS_PATH}. Please provide the path to the T-MIDAS folder.")
     # make a popup window appear to ask for the path to T-MIDAS
-    tmidas_path = tkinter.filedialog.askdirectory(title="Please provide the path to the T-MIDAS folder.")
+    tmidas_path = filedialog.askdirectory(title="Please provide the path to the T-MIDAS folder.")
     os.environ["TMIDAS_PATH"] = tmidas_path
     print("T-MIDAS path set to " + os.environ["TMIDAS_PATH"])
 else:
