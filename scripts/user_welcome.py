@@ -319,11 +319,9 @@ def image_preprocessing():
         print(wrapper.fill("You chose to split the color channels of multicolor images. A popup will appear in a moment asking you to select the folder containing the multicolor images. You will be asked the names of the color channel output folders and number of time steps in case of time lapse."))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the multicolor images: ")
-        channels = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
-        time_steps = input("\nEnter the number of time steps for timelapse images. Leave empty if not a timelapse: ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/split_color_channels.py',
-                                        '--input ' + input_folder + ' --channels ' + channels + ' --time_steps ' + time_steps )
+                                        '--input ' + input_folder )
         restart_program()
         
     if choice == "8":

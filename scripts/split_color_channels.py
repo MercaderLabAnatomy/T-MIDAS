@@ -1,106 +1,120 @@
 import os
 import argparse
 import glob
-from tqdm import tqdm
 from tifffile import imwrite, TiffFile
 import numpy as np
+from tqdm import tqdm
 import sys
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Batch split channels')
-    parser.add_argument('--input', type=str, required=True, help='Path to the folder containing multi-channel images.')
-    parser.add_argument('--channels', nargs='+', type=str, required=True, help='Names of the color channels to split. Example: "TRITC DAPI FITC"')
-    parser.add_argument('--time_steps', type=int, default=None,nargs='?', help='Number of time steps for timelapse images. Leave empty if not a timelapse.')
-
+    parser = argparse.ArgumentParser(description='Split TIFF channels with auto time/channel detection')
+    parser.add_argument('--input', type=str, required=True, 
+                       help='Path to folder containing multi-channel TIFFs')
     return parser.parse_args()
 
-def infer_dimension_order(shape, num_channels, time_steps):
-    dim_order = ''
-    if len(shape) == 5:
-        dim_order = 'TZCYX'
-    elif len(shape) == 4:
-        if shape[0] == num_channels:
-            dim_order = 'CZYX'
-        elif time_steps and shape[0] == time_steps:
-            dim_order = 'TCYX'
-        else:
-            dim_order = 'ZCYX'
-    elif len(shape) == 3:
-        if shape[0] == num_channels:
-            dim_order = 'CYX'
-        elif shape[2] == num_channels:
-            dim_order = 'YXC'
-        elif time_steps and shape[0] == time_steps:
-            dim_order = 'TYX'
-        else:
-            raise ValueError(f"Unable to infer dimension order for shape {shape}")
-    else:
-        raise ValueError(f"Unsupported image shape: {shape}")
+def get_t_axis(shape):
+    """Find first dimension that looks like time steps (5 <= size < 400)"""
+    for i, dim_size in enumerate(shape):
+        if 5 <= dim_size < 400:
+            return i
+    return None  # No axis meets time criteria
+
+def infer_axes(shape, t_axis):
+    """Generate axes string following TCZYX priority"""
+    ndim = len(shape)
+    axes = [''] * ndim
+    remaining_dims = list(range(ndim))
     
-    return dim_order
-
-def split_channels_cpu(file_list, channels, time_steps, output_dir):
-    num_channels = len(channels)
+    # Assign T axis if found
+    if t_axis is not None:
+        axes[t_axis] = 'T'
+        remaining_dims.remove(t_axis)
     
-    for file_path in tqdm(file_list, desc='Splitting files'):
-        with TiffFile(file_path) as tif:
-            img = tif.asarray()
-            metadata = tif.imagej_metadata
+    # Find channel axis (2-4 elements)
+    for i in remaining_dims:
+        if shape[i] in (2, 3, 4):
+            axes[i] = 'C'
+            remaining_dims.remove(i)
+            break
+    
+    # Remaining dims: prioritize Z, then Y, then X
+    spatial_axes = ['Z', 'Y', 'X']
+    for i in remaining_dims:
+        if not spatial_axes:
+            break
+        axes[i] = spatial_axes.pop(0)
+    
+    # Fill any remaining with generic labels
+    for i in remaining_dims:
+        if axes[i] == '':
+            axes[i] = 'A'  # Anonymous axis
+    
+    return ''.join(axes)
 
-        # Try to get dimension order from metadata
-        dim_order = metadata.get('axes', '') if metadata else ''
-        
-        if not dim_order:
-            # Infer dimension order from shape and user info
-            dim_order = infer_dimension_order(img.shape, num_channels, time_steps)
-
-        print(f"Input image shape: {img.shape}, detected dimension order: {dim_order}")
-
-        # Find the channel axis
-        channel_axis = dim_order.index('C')
-
-        if img.shape[channel_axis] != num_channels:
-            raise ValueError(f"Number of channels in the image ({img.shape[channel_axis]}) does not match the number of provided channel names ({num_channels})")
-
-        for i, channel in enumerate(channels):
-            channel_dir = os.path.join(output_dir, channel)
-            os.makedirs(channel_dir, exist_ok=True)
-
-            # Extract the channel
-            channel_img = np.take(img, i, axis=channel_axis)
-
-            # Remove the channel dimension from the dimension order
-            output_dim_order = dim_order.replace('C', '')
-
-            output_filename = os.path.join(channel_dir, f"{os.path.splitext(os.path.basename(file_path))[0]}_{channel}.tif")
-            imwrite(output_filename, channel_img, compression='zlib', imagej=True, metadata={'axes': output_dim_order})
-
-    print("Splitting completed successfully.")
+def split_channels(file_list, output_dir):
+    for file_path in tqdm(file_list, desc="Processing"):
+        try:
+            with TiffFile(file_path) as tif:
+                img = tif.asarray()
+                metadata = tif.imagej_metadata or {}
+                shape = img.shape
+                
+                # Get existing axes or infer new ones
+                axes = metadata.get('axes', '')
+                if not axes or len(axes) != len(shape):
+                    t_axis = get_t_axis(shape)
+                    axes = infer_axes(shape, t_axis)
+                
+                # Validate axes
+                if 'C' not in axes:
+                    raise ValueError("No channel axis detected")
+                if axes.count('C') > 1:
+                    raise ValueError("Multiple channel axes detected")
+                
+                channel_axis = axes.index('C')
+                num_channels = shape[channel_axis]
+                
+                # Split and save channels
+                base = os.path.splitext(os.path.basename(file_path))[0]
+                for ch in range(num_channels):
+                    channel_img = np.take(img, ch, axis=channel_axis)
+                    output_axes = axes.replace('C', '')
+                    
+                    imwrite(
+                        os.path.join(output_dir, f"C{ch}-{base}.tif"),
+                        channel_img,
+                        imagej=True,
+                        metadata={'axes': output_axes},
+                        compression='zlib'
+                    )
+                    
+        except Exception as e:
+            print(f"Error processing {file_path}: {str(e)}", file=sys.stderr)
 
 def main():
     args = parse_args()
     input_dir = args.input
-    channels = [c.upper() for c in args.channels]
-    time_steps = args.time_steps
-
+    
+    if not os.path.isdir(input_dir):
+        raise NotADirectoryError(f"Input directory not found: {input_dir}")
+    
     file_list = sorted(glob.glob(os.path.join(input_dir, '*.tif')))
-
-    if len(file_list) == 0:
-        raise ValueError(f"No .tif files found in the input directory: {input_dir}")
-
-    print(f"Number of images to process: {len(file_list)}")
-
+    if not file_list:
+        raise FileNotFoundError(f"No TIFF files found in {input_dir}")
+    
     output_dir = os.path.join(input_dir, 'split_channels')
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    split_channels_cpu(file_list, channels, time_steps, output_dir)
-
-    print("Split images saved in", output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+    
+    print(f"Processing {len(file_list)} files with settings:")
+    print(" - Auto-detected time axis as first axis that is (5 ≤ dim < 400)")
+    print(" - Auto-detected channels (2-4)")
+    
+    split_channels(file_list, output_dir)
+    print(f"\nOutput saved to: {output_dir}")
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"An error occurred: {e}", file=sys.stderr)
+        print(f"Fatal error: {str(e)}", file=sys.stderr)
         sys.exit(1)
