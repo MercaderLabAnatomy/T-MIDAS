@@ -86,7 +86,7 @@ dependencies = [
     'numpy', 'scikit-image', 'tifffile', 'Pillow',
     'pandas', 'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
     'openslide-python', 'glob2', 'pytest', 'cucim', 'aicspylibczi', 'torch',
-    'torchvision', 'timm', 'python-javabridge', 'python-bioformats', 'devbio-napari'
+    'torchvision', 'timm', 'python-javabridge', 'python-bioformats', 'devbio-napari','siphash24'
 ]
 
 print("Upgrading pip and setuptools...")
