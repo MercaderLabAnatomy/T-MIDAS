@@ -64,7 +64,7 @@ More detailed information is provided via text-based user interface.
     [4] Colocalize ROI in 2 or 3 color channels (counts and sizes)
     [5] Get properties of objects within ROI (two color channels)
     [6] Get basic ROI properties (single channel)
-    [7] Get ROI properties in semantic label images
+    [7] Get ROI properties in multiclass label images
 
 [4] Cell/Nuclei/Particle Tracking
    [1] Trackastra

@@ -896,13 +896,15 @@ def ROI_analysis():
         os.system('clear')
         print("\n")
         print("----------------------------------------------------")
-        print("You chose to extract ROI properties in semantic label images.")
+        print("You chose to extract ROI properties in multiclass label images.\n")
+        print("Say you have many objects that you each labeled with one of a few colors.\n") 
+        print("This pipeline will give you the properties of each individual object grouped by class.")
         print("----------------------------------------------------")
         print("\n")
         print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the label images.'''))
 
         parent_folder = popup_input("\nEnter the path to the parent folder: ")
-        label_pattern = input("\nEnter the label pattern of the label images. Example: '*_labels.tif' ")
+        label_pattern = input("\nEnter the label pattern of the label images. Example: '*_conditions.tif' ")
         intensity = input("\nDo you want to quantify intensity? (y/n): ")
         additional_args = ""
         if intensity == "y":
