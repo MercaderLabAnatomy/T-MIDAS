@@ -2,7 +2,12 @@ import subprocess
 import sys
 import os
 import json
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    print("tqdm not found. Installing it first...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "tqdm"])
+    from tqdm import tqdm
 
 """
 Description: This script installs all dependencies required to run the TMIDAS pipelines.
@@ -62,7 +67,7 @@ run_command(f"{conda_executable} init bash")
 
 # Create the environment
 print(f"Creating environment {env_name}...")
-run_command(f"{conda_executable} create -n {env_name} python=3.8 -y")
+run_command(f"{conda_executable} create -n {env_name} python=3.9 -y")
 
 # Get the path to the created environment
 env_path = run_command(f"{conda_executable} env list --json").strip()
@@ -78,18 +83,17 @@ run_command(cmd_prefix + f"{mamba_executable} init")
 
 # Install dependencies
 dependencies = [
-    'numpy', 'scikit-image', 'tifffile', 'pyclesperanto-prototype', 'Pillow',
-    'napari-segment-blobs-and-things-with-membranes', 'napari-simpleitk-image-processing',
-    'pandas', 'apoc', 'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
+    'numpy', 'scikit-image', 'tifffile', 'Pillow',
+    'pandas', 'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
     'openslide-python', 'glob2', 'pytest', 'cucim', 'aicspylibczi', 'torch',
-    'torchvision', 'timm', 'python-javabridge', 'python-bioformats'
+    'torchvision', 'timm', 'python-javabridge', 'python-bioformats', 'devbio-napari','siphash24'
 ]
 
 print("Upgrading pip and setuptools...")
 run_command(cmd_prefix + "python -m pip install -U setuptools pip")
 
 print("Installing conda packages...")
-run_command(cmd_prefix + f"{conda_executable} install openslide ocl-icd-system pyopencl cupy -y")
+run_command(cmd_prefix + f"{conda_executable} install openslide ocl-icd-system cupy -y")
 
 print("Installing MobileSAM...")
 run_command(cmd_prefix + "pip install git+https://github.com/ChaoningZhang/MobileSAM.git")
