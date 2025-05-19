@@ -7,66 +7,91 @@ from tqdm import tqdm
 import sys
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Split TIFF channels with auto time/channel detection')
+    parser = argparse.ArgumentParser(description='Split TIFF channels based on user-specified structure')
     parser.add_argument('--input', type=str, required=True, 
                        help='Path to folder containing multi-channel TIFFs')
+    parser.add_argument('--time_steps', type=int, default=None,
+                       help='Number of time steps if time-lapse (leave empty if static)')
+    parser.add_argument('--is_3d', action='store_true',
+                       help='Images are 3D (Z dimension present)')
     return parser.parse_args()
 
-def get_t_axis(shape):
-    """Find first dimension that looks like time steps (5 <= size < 400)"""
-    for i, dim_size in enumerate(shape):
-        if 5 <= dim_size < 400:
-            return i
-    return None  # No axis meets time criteria
-
-def find_channel_axis(shape):
-    """Find channel axis - should be first or last dim with size <= 4"""
-    # Check first dimension
-    if shape[0] <= 4:
-        return 0
+def find_channel_axis(shape, time_steps, is_3d):
+    """Find channel axis based on user-specified structure and size <= 4"""
+    is_timelapse = time_steps is not None
     
-    # Check last dimension
-    if shape[-1] <= 4:
-        return len(shape) - 1
+    # Expected dimension order: (T)CZ(Y)X or (T)(Z)YXC
+    # Channel should be first or last dimension with size <= 4
     
-    # If neither first nor last, check all dimensions for compatibility
-    for i, dim_size in enumerate(shape):
-        if dim_size <= 4:
-            return i
+    expected_dims = (is_timelapse and 1 or 0) + (is_3d and 1 or 0) + 2  # +2 for Y,X
+    
+    if len(shape) < expected_dims:
+        raise ValueError(f"Image has {len(shape)} dimensions but expected at least {expected_dims} "
+                        f"(T={is_timelapse}, Z={is_3d}, Y, X)")
+    
+    # Validate time dimension if specified
+    if is_timelapse and shape[0] != time_steps:
+        print(f"Warning: Expected {time_steps} time steps but found {shape[0]} in first dimension")
+    
+    # Check if we have more dimensions than expected (likely includes channel)
+    if len(shape) > expected_dims:
+        # Check first dimension (channel-first: C at position 0 or 1 if timelapse)
+        expected_channel_pos = 1 if is_timelapse else 0
+        if expected_channel_pos < len(shape) and shape[expected_channel_pos] <= 4:
+            return expected_channel_pos
+        
+        # Check last dimension (channel-last)
+        if shape[-1] <= 4:
+            return len(shape) - 1
+        
+        # Check all dimensions for any with size <= 4
+        for i, dim_size in enumerate(shape):
+            if dim_size <= 4:
+                return i
     
     return None
 
-def infer_axes(shape, t_axis, c_axis):
-    """Generate axes string following TCZYX priority"""
+def infer_axes(shape, channel_axis, time_steps, is_3d):
+    """Generate axes string based on user input and detected channel position"""
+    is_timelapse = time_steps is not None
     ndim = len(shape)
     axes = [''] * ndim
     remaining_dims = list(range(ndim))
     
-    # Assign T axis if found
-    if t_axis is not None:
-        axes[t_axis] = 'T'
-        remaining_dims.remove(t_axis)
+    # Assign channel axis
+    if channel_axis is not None:
+        axes[channel_axis] = 'C'
+        remaining_dims.remove(channel_axis)
     
-    # Assign C axis if found
-    if c_axis is not None:
-        axes[c_axis] = 'C'
-        remaining_dims.remove(c_axis)
+    # Assign time axis (always first if present)
+    if is_timelapse:
+        if 0 not in [channel_axis]:  # If channel is not at position 0
+            axes[0] = 'T'
+            remaining_dims.remove(0)
+        else:
+            # If channel is at 0, time should be at 1
+            if 1 < len(axes):
+                axes[1] = 'T'
+                remaining_dims.remove(1)
     
-    # Remaining dims: prioritize Z, then Y, then X
-    spatial_axes = ['Z', 'Y', 'X']
+    # Assign spatial axes in order: Z (if 3D), Y, X
+    spatial_axes = []
+    if is_3d:
+        spatial_axes.append('Z')
+    spatial_axes.extend(['Y', 'X'])
+    
+    # Assign remaining dimensions to spatial axes
     for i in remaining_dims:
-        if not spatial_axes:
-            break
-        axes[i] = spatial_axes.pop(0)
-    
-    # Fill any remaining with generic labels
-    for i in remaining_dims:
-        if axes[i] == '':
-            axes[i] = 'A'  # Anonymous axis
+        if spatial_axes:
+            axes[i] = spatial_axes.pop(0)
+        else:
+            axes[i] = 'A'  # Anonymous if we run out of expected axes
     
     return ''.join(axes)
 
-def split_channels(file_list, output_dir):
+def split_channels(file_list, output_dir, time_steps, is_3d):
+    is_timelapse = time_steps is not None
+    
     for file_path in tqdm(file_list, desc="Processing"):
         try:
             with TiffFile(file_path) as tif:
@@ -74,31 +99,27 @@ def split_channels(file_list, output_dir):
                 metadata = tif.imagej_metadata or {}
                 shape = img.shape
                 
-                # Get existing axes or infer new ones
-                axes = metadata.get('axes', '')
+                print(f"\nProcessing: {os.path.basename(file_path)}")
+                print(f"  Shape: {shape}")
+                print(f"  Structure: {'Time-lapse' if is_timelapse else 'Static'}{f' ({time_steps} steps)' if is_timelapse else ''}, {'3D' if is_3d else '2D'}")
                 
-                if axes and len(axes) == len(shape) and 'C' in axes:
-                    # Use existing axes if valid
-                    channel_axis = axes.index('C')
-                else:
-                    # Infer axes
-                    t_axis = get_t_axis(shape)
-                    c_axis = find_channel_axis(shape)
-                    
-                    if c_axis is None:
-                        raise ValueError(f"No channel axis detected in shape {shape}")
-                    
-                    axes = infer_axes(shape, t_axis, c_axis)
-                    channel_axis = c_axis
+                # Find channel axis
+                channel_axis = find_channel_axis(shape, time_steps, is_3d)
                 
-                # Validate channel axis
-                if 'C' not in axes:
-                    raise ValueError("No channel axis detected")
-                if axes.count('C') > 1:
-                    raise ValueError("Multiple channel axes detected")
+                if channel_axis is None:
+                    raise ValueError(f"No channel axis detected in shape {shape}. "
+                                   f"Expected channel dimension ≤ 4")
+                
+                # Generate axes string
+                axes = infer_axes(shape, channel_axis, time_steps, is_3d)
                 
                 num_channels = shape[channel_axis]
-                print(f"Processing {os.path.basename(file_path)}: shape {shape}, axes {axes}, {num_channels} channels")
+                print(f"  Detected axes: {axes}")
+                print(f"  Channel axis: {channel_axis} (size: {num_channels})")
+                
+                # Validate that we found channel axis
+                if 'C' not in axes:
+                    raise ValueError("Failed to assign channel axis")
                 
                 # Split and save channels
                 base = os.path.splitext(os.path.basename(file_path))[0]
@@ -106,13 +127,16 @@ def split_channels(file_list, output_dir):
                     channel_img = np.take(img, ch, axis=channel_axis)
                     output_axes = axes.replace('C', '')
                     
+                    output_filename = os.path.join(output_dir, f"C{ch}-{base}.tif")
                     imwrite(
-                        os.path.join(output_dir, f"C{ch}-{base}.tif"),
+                        output_filename,
                         channel_img,
                         imagej=True,
                         metadata={'axes': output_axes},
                         compression='zlib'
                     )
+                    
+                print(f"  Saved {num_channels} channels")
                     
         except Exception as e:
             print(f"Error processing {file_path}: {str(e)}", file=sys.stderr)
@@ -120,6 +144,9 @@ def split_channels(file_list, output_dir):
 def main():
     args = parse_args()
     input_dir = args.input
+    time_steps = args.time_steps
+    is_3d = args.is_3d
+    is_timelapse = time_steps is not None
     
     if not os.path.isdir(input_dir):
         raise NotADirectoryError(f"Input directory not found: {input_dir}")
@@ -131,11 +158,12 @@ def main():
     output_dir = os.path.join(input_dir, 'split_channels')
     os.makedirs(output_dir, exist_ok=True)
     
-    print(f"Processing {len(file_list)} files with settings:")
-    print(" - Auto-detected time axis as first axis that is (5 ≤ dim < 400)")
-    print(" - Auto-detected channels as first or last dimension with size ≤ 4")
+    print(f"Processing {len(file_list)} files:")
+    print(f"  Time-lapse: {time_steps if is_timelapse else 'No'}{f' steps' if is_timelapse else ''}")
+    print(f"  3D: {is_3d}")
+    print(f"  Expected structure: {'T' if is_timelapse else ''}{'C' if True else ''}{'Z' if is_3d else ''}YX")
     
-    split_channels(file_list, output_dir)
+    split_channels(file_list, output_dir, time_steps, is_3d)
     print(f"\nOutput saved to: {output_dir}")
 
 if __name__ == "__main__":

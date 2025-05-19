@@ -319,9 +319,19 @@ def image_preprocessing():
         print(wrapper.fill("You chose to split the color channels of multicolor images. A popup will appear in a moment asking you to select the folder containing the multicolor images. You will be asked the names of the color channel output folders and number of time steps in case of time lapse."))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the multicolor images: ")
+        time_steps = input("\nEnter the number of time steps for timelapse images. Leave empty if not a timelapse: ")
+        is_3d = input("\nAre the images 3D (with Z dimension)? (y/n): ")
+
+        # Build the command with conditional flags
+        command_args = '--input ' + input_folder
+        if time_steps.strip():  # Only add time_steps if not empty
+            command_args += ' --time_steps ' + time_steps
+        if is_3d.lower() in ['y', 'yes']:
+            command_args += ' --is_3d'
+
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/split_color_channels.py',
-                                        '--input ' + input_folder )
+                                        command_args)
         restart_program()
         
     if choice == "8":
@@ -331,11 +341,18 @@ def image_preprocessing():
         input_folder = popup_input("\nEnter the path to the folder containing the color channel folders: ")
         channel_names = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
         time_steps = input("\nEnter the number of time steps for timelapse images. Leave empty if not a timelapse: ")
-        # use_gpu = input("\nUse GPU for processing? May terminate if images are too large (y/n): ")
-        python_script_environment_setup('tmidas-env', 
+        is_3d = input("\nAre the images 3D (with Z dimension)? (y/n): ")
+
+        # Build the command with conditional --is_3d flag
+        command_args = '--input ' + input_folder + ' --channels ' + channel_names
+        if time_steps.strip():  # Only add time_steps if not empty
+            command_args += ' --time_steps ' + time_steps
+        if is_3d.lower() in ['y', 'yes']:
+            command_args += ' --is_3d'
+
+        python_script_environment_setup('tmidas-env',
                                         os.environ.get("TMIDAS_PATH")+'/scripts/merge_color_channels.py',
-                                        '--input ' + input_folder + ' --channels ' + channel_names + 
-                                        ' --time_steps ' + time_steps)
+                                        command_args)
         restart_program()
     if choice == "9":
         os.system('clear')
