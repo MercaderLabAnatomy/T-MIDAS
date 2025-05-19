@@ -120,7 +120,7 @@ def restore_images(input_folder, output_folder, restoration_types, dim_order, nu
         else:
             # Save the processed image with a suffix indicating the restoration type
             imwrite(os.path.join(output_folder, input_file.replace(".tif", f"_{restoration_model}.tif")),
-                    processed_image, compression='zlib', imagej=True)
+                    processed_image, compression='zlib')
         gc.collect()
 
 
