@@ -19,7 +19,24 @@ def get_t_axis(shape):
             return i
     return None  # No axis meets time criteria
 
-def infer_axes(shape, t_axis):
+def find_channel_axis(shape):
+    """Find channel axis - should be first or last dim with size <= 4"""
+    # Check first dimension
+    if shape[0] <= 4:
+        return 0
+    
+    # Check last dimension
+    if shape[-1] <= 4:
+        return len(shape) - 1
+    
+    # If neither first nor last, check all dimensions for compatibility
+    for i, dim_size in enumerate(shape):
+        if dim_size <= 4:
+            return i
+    
+    return None
+
+def infer_axes(shape, t_axis, c_axis):
     """Generate axes string following TCZYX priority"""
     ndim = len(shape)
     axes = [''] * ndim
@@ -30,12 +47,10 @@ def infer_axes(shape, t_axis):
         axes[t_axis] = 'T'
         remaining_dims.remove(t_axis)
     
-    # Find channel axis (2-4 elements)
-    for i in remaining_dims:
-        if shape[i] in (2, 3, 4):
-            axes[i] = 'C'
-            remaining_dims.remove(i)
-            break
+    # Assign C axis if found
+    if c_axis is not None:
+        axes[c_axis] = 'C'
+        remaining_dims.remove(c_axis)
     
     # Remaining dims: prioritize Z, then Y, then X
     spatial_axes = ['Z', 'Y', 'X']
@@ -61,18 +76,29 @@ def split_channels(file_list, output_dir):
                 
                 # Get existing axes or infer new ones
                 axes = metadata.get('axes', '')
-                if not axes or len(axes) != len(shape):
-                    t_axis = get_t_axis(shape)
-                    axes = infer_axes(shape, t_axis)
                 
-                # Validate axes
+                if axes and len(axes) == len(shape) and 'C' in axes:
+                    # Use existing axes if valid
+                    channel_axis = axes.index('C')
+                else:
+                    # Infer axes
+                    t_axis = get_t_axis(shape)
+                    c_axis = find_channel_axis(shape)
+                    
+                    if c_axis is None:
+                        raise ValueError(f"No channel axis detected in shape {shape}")
+                    
+                    axes = infer_axes(shape, t_axis, c_axis)
+                    channel_axis = c_axis
+                
+                # Validate channel axis
                 if 'C' not in axes:
                     raise ValueError("No channel axis detected")
                 if axes.count('C') > 1:
                     raise ValueError("Multiple channel axes detected")
                 
-                channel_axis = axes.index('C')
                 num_channels = shape[channel_axis]
+                print(f"Processing {os.path.basename(file_path)}: shape {shape}, axes {axes}, {num_channels} channels")
                 
                 # Split and save channels
                 base = os.path.splitext(os.path.basename(file_path))[0]
@@ -107,7 +133,7 @@ def main():
     
     print(f"Processing {len(file_list)} files with settings:")
     print(" - Auto-detected time axis as first axis that is (5 ≤ dim < 400)")
-    print(" - Auto-detected channels (2-4)")
+    print(" - Auto-detected channels as first or last dimension with size ≤ 4")
     
     split_channels(file_list, output_dir)
     print(f"\nOutput saved to: {output_dir}")

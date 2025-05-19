@@ -13,20 +13,41 @@ def parse_args():
     parser.add_argument('--time_steps', type=int, default=None, nargs='?', help='Number of time steps for timelapse images. Leave empty if not a timelapse.')
     return parser.parse_args()
 
+def find_channel_axis(shape):
+    """Find channel axis - should be first or last dim with size <= 4"""
+    # Check first dimension
+    if shape[0] <= 4:
+        return 0
+    
+    # Check last dimension
+    if shape[-1] <= 4:
+        return len(shape) - 1
+    
+    # If neither first nor last, check all dimensions for compatibility
+    for i, dim_size in enumerate(shape):
+        if dim_size <= 4:
+            return i
+    
+    return None
+
 def infer_dimension_order(shape, num_channels, time_steps):
+    """Infer dimension order from shape, ensuring channel comes first"""
     dim_order = ''
+    
     if len(shape) == 4:
         if time_steps and shape[0] == time_steps:
-            dim_order = 'TZYX'
+            dim_order = 'TCYX'  # Time, Channel, Y, X
         else:
-            dim_order = 'ZCYX'
+            dim_order = 'CZYX'  # Channel, Z, Y, X
     elif len(shape) == 3:
         if time_steps and shape[0] == time_steps:
-            dim_order = 'TYX'
+            dim_order = 'TCY'   # Time, Channel, Y (treating as 2D with time)
         else:
-            dim_order = 'ZYX'
+            dim_order = 'CYX'   # Channel, Y, X
     elif len(shape) == 2:
-        dim_order = 'YX'
+        dim_order = 'YX'     # Y, X (single channel)
+    elif len(shape) == 5:
+        dim_order = 'TCZYX'  # Time, Channel, Z, Y, X
     else:
         raise ValueError(f"Unsupported image shape: {shape}")
     
@@ -38,34 +59,43 @@ def merge_channels_cpu(file_lists, channels, time_steps, merged_dir):
     # Get information about the first image
     with TiffFile(file_lists[channels[0]][0]) as tif:
         img = tif.asarray()
-        metadata = tif.imagej_metadata
+        metadata = tif.imagej_metadata or {}
 
     # Try to get dimension order from metadata
-    dim_order = metadata.get('axes', '') if metadata else ''
+    input_dim_order = metadata.get('axes', '') if metadata else ''
     
-    if not dim_order:
-        # Infer dimension order from shape and user info
-        dim_order = infer_dimension_order(img.shape, num_channels, time_steps)
+    # Infer the structure of the input images
+    is_3d = len(img.shape) >= 3 and (img.shape[-3] > 4 if len(img.shape) >= 3 else False)
+    is_time_series = time_steps is not None
+    
+    print(f"Input image shape: {img.shape}, input dimension order: {input_dim_order}")
+    print(f"Detected: {'3D' if is_3d else '2D'}, {'time series' if is_time_series else 'static'}")
 
-    print(f"Input image shape: {img.shape}, detected dimension order: {dim_order}")
-
-    is_3d = 'Z' in dim_order
-    is_time_series = 'T' in dim_order
-
+    # Determine output shape - always put channel first
     if is_time_series:
         if is_3d:
+            # Input: T,Z,Y,X -> Output: T,C,Z,Y,X
             time_points, z_slices, height, width = img.shape
             merged_shape = (time_points, num_channels, z_slices, height, width)
+            output_dim_order = 'TCZYX'
         else:
+            # Input: T,Y,X -> Output: T,C,Y,X
             time_points, height, width = img.shape
             merged_shape = (time_points, num_channels, height, width)
+            output_dim_order = 'TCYX'
     else:
         if is_3d:
+            # Input: Z,Y,X -> Output: C,Z,Y,X
             z_slices, height, width = img.shape
             merged_shape = (num_channels, z_slices, height, width)
+            output_dim_order = 'CZYX'
         else:
+            # Input: Y,X -> Output: C,Y,X
             height, width = img.shape
             merged_shape = (num_channels, height, width)
+            output_dim_order = 'CYX'
+
+    print(f"Output shape: {merged_shape}, output dimension order: {output_dim_order}")
 
     for i in tqdm(range(len(file_lists[channels[0]])), desc='Merging files'):
         merged_img = np.zeros(merged_shape, dtype=img.dtype)
@@ -74,6 +104,7 @@ def merge_channels_cpu(file_lists, channels, time_steps, merged_dir):
             with TiffFile(file_lists[channel][i]) as tif:
                 channel_img = tif.asarray()
                 
+                # Place each channel in the correct position (channel axis is always second from the left after time)
                 if is_time_series:
                     if is_3d:
                         merged_img[:, c, :, :, :] = channel_img
@@ -85,22 +116,20 @@ def merge_channels_cpu(file_lists, channels, time_steps, merged_dir):
                     else:
                         merged_img[c, :, :] = channel_img
 
-        # Reorder dimensions
-        if is_time_series:
-            if is_3d:
-                merged_img = np.moveaxis(merged_img, 1, 2)  # TCZYX
-            else:
-                merged_img = np.moveaxis(merged_img, 1, 1)  # TCYX
-        else:
-            if is_3d:
-                merged_img = np.moveaxis(merged_img, 0, 1)  # ZCYX
-            else:
-                merged_img = np.moveaxis(merged_img, 0, 0)  # CYX
+        # Generate output filename
+        base_filename = os.path.basename(file_lists[channels[0]][i])
+        # Remove the channel name from the filename if it exists
+        for channel in channels:
+            base_filename = base_filename.replace(f"{channel}-", "").replace(f"-{channel}", "").replace(channel, "")
+        # Clean up any double dashes or leading/trailing dashes
+        base_filename = base_filename.replace("--", "-").strip("-")
         
-        output_filename = os.path.join(merged_dir, os.path.basename(file_lists[channels[0]][i]).replace(channels[0], '').lstrip('-'))
+        output_filename = os.path.join(merged_dir, base_filename)
         print(f"Saving merged image to {output_filename}")
-        output_dim_order = 'TZCYX' if is_time_series and is_3d else 'TCYX' if is_time_series else 'ZCYX' if is_3d else 'CYX'
-        imwrite(output_filename, merged_img, compression='zlib', imagej=True, metadata={'axes': output_dim_order})
+        
+        # Save with proper metadata indicating channel-first format
+        imwrite(output_filename, merged_img, compression='zlib', imagej=True, 
+                metadata={'axes': output_dim_order})
     
     print("Merging completed successfully.")
 
