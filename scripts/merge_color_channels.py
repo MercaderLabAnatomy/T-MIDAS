@@ -14,12 +14,20 @@ def parse_args():
     parser.add_argument('--is_3d', action='store_true', help='Images are 3D (Z dimension present)')
     return parser.parse_args()
 
-def natural_sort_key(text):
-    """Generate a key for natural sorting (handles numbers correctly)"""
+def extract_core_filename(filepath, channel):
+    """Extract the core filename by removing the channel name"""
+    basename = os.path.basename(filepath)
+    # Remove the channel part and clean up
+    core = basename.replace(f" - {channel}.tif", "").replace(f"_{channel}.tif", "").replace(f"-{channel}.tif", "")
+    return core
+
+def natural_sort_key_for_channel(filepath, channel):
+    """Generate a key for natural sorting based on core filename"""
     import re
+    core = extract_core_filename(filepath, channel)
     def convert(text):
         return int(text) if text.isdigit() else text.lower()
-    return [convert(c) for c in re.split(r'(\d+)', text)]
+    return [convert(c) for c in re.split(r'(\d+)', core)]
 
 def infer_dimension_order(shape, time_steps, is_3d):
     """Infer dimension order from shape, ensuring channel comes first after time"""
@@ -49,35 +57,65 @@ def merge_channels_cpu(file_lists, channels, time_steps, is_3d, merged_dir):
     if num_files == 0:
         raise ValueError("No files found in any channel")
     
+    # Check dimensions of corresponding images across all channels
+    print("Checking image dimensions across channels...")
+    target_shape = None
+    shapes_match = True
+    
+    for i in range(min(3, num_files)):  # Check first 3 files
+        shapes_for_this_file = {}
+        for channel in channels:
+            with TiffFile(file_lists[channel][i]) as tif:
+                img = tif.asarray()
+                shapes_for_this_file[channel] = img.shape
+                
+        if target_shape is None:
+            target_shape = shapes_for_this_file[channels[0]]
+            
+        # Check if all channels have the same shape for this file
+        file_shapes = list(shapes_for_this_file.values())
+        if len(set(file_shapes)) > 1:
+            shapes_match = False
+            print(f"File {i}: Different shapes detected:")
+            for channel, shape in shapes_for_this_file.items():
+                print(f"  {channel}: {shape}")
+    
+    if not shapes_match:
+        print(f"\nWarning: Images have different dimensions. Will resize all to match {channels[0]} channel: {target_shape}")
+        resize_needed = True
+    else:
+        print(f"All images have consistent dimensions: {target_shape}")
+        resize_needed = False
+    
     # Get information about the first image to determine structure
     with TiffFile(file_lists[channels[0]][0]) as tif:
         img = tif.asarray()
 
-    print(f"Input image shape: {img.shape}")
+    print(f"Target image shape: {target_shape}")
     print(f"Structure: {'Time-lapse' if is_timelapse else 'Static'}{f' ({time_steps} steps)' if is_timelapse else ''}, {'3D' if is_3d else '2D'}")
 
     # Validate time dimension if specified
-    if is_timelapse and img.shape[0] != time_steps:
-        print(f"Warning: Expected {time_steps} time steps but found {img.shape[0]} in first dimension")
+    if is_timelapse and target_shape[0] != time_steps:
+        print(f"Warning: Expected {time_steps} time steps but found {target_shape[0]} in first dimension")
 
     # Determine output shape - channel comes first (after time if present)
     if is_timelapse:
         if is_3d:
             # Input: T,Z,Y,X -> Output: T,C,Z,Y,X
-            time_points, z_slices, height, width = img.shape
+            time_points, z_slices, height, width = target_shape
             merged_shape = (time_points, num_channels, z_slices, height, width)
         else:
             # Input: T,Y,X -> Output: T,C,Y,X
-            time_points, height, width = img.shape
+            time_points, height, width = target_shape
             merged_shape = (time_points, num_channels, height, width)
     else:
         if is_3d:
             # Input: Z,Y,X -> Output: C,Z,Y,X
-            z_slices, height, width = img.shape
+            z_slices, height, width = target_shape
             merged_shape = (num_channels, z_slices, height, width)
         else:
             # Input: Y,X -> Output: C,Y,X
-            height, width = img.shape
+            height, width = target_shape
             merged_shape = (num_channels, height, width)
 
     output_dim_order = infer_dimension_order(merged_shape, time_steps, is_3d)
@@ -91,6 +129,15 @@ def merge_channels_cpu(file_lists, channels, time_steps, is_3d, merged_dir):
         for c, channel in enumerate(channels):
             with TiffFile(file_lists[channel][i]) as tif:
                 channel_img = tif.asarray()
+                
+                # Resize if needed
+                if resize_needed and channel_img.shape != target_shape:
+                    from skimage.transform import resize
+                    print(f"Resizing {channel} image {i} from {channel_img.shape} to {target_shape}")
+                    # For label images, use nearest neighbor (order=0)
+                    # For intensity images, use bilinear (order=1) 
+                    channel_img = resize(channel_img, target_shape, order=1, preserve_range=True, anti_aliasing=True)
+                    channel_img = channel_img.astype(img.dtype)
                 
                 # Place each channel in the correct position
                 if is_timelapse:
@@ -135,7 +182,7 @@ def main():
     file_lists = {}
     for channel in channels:
         pattern = os.path.join(parent_dir, channel, '*.tif')
-        all_files = sorted(glob.glob(pattern), key=natural_sort_key)
+        all_files = sorted(glob.glob(pattern), key=lambda x: natural_sort_key_for_channel(x, channel))
         # Filter out label files
         file_lists[channel] = [f for f in all_files if not f.endswith('_labels.tif')]
 
@@ -153,6 +200,23 @@ def main():
         if file_lists[channel]:
             print(f"    First: {os.path.basename(file_lists[channel][0])}")
             print(f"    Last:  {os.path.basename(file_lists[channel][-1])}")
+
+    # Debug: Check if sorting is consistent across channels
+    print("\nVerifying sort order consistency:")
+    base_order = [os.path.basename(f) for f in file_lists[channels[0]]]
+    for channel in channels[1:]:
+        channel_order = [os.path.basename(f) for f in file_lists[channel]]
+        # Check first few filenames to see if they match the pattern
+        for i in range(min(3, len(base_order))):
+            base_core = base_order[i].replace(channels[0], "").replace(" - ", " - ").strip()
+            channel_core = channel_order[i].replace(channel, "").replace(" - ", " - ").strip()
+            if base_core != channel_core:
+                print(f"  WARNING: Sort mismatch at position {i}:")
+                print(f"    {channels[0]}: {base_order[i]} -> core: '{base_core}'")
+                print(f"    {channel}: {channel_order[i]} -> core: '{channel_core}'")
+                break
+    else:
+        print("  Sort order appears consistent across channels")
 
     # Create output directory
     merged_dir = os.path.join(parent_dir, 'merged')
