@@ -256,19 +256,20 @@ def merge_channels(parent_dir, channels, time_steps, is_3d, output_format):
         print("No matching files found across channels.")
         return
     
-    # Sample file to determine output shape and type
-    sample_channel = channels[0]
-    sample_file = file_groups[0][1][sample_channel]
-    with TiffFile(sample_file) as tif:
-        sample_img = tif.asarray()
-        sample_shape = sample_img.shape
-        sample_dtype = sample_img.dtype
-    
     # Process each group of matching files
     for core, channel_files in tqdm(file_groups, desc="Merging files"):
         try:
-            # Determine output shape for the merged image
+            # Determine output shape and type for THIS group
+            sample_channel = channels[0]
+            sample_file = channel_files[sample_channel]
+            with TiffFile(sample_file) as tif:
+                sample_img = tif.asarray()
+                sample_shape = sample_img.shape
+                sample_dtype = sample_img.dtype
+
+            # Now use sample_shape and sample_dtype for this group
             if output_format == 'python':
+
                 # For python: TZYXC or similar, with channel last
                 if is_timelapse:
                     if is_3d:
