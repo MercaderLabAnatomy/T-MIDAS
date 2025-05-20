@@ -687,7 +687,7 @@ def image_segmentation():
             '--input ' + input_folder +
             ' --threshold ' + threshold +
             ' --sigma ' + sigma +
-            '--gamma ' + gamma
+            ' --gamma ' + gamma
         )
 
         python_script_environment_setup(
