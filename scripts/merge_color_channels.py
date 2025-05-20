@@ -96,7 +96,7 @@ def merge_channels(file_lists, channels, time_steps, is_3d, merged_dir, output_f
     with TiffFile(file_lists[channels[0]][0]) as tif:
         img = tif.asarray()
 
-    print(f"Target image shape: {target_shape}")
+    #print(f"Target image shape: {target_shape}")
     print(f"Structure: {'Time-lapse' if is_timelapse else 'Static'}{f' ({time_steps} steps)' if is_timelapse else ''}, {'3D' if is_3d else '2D'}")
 
     # Validate time dimension if specified

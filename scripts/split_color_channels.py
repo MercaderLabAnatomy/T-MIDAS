@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument('--is_3d', action='store_true',
                        help='Images are 3D (Z dimension present)')
     parser.add_argument('--output_format', type=str, default='python', choices=['python', 'fiji'],
-                       help='Format dimension order: python (channel last) or fiji (channel interleaved)')
+                       help='Format dimension order: python (standard dimension order) or fiji (optimized for ImageJ)')
     return parser.parse_args()
 
 
@@ -122,6 +122,51 @@ def infer_axes(shape, channel_axis, time_steps, is_3d):
     
     return ''.join(axes)
 
+def get_output_axes_and_transpose(channel_img, axes_without_channel, output_format):
+    """
+    Determine the output axes order and whether transposition is needed
+    
+    Args:
+        channel_img: The single channel image
+        axes_without_channel: The axes string with the channel dimension removed
+        output_format: Either 'python' or 'fiji'
+        
+    Returns:
+        tuple: (transposed_img, output_axes)
+    """
+    if output_format == 'fiji':
+        # For ImageJ/Fiji compatibility, we want dimensions in TZYXS order
+        # Map dimensions to positions in array
+        dim_indices = {dim: i for i, dim in enumerate(axes_without_channel)}
+        
+        # Build target order and transpose indices
+        target_order = ''
+        transpose_indices = []
+        
+        # Add T if exists
+        if 'T' in dim_indices:
+            target_order += 'T'
+            transpose_indices.append(dim_indices['T'])
+            
+        # Add Z if exists  
+        if 'Z' in dim_indices:
+            target_order += 'Z'
+            transpose_indices.append(dim_indices['Z'])
+            
+        # Add Y and X (should always exist)
+        if 'Y' in dim_indices and 'X' in dim_indices:
+            target_order += 'YX'
+            transpose_indices.append(dim_indices['Y'])
+            transpose_indices.append(dim_indices['X'])
+        
+        # Only transpose if order is different
+        if axes_without_channel != target_order and len(transpose_indices) > 1:
+            return np.transpose(channel_img, transpose_indices), target_order
+        return channel_img, axes_without_channel
+    else:
+        # For Python format, we just keep the existing order (after removing C)
+        return channel_img, axes_without_channel
+
 def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
     is_timelapse = time_steps is not None
     
@@ -129,7 +174,7 @@ def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
         try:
             with TiffFile(file_path) as tif:
                 img = tif.asarray()
-                metadata = tif.imagej_metadata or {}
+                original_metadata = tif.imagej_metadata or {}
                 shape = img.shape
                 
                 print(f"\nProcessing: {os.path.basename(file_path)}")
@@ -141,9 +186,9 @@ def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
                 
                 if channel_axis is None:
                     raise ValueError(f"No channel axis detected in shape {shape}. "
-                                   f"Expected channel dimension ≤ 4")
+                                   f"Expected channel dimension ≤ 16")
                 
-                # Generate axes string
+                # Generate axes string for the full image
                 axes = infer_axes(shape, channel_axis, time_steps, is_3d)
                 
                 num_channels = shape[channel_axis]
@@ -154,60 +199,74 @@ def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
                 if 'C' not in axes:
                     raise ValueError("Failed to assign channel axis")
                 
+                # Create the axes string without the channel dimension
+                axes_without_channel = axes.replace('C', '')
+                
                 # Split and save channels
                 base = os.path.splitext(os.path.basename(file_path))[0]
                 for ch in range(num_channels):
+                    # Extract this channel's data
                     channel_img = np.take(img, ch, axis=channel_axis)
                     
-                    # For Fiji/ImageJ compatibility
-                    if output_format == 'fiji':
-                        # For ImageJ, we need axes in TZCYXS order
-                        # Since we're removing the C dimension, we need TZYXS
-                        # First construct dimension order for the channel image
-                        output_dims = list(axes)
-                        output_dims.remove('C')  # Remove channel dimension
-                        current_order = ''.join(output_dims)
-                        
-                        # Map to position in array
-                        dim_indices = {dim: i for i, dim in enumerate(current_order)}
-                        
-                        # Construct the transpose order to get TZYXS
-                        target_order = ''
-                        transpose_indices = []
-                        
-                        # Add T if exists
-                        if 'T' in dim_indices:
-                            target_order += 'T'
-                            transpose_indices.append(dim_indices['T'])
-                            
-                        # Add Z if exists  
-                        if 'Z' in dim_indices:
-                            target_order += 'Z'
-                            transpose_indices.append(dim_indices['Z'])
-                            
-                        # Add Y and X (should always exist)
-                        target_order += 'YX'
-                        transpose_indices.append(dim_indices['Y'])
-                        transpose_indices.append(dim_indices['X'])
-                        
-                        # Only transpose if order is different
-                        if current_order != target_order:
-                            channel_img = np.transpose(channel_img, transpose_indices)
-                            output_axes = target_order
-                        else:
-                            output_axes = current_order
-                    else:
-                        # For Python format, just remove the channel dimension
-                        output_axes = axes.replace('C', '')
+                    # Process axes order for the output
+                    channel_img, output_axes = get_output_axes_and_transpose(
+                        channel_img, axes_without_channel, output_format)
                     
+                    # Setup metadata based on output format
                     imagej_compatible = (output_format == 'fiji')
                     
+                    # Create metadata for ImageJ if needed
+                    imagej_metadata = None
+                    if imagej_compatible:
+                        # Create appropriate ImageJ metadata
+                        dims = len(channel_img.shape)
+                        imagej_metadata = {}
+                        
+                        if 'T' in output_axes and 'Z' in output_axes:
+                            # 4D: TZYX
+                            t_index = output_axes.index('T')
+                            z_index = output_axes.index('Z')
+                            imagej_metadata = {
+                                'ImageJ': '1.53c',
+                                'images': channel_img.shape[t_index] * channel_img.shape[z_index],
+                                'slices': channel_img.shape[z_index],
+                                'frames': channel_img.shape[t_index],
+                                'hyperstack': True,
+                                'mode': 'grayscale',
+                                'unit': 'pixel'
+                            }
+                        elif 'T' in output_axes:
+                            # 3D: TYX
+                            t_index = output_axes.index('T')
+                            imagej_metadata = {
+                                'ImageJ': '1.53c',
+                                'images': channel_img.shape[t_index],
+                                'frames': channel_img.shape[t_index],
+                                'hyperstack': True,
+                                'mode': 'grayscale',
+                                'unit': 'pixel'
+                            }
+                        elif 'Z' in output_axes:
+                            # 3D: ZYX
+                            z_index = output_axes.index('Z')
+                            imagej_metadata = {
+                                'ImageJ': '1.53c',
+                                'images': channel_img.shape[z_index],
+                                'slices': channel_img.shape[z_index],
+                                'hyperstack': True,
+                                'mode': 'grayscale',
+                                'unit': 'pixel'
+                            }
+                    
+                    # Create the output filename
                     output_filename = os.path.join(output_dir, f"C{ch}-{base}.tif")
+                    
+                    # Save the channel image
                     imwrite(
                         output_filename,
                         channel_img,
                         imagej=imagej_compatible,
-                        metadata={'axes': output_axes} if not imagej_compatible else None,
+                        metadata=imagej_metadata if imagej_compatible else {'axes': output_axes},
                         compression='zlib'
                     )
                     
@@ -215,6 +274,7 @@ def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
                     
         except Exception as e:
             print(f"Error processing {file_path}: {str(e)}", file=sys.stderr)
+
 def main():
     args = parse_args()
     input_dir = args.input
@@ -236,9 +296,8 @@ def main():
     print(f"Processing {len(file_list)} files:")
     print(f"  Time-lapse: {time_steps if is_timelapse else 'No'}{f' steps' if is_timelapse else ''}")
     print(f"  3D: {is_3d}")
-    print(f"  Expected structure: {'T' if is_timelapse else ''}{'C' if True else ''}{'Z' if is_3d else ''}YX")
-    
-    print(f"  Output format: {output_format.upper()} ({output_format == 'fiji' and 'channel interleaved (XYCZT)' or 'channel last (Python standard)'})")
+    print(f"  Output format: {output_format.upper()} "
+          f"({'Compatible with ImageJ/Fiji' if output_format == 'fiji' else 'Standard Python dimension order'})")
     
     split_channels(file_list, output_dir, time_steps, is_3d, output_format)
     print(f"\nOutput saved to: {output_dir}")

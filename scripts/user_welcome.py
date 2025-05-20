@@ -322,8 +322,8 @@ def image_preprocessing():
         time_steps = input("\nEnter the number of time steps for timelapse images. Leave empty if not a timelapse: ")
         is_3d = input("\nAre the images 3D (with Z dimension)? (y/n): ")
         print("\nOutput format options:")
-        print("- python: Channel as last dimension (default for Napari/T-MIDAS)")
-        print("- fiji: Channel interleaved in third position (XYCZT for ImageJ/Fiji)")
+        print("- python: TZYX (default for Napari/T-MIDAS)")
+        print("- fiji: XYZT (default for ImageJ/Fiji)")
         output_format = input("\nChoose output format [python/fiji] (default: python): ") or "python"
 
         # Build the command with conditional flags
