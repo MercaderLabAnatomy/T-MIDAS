@@ -675,17 +675,20 @@ def image_segmentation():
             ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
-        use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
-        gamma = input("\n Enter gamma correction value (brighten darker regions < 1.0 < suppress darker regions), or type Enter to not use it:  ")
+        gamma = input("\nEnter gamma correction value (brighten darker regions < 1.0 < suppress darker regions), or type Enter to not use it:  ")
+        sigma = input("\nEnter sigma value for Gaussian blur (float, 0 disables blur, default 1.0): ")
+        if not sigma.strip():
+            sigma = "0"
+        if not gamma.strip():
+            gamma = "1.0"
 
-        # Build the command with optional gamma
+        # Build the command
         command = (
             '--input ' + input_folder +
             ' --threshold ' + threshold +
-            ' --use_filters ' + use_filters
+            ' --sigma ' + sigma +
+            '--gamma ' + gamma
         )
-        if gamma.strip():  # Only add gamma if not empty
-            command += ' --gamma ' + gamma
 
         python_script_environment_setup(
             'tmidas-env',
@@ -693,6 +696,7 @@ def image_segmentation():
             command
         )
         restart_program()
+
 
 
 
