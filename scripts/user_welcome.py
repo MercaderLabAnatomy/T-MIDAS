@@ -316,11 +316,15 @@ def image_preprocessing():
 
     if choice == "7":
         os.system('clear')
-        print(wrapper.fill("You chose to split the color channels of multicolor images. A popup will appear in a moment asking you to select the folder containing the multicolor images. You will be asked the names of the color channel output folders and number of time steps in case of time lapse."))
+        print(wrapper.fill("You chose to split the color channels of multicolor TIF images. A popup will appear in a moment asking you to select the folder containing the multicolor images."))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the multicolor images: ")
         time_steps = input("\nEnter the number of time steps for timelapse images. Leave empty if not a timelapse: ")
         is_3d = input("\nAre the images 3D (with Z dimension)? (y/n): ")
+        print("\nOutput format options:")
+        print("- python: Channel as last dimension (default for Napari/T-MIDAS)")
+        print("- fiji: Channel interleaved in third position (XYCZT for ImageJ/Fiji)")
+        output_format = input("\nChoose output format [python/fiji] (default: python): ") or "python"
 
         # Build the command with conditional flags
         command_args = '--input ' + input_folder
@@ -328,32 +332,39 @@ def image_preprocessing():
             command_args += ' --time_steps ' + time_steps
         if is_3d.lower() in ['y', 'yes']:
             command_args += ' --is_3d'
+        command_args += ' --output_format ' + output_format
 
         python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/split_color_channels.py',
-                                        command_args)
+                                    os.environ.get("TMIDAS_PATH")+'/scripts/split_color_channels.py',
+                                    command_args)
         restart_program()
         
     if choice == "8":
         os.system('clear')
-        print(wrapper.fill("You chose to merge the color channels of multicolor images. A popup will appear in a moment asking you to select the folder containing the color channel folders. You will be asked to enter the names of the color channels."))
+        print(wrapper.fill("You chose to merge single color TIF images. For this, you need to put your single color images in separate folders (example: C0 C1 C2). A popup will appear in a moment asking you to select the parent folder. You will then be asked to enter the names of the color channels. Concerning order of dimensions: If you chose Fiji and then load the merged image in Fiji and the order of dimensions is not displayed correctly, do the following: Choose Image > Hyperstacks > Reorder Hyperstack. If you chose Python and then load the merged image in Napari and the dimensions are not displayed correctly, try to change the order of visible axes (Ctrl+E)."))
         print("\n")
         input_folder = popup_input("\nEnter the path to the folder containing the color channel folders: ")
         channel_names = input("\nEnter the names of the color channels (example: FITC DAPI TRITC): ")
         time_steps = input("\nEnter the number of time steps for timelapse images. Leave empty if not a timelapse: ")
         is_3d = input("\nAre the images 3D (with Z dimension)? (y/n): ")
+        print("\nOutput format options:")
+        print("- python: Channel as last dimension (default for Napari/T-MIDAS)")
+        print("- fiji: Channel interleaved in third position (XYCZT for ImageJ/Fiji)")
+        output_format = input("\nChoose output format [python/fiji] (default: python): ") or "python"
 
-        # Build the command with conditional --is_3d flag
+        # Build the command with conditional flags
         command_args = '--input ' + input_folder + ' --channels ' + channel_names
         if time_steps.strip():  # Only add time_steps if not empty
             command_args += ' --time_steps ' + time_steps
         if is_3d.lower() in ['y', 'yes']:
             command_args += ' --is_3d'
+        command_args += ' --output_format ' + output_format
 
         python_script_environment_setup('tmidas-env',
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/merge_color_channels.py',
-                                        command_args)
+                                    os.environ.get("TMIDAS_PATH")+'/scripts/merge_color_channels.py',
+                                    command_args)
         restart_program()
+
     if choice == "9":
         os.system('clear')
         print('''You chose to convert RGB .tif files to .tif label images. \n

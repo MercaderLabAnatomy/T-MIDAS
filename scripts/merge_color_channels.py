@@ -12,6 +12,8 @@ def parse_args():
     parser.add_argument('--channels', nargs='+', type=str, required=True, help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--time_steps', type=int, default=None, help='Number of time steps if time-lapse (leave empty if static)')
     parser.add_argument('--is_3d', action='store_true', help='Images are 3D (Z dimension present)')
+    parser.add_argument('--output_format', type=str, default='python', choices=['python', 'fiji'],
+                      help='Format dimension order: python (channel last) or fiji (channel interleaved)')
     return parser.parse_args()
 
 def extract_core_filename(filepath, channel):
@@ -44,7 +46,10 @@ def infer_dimension_order(shape, time_steps, is_3d):
         else:
             return 'CYX'    # Channel, Y, X
 
-def merge_channels_cpu(file_lists, channels, time_steps, is_3d, merged_dir):
+
+
+
+def merge_channels(file_lists, channels, time_steps, is_3d, merged_dir, output_format):
     num_channels = len(channels)
     is_timelapse = time_steps is not None
     
@@ -98,58 +103,119 @@ def merge_channels_cpu(file_lists, channels, time_steps, is_3d, merged_dir):
     if is_timelapse and target_shape[0] != time_steps:
         print(f"Warning: Expected {time_steps} time steps but found {target_shape[0]} in first dimension")
 
-    # Determine output shape - channel comes first (after time if present)
-    if is_timelapse:
-        if is_3d:
-            # Input: T,Z,Y,X -> Output: T,C,Z,Y,X
-            time_points, z_slices, height, width = target_shape
-            merged_shape = (time_points, num_channels, z_slices, height, width)
+    # Determine output shape - adjust dimension order based on output format
+    if output_format == 'fiji':
+        # For Fiji/ImageJ, use TZCYX order
+        if is_timelapse:
+            if is_3d:
+                # T, Z, C, Y, X
+                time_points, z_slices, height, width = target_shape
+                merged_shape = (time_points, z_slices, num_channels, height, width)
+                output_dim_order = 'TZCYX'
+            else:
+                # T, C, Y, X
+                time_points, height, width = target_shape
+                merged_shape = (time_points, num_channels, height, width)
+                output_dim_order = 'TCYX'
         else:
-            # Input: T,Y,X -> Output: T,C,Y,X
-            time_points, height, width = target_shape
-            merged_shape = (time_points, num_channels, height, width)
+            if is_3d:
+                # Z, C, Y, X
+                z_slices, height, width = target_shape
+                merged_shape = (z_slices, num_channels, height, width)
+                output_dim_order = 'ZCYX'
+            else:
+                # C, Y, X
+                height, width = target_shape
+                merged_shape = (num_channels, height, width)
+                output_dim_order = 'CYX'
     else:
-        if is_3d:
-            # Input: Z,Y,X -> Output: C,Z,Y,X
-            z_slices, height, width = target_shape
-            merged_shape = (num_channels, z_slices, height, width)
+        # For Python format, put channels last (TZYXC, TYXC, ZYXC, YXC)
+        if is_timelapse:
+            if is_3d:
+                # T, Z, Y, X, C
+                time_points, z_slices, height, width = target_shape
+                merged_shape = (time_points, z_slices, height, width, num_channels)
+                output_dim_order = 'TZYXC'
+            else:
+                # T, Y, X, C
+                time_points, height, width = target_shape
+                merged_shape = (time_points, height, width, num_channels)
+                output_dim_order = 'TYXC'
         else:
-            # Input: Y,X -> Output: C,Y,X
-            height, width = target_shape
-            merged_shape = (num_channels, height, width)
+            if is_3d:
+                # Z, Y, X, C
+                z_slices, height, width = target_shape
+                merged_shape = (z_slices, height, width, num_channels)
+                output_dim_order = 'ZYXC'
+            else:
+                # Y, X, C
+                height, width = target_shape
+                merged_shape = (height, width, num_channels)
+                output_dim_order = 'YXC'
 
-    output_dim_order = infer_dimension_order(merged_shape, time_steps, is_3d)
     print(f"Output shape: {merged_shape}, dimension order: {output_dim_order}")
 
     # Process each file index
     for i in tqdm(range(num_files), desc='Merging files'):
-        merged_img = np.zeros(merged_shape, dtype=img.dtype)
-        
-        # Load corresponding file from each channel
-        for c, channel in enumerate(channels):
-            with TiffFile(file_lists[channel][i]) as tif:
-                channel_img = tif.asarray()
-                
-                # Resize if needed
-                if resize_needed and channel_img.shape != target_shape:
-                    from skimage.transform import resize
-                    print(f"Resizing {channel} image {i} from {channel_img.shape} to {target_shape}")
-                    # For label images, use nearest neighbor (order=0)
-                    # For intensity images, use bilinear (order=1) 
-                    channel_img = resize(channel_img, target_shape, order=1, preserve_range=True, anti_aliasing=True)
-                    channel_img = channel_img.astype(img.dtype)
-                
-                # Place each channel in the correct position
-                if is_timelapse:
-                    if is_3d:
-                        merged_img[:, c, :, :, :] = channel_img
+        # For Python format with channels last, we need a different array structure
+        if output_format == 'python':
+            # For channel-last format, initialize with channels in last position
+            merged_img = np.zeros(merged_shape, dtype=img.dtype)
+            
+            # Load corresponding file from each channel
+            for c, channel in enumerate(channels):
+                with TiffFile(file_lists[channel][i]) as tif:
+                    channel_img = tif.asarray()
+                    
+                    # Resize if needed
+                    if resize_needed and channel_img.shape != target_shape:
+                        from skimage.transform import resize
+                        print(f"Resizing {channel} image {i} from {channel_img.shape} to {target_shape}")
+                        channel_img = resize(channel_img, target_shape, order=1, preserve_range=True, anti_aliasing=True)
+                        channel_img = channel_img.astype(img.dtype)
+                    
+                    # Place channel in last position based on dimension order
+                    if is_timelapse:
+                        if is_3d:
+                            # TZYXC
+                            merged_img[:, :, :, :, c] = channel_img
+                        else:
+                            # TYXC
+                            merged_img[:, :, :, c] = channel_img
                     else:
-                        merged_img[:, c, :, :] = channel_img
-                else:
-                    if is_3d:
-                        merged_img[c, :, :, :] = channel_img
+                        if is_3d:
+                            # ZYXC
+                            merged_img[:, :, :, c] = channel_img
+                        else:
+                            # YXC
+                            merged_img[:, :, c] = channel_img
+        else:
+            # Original code for Fiji format (channels first or third position)
+            merged_img = np.zeros(merged_shape, dtype=img.dtype)
+            
+            # Load corresponding file from each channel
+            for c, channel in enumerate(channels):
+                with TiffFile(file_lists[channel][i]) as tif:
+                    channel_img = tif.asarray()
+                    
+                    # Resize if needed
+                    if resize_needed and channel_img.shape != target_shape:
+                        from skimage.transform import resize
+                        print(f"Resizing {channel} image {i} from {channel_img.shape} to {target_shape}")
+                        channel_img = resize(channel_img, target_shape, order=1, preserve_range=True, anti_aliasing=True)
+                        channel_img = channel_img.astype(img.dtype)
+                    
+                    # Place each channel in the correct position (TCZYX or similar)
+                    if is_timelapse:
+                        if is_3d:
+                            merged_img[:, c, :, :, :] = channel_img
+                        else:
+                            merged_img[:, c, :, :] = channel_img
                     else:
-                        merged_img[c, :, :] = channel_img
+                        if is_3d:
+                            merged_img[c, :, :, :] = channel_img
+                        else:
+                            merged_img[c, :, :] = channel_img
 
         # Generate output filename based on the first channel's filename
         base_filename = os.path.basename(file_lists[channels[0]][i])
@@ -164,9 +230,73 @@ def merge_channels_cpu(file_lists, channels, time_steps, is_3d, merged_dir):
         
         output_filename = os.path.join(merged_dir, clean_filename)
         
-        # Save with proper metadata indicating channel-first format
-        imwrite(output_filename, merged_img, compression='zlib', imagej=True, 
-                metadata={'axes': output_dim_order})
+        # Save with appropriate metadata for the format
+        if output_format == 'fiji':
+            # For Fiji/ImageJ, set explicit dimension metadata
+            if is_timelapse and is_3d:
+                # 5D: TZCYX
+                imagej_metadata = {
+                    'ImageJ': '1.53c',
+                    'images': merged_shape[0] * merged_shape[1] * num_channels,
+                    'channels': num_channels,
+                    'slices': merged_shape[1],  # Z dimension
+                    'frames': merged_shape[0],  # T dimension
+                    'hyperstack': True,
+                    'mode': 'composite',
+                    'loop': False,
+                    'unit': 'pixel'
+                }
+            elif is_timelapse:
+                # 4D: TCYX
+                imagej_metadata = {
+                    'ImageJ': '1.53c',
+                    'images': merged_shape[0] * num_channels,
+                    'channels': num_channels,
+                    'frames': merged_shape[0],  # T dimension
+                    'hyperstack': True,
+                    'mode': 'composite',
+                    'loop': False,
+                    'unit': 'pixel'
+                }
+            elif is_3d:
+                # 4D: ZCYX
+                imagej_metadata = {
+                    'ImageJ': '1.53c',
+                    'images': merged_shape[0] * num_channels,
+                    'channels': num_channels,
+                    'slices': merged_shape[0],  # Z dimension
+                    'hyperstack': True,
+                    'mode': 'composite',
+                    'unit': 'pixel'
+                }
+            else:
+                # 3D: CYX
+                imagej_metadata = {
+                    'ImageJ': '1.53c',
+                    'images': num_channels,
+                    'channels': num_channels,
+                    'hyperstack': num_channels > 1,
+                    'mode': 'composite' if num_channels > 1 else 'grayscale',
+                    'unit': 'pixel'
+                }
+            
+            # Write with ImageJ metadata
+            imwrite(
+                output_filename,
+                merged_img,
+                imagej=True,
+                metadata=imagej_metadata,
+                compression='zlib'
+            )
+        else:
+            # For Python format
+            metadata = {'axes': output_dim_order}
+            imwrite(
+                output_filename,
+                merged_img,
+                metadata=metadata,
+                compression='zlib'
+            )
     
     print(f"Merging completed successfully. {num_files} files saved.")
 
@@ -177,6 +307,7 @@ def main():
     time_steps = args.time_steps
     is_3d = args.is_3d
     is_timelapse = time_steps is not None
+    output_format = args.output_format
 
     # Get sorted list of files for each channel (natural sort for proper numeric ordering)
     file_lists = {}
@@ -223,7 +354,10 @@ def main():
     if not os.path.exists(merged_dir):
         os.makedirs(merged_dir)
 
-    merge_channels_cpu(file_lists, channels, time_steps, is_3d, merged_dir)
+    print(f"  Output format: {output_format.upper()} ({output_format == 'fiji' and 'channel interleaved (XYCZT)' or 'channel last (Python standard)'})")
+    
+    merge_channels(file_lists, channels, time_steps, is_3d, merged_dir, output_format)
+
     print(f"Merged images saved in {merged_dir}")
 
 if __name__ == "__main__":

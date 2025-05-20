@@ -14,41 +14,74 @@ def parse_args():
                        help='Number of time steps if time-lapse (leave empty if static)')
     parser.add_argument('--is_3d', action='store_true',
                        help='Images are 3D (Z dimension present)')
+    parser.add_argument('--output_format', type=str, default='python', choices=['python', 'fiji'],
+                       help='Format dimension order: python (channel last) or fiji (channel interleaved)')
     return parser.parse_args()
 
+
 def find_channel_axis(shape, time_steps, is_3d):
-    """Find channel axis based on user-specified structure and size <= 4"""
+    """Find channel axis based on typical microscopy data organization.
+    
+    In microscopy data, channels are typically:
+    - In 5D data: the third dimension (T,Z,C,Y,X)
+    - In 4D data without time: the first dimension (C,Z,Y,X)
+    - In 4D data without Z: the second dimension (T,C,Y,X)
+    - In 3D data: the first dimension (C,Y,X)
+    
+    Returns the axis index that contains the channel dimension.
+    """
+    ndim = len(shape)
     is_timelapse = time_steps is not None
     
-    # Expected dimension order: (T)CZ(Y)X or (T)(Z)YXC
-    # Channel should be first or last dimension with size <= 4
+    # 5D case (T,Z,C,Y,X) or similar
+    if ndim == 5:
+        # Check if the third dimension (index 2) has a small size (typical for channels)
+        if shape[2] <= 16:  # Most microscopy has fewer than 16 channels
+            return 2
+        # If third dimension is large, check the last dimension
+        elif shape[-1] <= 16:
+            return ndim - 1
     
-    expected_dims = (is_timelapse and 1 or 0) + (is_3d and 1 or 0) + 2  # +2 for Y,X
+    # 4D case
+    elif ndim == 4:
+        if is_timelapse and is_3d:
+            # If both time and Z present, channels might not be represented as a dimension
+            # Try the last dimension which could be RGB interleaved
+            if shape[-1] <= 16:
+                return ndim - 1
+            # Otherwise, unsure - return None
+            return None
+        elif is_timelapse:
+            # For (T,C,Y,X) - channel is second dimension
+            if shape[1] <= 16:
+                return 1
+        elif is_3d:
+            # For (C,Z,Y,X) - channel is first dimension
+            if shape[0] <= 16:
+                return 0
+            # For (Z,C,Y,X) - channel is second dimension
+            elif shape[1] <= 16:
+                return 1
     
-    if len(shape) < expected_dims:
-        raise ValueError(f"Image has {len(shape)} dimensions but expected at least {expected_dims} "
-                        f"(T={is_timelapse}, Z={is_3d}, Y, X)")
+    # 3D case
+    elif ndim == 3:
+        # Check first dimension for (C,Y,X)
+        if shape[0] <= 16:
+            return 0
+        # Check last dimension for (Y,X,C) style RGB data
+        elif shape[-1] <= 16:
+            return ndim - 1
     
-    # Validate time dimension if specified
-    if is_timelapse and shape[0] != time_steps:
-        print(f"Warning: Expected {time_steps} time steps but found {shape[0]} in first dimension")
+    # Last resort: check all dimensions for a small value (3-16) that could be channels
+    for i, dim_size in enumerate(shape):
+        # Skip dimensions that are likely spatial (Y,X) - typically the last two
+        if i >= ndim - 2:
+            continue
+        # A dimension with size 1-16 that isn't time is likely channels
+        if 1 <= dim_size <= 16 and (not is_timelapse or i != 0):
+            return i
     
-    # Check if we have more dimensions than expected (likely includes channel)
-    if len(shape) > expected_dims:
-        # Check first dimension (channel-first: C at position 0 or 1 if timelapse)
-        expected_channel_pos = 1 if is_timelapse else 0
-        if expected_channel_pos < len(shape) and shape[expected_channel_pos] <= 4:
-            return expected_channel_pos
-        
-        # Check last dimension (channel-last)
-        if shape[-1] <= 4:
-            return len(shape) - 1
-        
-        # Check all dimensions for any with size <= 4
-        for i, dim_size in enumerate(shape):
-            if dim_size <= 4:
-                return i
-    
+    # If we couldn't find a clear candidate, return None
     return None
 
 def infer_axes(shape, channel_axis, time_steps, is_3d):
@@ -89,7 +122,7 @@ def infer_axes(shape, channel_axis, time_steps, is_3d):
     
     return ''.join(axes)
 
-def split_channels(file_list, output_dir, time_steps, is_3d):
+def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
     is_timelapse = time_steps is not None
     
     for file_path in tqdm(file_list, desc="Processing"):
@@ -125,14 +158,56 @@ def split_channels(file_list, output_dir, time_steps, is_3d):
                 base = os.path.splitext(os.path.basename(file_path))[0]
                 for ch in range(num_channels):
                     channel_img = np.take(img, ch, axis=channel_axis)
-                    output_axes = axes.replace('C', '')
+                    
+                    # For Fiji/ImageJ compatibility
+                    if output_format == 'fiji':
+                        # For ImageJ, we need axes in TZCYXS order
+                        # Since we're removing the C dimension, we need TZYXS
+                        # First construct dimension order for the channel image
+                        output_dims = list(axes)
+                        output_dims.remove('C')  # Remove channel dimension
+                        current_order = ''.join(output_dims)
+                        
+                        # Map to position in array
+                        dim_indices = {dim: i for i, dim in enumerate(current_order)}
+                        
+                        # Construct the transpose order to get TZYXS
+                        target_order = ''
+                        transpose_indices = []
+                        
+                        # Add T if exists
+                        if 'T' in dim_indices:
+                            target_order += 'T'
+                            transpose_indices.append(dim_indices['T'])
+                            
+                        # Add Z if exists  
+                        if 'Z' in dim_indices:
+                            target_order += 'Z'
+                            transpose_indices.append(dim_indices['Z'])
+                            
+                        # Add Y and X (should always exist)
+                        target_order += 'YX'
+                        transpose_indices.append(dim_indices['Y'])
+                        transpose_indices.append(dim_indices['X'])
+                        
+                        # Only transpose if order is different
+                        if current_order != target_order:
+                            channel_img = np.transpose(channel_img, transpose_indices)
+                            output_axes = target_order
+                        else:
+                            output_axes = current_order
+                    else:
+                        # For Python format, just remove the channel dimension
+                        output_axes = axes.replace('C', '')
+                    
+                    imagej_compatible = (output_format == 'fiji')
                     
                     output_filename = os.path.join(output_dir, f"C{ch}-{base}.tif")
                     imwrite(
                         output_filename,
                         channel_img,
-                        imagej=True,
-                        metadata={'axes': output_axes},
+                        imagej=imagej_compatible,
+                        metadata={'axes': output_axes} if not imagej_compatible else None,
                         compression='zlib'
                     )
                     
@@ -140,12 +215,12 @@ def split_channels(file_list, output_dir, time_steps, is_3d):
                     
         except Exception as e:
             print(f"Error processing {file_path}: {str(e)}", file=sys.stderr)
-
 def main():
     args = parse_args()
     input_dir = args.input
     time_steps = args.time_steps
     is_3d = args.is_3d
+    output_format = args.output_format
     is_timelapse = time_steps is not None
     
     if not os.path.isdir(input_dir):
@@ -163,7 +238,9 @@ def main():
     print(f"  3D: {is_3d}")
     print(f"  Expected structure: {'T' if is_timelapse else ''}{'C' if True else ''}{'Z' if is_3d else ''}YX")
     
-    split_channels(file_list, output_dir, time_steps, is_3d)
+    print(f"  Output format: {output_format.upper()} ({output_format == 'fiji' and 'channel interleaved (XYCZT)' or 'channel last (Python standard)'})")
+    
+    split_channels(file_list, output_dir, time_steps, is_3d, output_format)
     print(f"\nOutput saved to: {output_dir}")
 
 if __name__ == "__main__":
