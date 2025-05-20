@@ -672,16 +672,30 @@ def image_segmentation():
         os.system('clear')
         print('''You chose semantic segmentation (2D, fluorescence or brightfield).\n
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
-                
-              ''')
+            ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
         use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
         gamma = input("\n Enter gamma correction value (brighten darker regions < 1.0 < suppress darker regions), or type Enter to not use it:  ")
-        python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_2D.py',
-                                        '--input ' + input_folder + ' --threshold ' + threshold + ' --use_filters ' + use_filters + ' --gamma ' + gamma)
+
+        # Build the command with optional gamma
+        command = (
+            '--input ' + input_folder +
+            ' --threshold ' + threshold +
+            ' --use_filters ' + use_filters
+        )
+        if gamma.strip():  # Only add gamma if not empty
+            command += ' --gamma ' + gamma
+
+        python_script_environment_setup(
+            'tmidas-env',
+            os.environ.get("TMIDAS_PATH") + '/scripts/segmentation_semantic_2D.py',
+            command
+        )
         restart_program()
+
+
+
     if choice == "4":
         os.system('clear')
         print('''You chose semi-automated segmentation (2D; Segment Anything).\n
