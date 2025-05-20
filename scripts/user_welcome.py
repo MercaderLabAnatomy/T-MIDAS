@@ -678,7 +678,7 @@ def image_segmentation():
         gamma = input("\nEnter gamma correction value (brighten darker regions < 1.0 < suppress darker regions), or type Enter to not use it:  ")
         sigma = input("\nEnter sigma value for Gaussian blur (float, 0 disables blur, default 1.0): ")
         if not sigma.strip():
-            sigma = "0"
+            sigma = "0.0"
         if not gamma.strip():
             gamma = "1.0"
 

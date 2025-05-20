@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     parser.add_argument("--threshold", type=int, default=None, help="Enter an intensity threshold value within the range 1-255 if you want to define it yourself or enter 0 to use gauss-otsu thresholding.")
     parser.add_argument("--gamma", type=float, default="1.0", help="Gamma value for gamma correction. Default: 1.0 / no correction.")
-    parser.add_argument("--sigma", type=float, default=0, help="Sigma value for Gaussian blur (default: 0 / no blur).")
+    parser.add_argument("--sigma", type=float, default="0.0", help="Sigma value for Gaussian blur (default: 0 / no blur).")
     return parser.parse_args()
 
 args = parse_args()
