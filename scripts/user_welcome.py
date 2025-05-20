@@ -637,7 +637,7 @@ def image_segmentation():
         if choice == "2":
             print("\nYou chose Cellpose's cyto3 model.")
             print("\n")
-            print(wrapper.fill("First, you will be asked to enter the typical diameter of the objects that you want to segment. If you want to let Cellpose predict the diameter, enter 0. Diameter prediction only works for 2D images."))
+            print(wrapper.fill("First, you will be asked to enter the typical diameter (in pixels!) of the objects that you want to segment. If you have 2D images, you can let Cellpose predict the diameter (enter 0)."))
             print("\n")
             diameter = input("\nEnter the typical diameter of the objects that you want to segment: ")
             print("\n")

@@ -39,8 +39,8 @@ More detailed information is provided via text-based user interface.
     [4] Sample random image subregions (/w random seed)
     [5] Enhance local contrast (CLAHE, 8bit)
     [6] Restore images with Cellpose (single or multiple color channel, 2D or 3D, also time series)
-    [7] Split color channels (2D or 3D, time series)
-    [8] Merge color channels (2D or 3D, time series)
+    [7] Split color channels (TIF; 2D or 3D, time series)
+    [8] Merge color channels (TIF; 2D or 3D, time series)
     [9] Convert RGB images to Napari label images
     [10] Crop zebrafish larvae from 4x Acquifer images (multicolor but requires brightfield)
     [11] Combine label images
