@@ -7,9 +7,7 @@ import argparse
 import numpy as np
 from skimage.io import imread
 import tifffile as tf
-import napari_simpleitk_image_processing as nsitk  # version 0.4.5
 import pyclesperanto_prototype as cle
-import napari_segment_blobs_and_things_with_membranes as nsbatwm
 import re
 from skimage.measure import regionprops
 from tqdm import tqdm
@@ -23,104 +21,99 @@ and regions of interest (ROIs) and counts the number of instances per ROI.
 The script uses the pyclesperanto library to process the images.
 
 The output is saved as a CSV file containing the following columns:
-- ROI: Name of the region of interest (ventricle_wo_injury, injury, border_zone)
+- ROI ID: ID of the region of interest
 - instances: Number of instances per ROI
 - ROI area (sq. mm): Area of the ROI in square millimeters
-
 """
 
-
-
 def parse_args():
-    parser = argparse.ArgumentParser(description="Input: Folder with all label images (ROIs and instance segmentations).")
+    parser = argparse.ArgumentParser(description="Input: Folder with label images (ROIs and instance segmentations).")
     parser.add_argument("--pixel_resolution", type=float, required=True, help="Pixel resolution of the images in um/px.")
     parser.add_argument("--input", type=str, required=True, help="Path to input label images.")
+    parser.add_argument("--roi_suffix", type=str, required=True, help="Suffix of the ROI label images (e.g., _ROI.tif).")
+    parser.add_argument("--instance_suffix", type=str, required=True, help="Suffix of the instance segmentation label images (e.g., _labels.tif).")
     return parser.parse_args()
 
 args = parse_args()
-
 
 def get_area(ROI):
     area = cle.sum_of_all_pixels(ROI)
     area_mm2 = area * (args.pixel_resolution / 1000)**2
     return area_mm2
 
-# def get_circularity(ROI):
-#     region = regionprops(ROI)
-#     circularity = 4.0 * np.pi * region.area / (region.perimeter ** 2.0) 
-#     return circularity
-
-# def get_AR(ROI):
-#     region = regionprops(ROI)
-#     AR = region.major_axis_length / region.minor_axis_length
-#     return AR
-
-def counter(ROI,instances):
+def counter(ROI, instances):
     instances_inside_ROI = cle.binary_and(ROI, instances)
     instances_inside_ROI = cle.connected_components_labeling_box(instances_inside_ROI)
     count = int(cle.maximum_of_all_pixels(instances_inside_ROI))
     return count
 
-
 # define function that counts instances per ROI
-def ROI2CSV(original_filepath, instance_filepath, 
-            ventricle_wo_injury_filepath, injury_filepath, border_zone_filepath):
-
+def ROI2CSV(original_filepath, instance_filepath, roi_filepath):
     # load label images
     instances = imread(instance_filepath)
-    ventricle_wo_injury = imread(ventricle_wo_injury_filepath)
-    injury = imread(injury_filepath)
-    border_zone = imread(border_zone_filepath)
-
-
+    roi_image = imread(roi_filepath)
+    
+    # Get unique ROI IDs (excluding background 0)
+    roi_ids = np.unique(roi_image)
+    roi_ids = roi_ids[roi_ids > 0]
+    
+    if len(roi_ids) == 0:
+        print(f"Warning: No ROIs found in {roi_filepath}")
+        return
+    
     # create CSV file
     filename = original_filepath.replace(".tif", ".csv")
-    with open(filename, 'w') as f:
+    with open(filename, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(["ROI", "instances","ROI area (sq. mm)"])#,"circularity","aspect_ratio"])
-        writer.writerow(["ventricle_wo_injury", counter(ventricle_wo_injury,instances), get_area(ventricle_wo_injury)])#, get_circularity(ventricle_wo_injury), get_AR(ventricle_wo_injury)])
-        writer.writerow(["injury", counter(injury,instances), get_area(injury)])#, get_circularity(injury), get_AR(injury)])
-        writer.writerow(["border_zone", counter(border_zone,instances), get_area(border_zone)])#, get_circularity(border_zone), get_AR(border_zone)])
+        writer.writerow(["ROI ID", "instances", "ROI area (sq. mm)"])
+        
+        for roi_id in roi_ids:
+            # Create a binary mask for this ROI ID
+            roi_mask = (roi_image == roi_id).astype(np.uint32)
+            # Count instances in this ROI
+            instance_count = counter(roi_mask, instances)
+            # Calculate area of this ROI
+            roi_area = get_area(roi_mask)
+            # Write results to CSV
+            writer.writerow([int(roi_id), instance_count, roi_area])
 
+def main():
+    # Find base filenames without suffixes
+    instance_pattern = args.instance_suffix.replace('.', '\\.')
+    roi_pattern = args.roi_suffix.replace('.', '\\.')
+    
+    # Get all base filenames
+    all_files = os.listdir(args.input)
+    instance_files = [f for f in all_files if re.search(instance_pattern + '$', f)]
+    roi_files = [f for f in all_files if re.search(roi_pattern + '$', f)]
+    
+    # Extract base filenames
+    instance_bases = [re.sub(instance_pattern + '$', '', f) for f in instance_files]
+    roi_bases = [re.sub(roi_pattern + '$', '', f) for f in roi_files]
+    
+    # Find common base filenames
+    common_bases = set(instance_bases).intersection(set(roi_bases))
+    
+    if not common_bases:
+        print("No matching file pairs found. Please check your suffix patterns.")
+        return
+    
+    print(f"Found {len(common_bases)} matching file pairs")
+    
+    for base in tqdm(common_bases, total=len(common_bases), desc="Processing images"):
+        instance_file = base + args.instance_suffix
+        roi_file = base + args.roi_suffix
+        
+        # Full paths
+        instance_path = os.path.join(args.input, instance_file)
+        roi_path = os.path.join(args.input, roi_file)
+        original_path = os.path.join(args.input, base + ".tif")
+        
+        # If original file doesn't exist, use the instance file path as base for the CSV
+        if not os.path.exists(original_path):
+            original_path = instance_path
+            
+        ROI2CSV(original_path, instance_path, roi_path)
 
-
-# create list of filenames
-filenames = os.listdir(args.input)
-# filter out files that don't end with .tif
-
-
-filenames = [s for s in filenames if "FITC" not in s]
-new_filenames = []
-
-for filename in filenames:
-    if filename.endswith(".tif"):
-        match = re.search(r'.+_roi_\d{2,3}', filename)
-        if match:
-            index = match.group(0)
-            new_filename = filename[:match.end()] + ".tif"
-            new_filenames.append(new_filename)
-
-# remove duplicates
-original_filenames = list(set(new_filenames))
-
-
-instance_filenames = [f.replace(".tif", "_labels.tif") for f in original_filenames]
-ventricle_wo_injury_filenames = [f.replace(".tif", "_ventricle_wo_injury.tif").replace("CY5", "FITC") for f in original_filenames]
-injury_filenames = [f.replace(".tif", "_injury.tif").replace("CY5", "FITC") for f in original_filenames]
-border_zone_filenames = [f.replace(".tif", "_border_zone.tif").replace("CY5", "FITC") for f in original_filenames]
-
-
-original_filepaths = [os.path.join(args.input, filename) for filename in original_filenames]
-instance_filepaths = [os.path.join(args.input, filename) for filename in instance_filenames]
-ventricle_wo_injury_filepaths = [os.path.join(args.input, filename) for filename in ventricle_wo_injury_filenames]
-injury_filepaths = [os.path.join(args.input, filename) for filename in injury_filenames]
-border_zone_filepaths = [os.path.join(args.input, filename) for filename in border_zone_filenames]
-
-
-# iterate over length of list
-for i in tqdm(range(len(original_filepaths)), total = len(original_filepaths), desc="Processing images"):
-    #print(f"Processing image: {original_filepaths[i]}")
-    ROI2CSV(original_filepaths[i], instance_filepaths[i], 
-            ventricle_wo_injury_filepaths[i], injury_filepaths[i], border_zone_filepaths[i])
-
-
+if __name__ == "__main__":
+    main()

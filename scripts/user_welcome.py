@@ -824,18 +824,26 @@ def ROI_analysis():
         restart_program()
     if choice == "2":
         os.system('clear')
-        print('''You chose to count spots in 2D ROI. You will have to provide two sets of label images: \n
-                1. The label images containing the ROI (suffix: _labels.tif) and \n
-                2. The label images containing the spots (suffix: _labels.tif). \n
-                A popup will appear in a moment asking you to select the folder containing the label images.
+        print('''You chose to count instances (spots) within ROIs in 2D images. \n
+                This script requires two types of label images with different suffixes: \n
+                1. Label images containing the regions of interest (ROIs), where each ROI has a unique ID
+                2. Label images containing the instance segmentations (spots)
+                
+                A popup will appear in a moment asking you to select the folder containing both types of label images.
                 ''')
 
-        input_folder = popup_input("\nInput: Folder with all label images (ROI and spots).")
+        input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         pixel_resolution = input("\nEnter the pixel resolution of the images in um/px: ")
+        roi_suffix = input("\nEnter the suffix of the ROI label images (e.g., _ROI.tif): ")
+        instance_suffix = input("\nEnter the suffix of the instance segmentation label images (e.g., _labels.tif): ")
+        
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/ROI_count_instances_2D.py',
-                                        '--input ' + input_folder + ' --pixel_resolution ' + pixel_resolution)
-        restart_program() 
+                                        '--input ' + input_folder + 
+                                        ' --pixel_resolution ' + pixel_resolution + 
+                                        ' --roi_suffix ' + roi_suffix + 
+                                        ' --instance_suffix ' + instance_suffix)
+        restart_program()
     if choice == "3":
         os.system('clear')
         print('''You chose to count blobs in 3D ROI. You will have to provide two sets of label images: \n
