@@ -171,7 +171,7 @@ try:
             mask,
             outdir=None  # Don't write CTC files, just get the tracked masks
         )
-        
+         
         output_file = '{mask_file}'.replace('{args.label_suffix}', '_tracked.tif')
         imwrite(output_file, masks_tracked.astype(np.uint32), compression='zlib')
         print(f'Saved tracked mask: {{output_file}}')
