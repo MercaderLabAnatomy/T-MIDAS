@@ -160,7 +160,7 @@ try:
         # Save the tracked mask with _tracked.tif suffix
         if '{args.output_format}' in ['tif', 'both']:
             output_file = '{mask_file}'.replace('{args.label_suffix}', '_tracked.tif')
-            imwrite(output_file, masks_tracked, compression='zlib')
+            imwrite(output_file, masks_tracked.astype(np.uint32), compression='zlib')
             print(f'Saved tracked mask: {{output_file}}')
     
     elif '{args.output_format}' == 'tif':
@@ -171,9 +171,9 @@ try:
             mask,
             outdir=None  # Don't write CTC files, just get the tracked masks
         )
-        
+         
         output_file = '{mask_file}'.replace('{args.label_suffix}', '_tracked.tif')
-        imwrite(output_file, masks_tracked, compression='zlib')
+        imwrite(output_file, masks_tracked.astype(np.uint32), compression='zlib')
         print(f'Saved tracked mask: {{output_file}}')
     
     if '{args.output_format}' in ['napari', 'both']:
