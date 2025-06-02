@@ -7,8 +7,7 @@ import pyclesperanto_prototype as cle
 from tqdm import tqdm
 
 """
-Description: This script runs automatic semantic segmentation on 2D fluorescence images using a pre-trained PixelClassifier
-or Otsu thresholding for 2D brightfield images.
+Description: This script runs automatic semantic segmentation on 2D or 3D images using Otsu thresholding or manual threshold.
 """
 
 def parse_args():

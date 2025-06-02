@@ -566,10 +566,9 @@ def image_segmentation():
     print("[1] Segment bright spots (2D or 3D, also time series)")
     print("[2] Segment blobs (2D or 3D, also time series)")
     # print("[3] Segment blobs (3D; requires dark background and good SNR)")
-    print("[3] Semantic segmentation (2D, fluorescence or brightfield)")
+    print("[3] Semantic segmentation (2D/3D, Otsu or manual threshold)")
     print("[4] Semi-automated segmentation (2D; Segment Anything)")   
-    print("[5] Semantic segmentation (3D; requires dark background and good SNR)")
-    print("[6] Improve instance segmentation using CLAHE")
+    print("[5] Improve instance segmentation using CLAHE")
     # print("[7] Segment multicolor images of cell cultures (2D)")
     print("[r] Return to Main Menu")
     print("[x] Exit \n")
@@ -670,7 +669,7 @@ def image_segmentation():
     #     restart_program()
     if choice == "3":
         os.system('clear')
-        print('''You chose semantic segmentation (2D, fluorescence or brightfield).\n
+        print('''You chose semantic segmentation (2D/3D).\n
                 A popup will appear in a moment asking you to select the folder containing the .tif images.
             ''')
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
@@ -692,7 +691,7 @@ def image_segmentation():
 
         python_script_environment_setup(
             'tmidas-env',
-            os.environ.get("TMIDAS_PATH") + '/scripts/segmentation_semantic_2D.py',
+            os.environ.get("TMIDAS_PATH") + '/scripts/segmentation_semantic.py',
             command
         )
         restart_program()
@@ -713,17 +712,6 @@ def image_segmentation():
                                         '--input ' + input_folder)
         restart_program()
     if choice == "5":
-        os.system('clear')
-        print('''You chose semantic segmentation (3D). \n
-                A popup will appear in a moment asking you to select the folder containing the .tif images.
-                ''')
-        input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
-        #tissue_channel = input("\nEnter number of the color channel you want to segment: ")
-        python_script_environment_setup('tmidas-env', 
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_semantic_3D.py',
-                                        '--image_folder ' + input_folder)# + ' --tissue_channel ' + tissue_channel)
-        restart_program()
-    if choice == "6":
         os.system('clear')
         print(wrapper.fill("You chose to improve instance segmentations using CLAHE. A popup will appear in a moment asking you to select the folder containing the .tif images. You will be asked to enter a few parameter values. Default values:"))
         print("\n")

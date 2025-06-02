@@ -52,10 +52,9 @@ More detailed information is provided via text-based user interface.
     [2] Segment blobs (2D or 3D, time series)
         [1] User-defined or automatic (Otsu) thresholding
         [2] Cellpose (cells or nuclei)
+    [3] Semantic segmentation (2D/3D, Otsu or manual threshold)
     [4] Human in-the-loop (instance or semantic) segmentation (2D; Segment Anything)
-    [5] Semantic segmentation (2D; Segment Anything)
-    [6] Semantic segmentation (3D; requires dark background and good SNR)
-    [7] Improve instance segmentation using CLAHE
+    [5] Improve instance segmentation using CLAHE
 
 [3] Regions of Interest (ROI) Analysis
     [1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks
