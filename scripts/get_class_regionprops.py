@@ -28,6 +28,9 @@ def process_label_image(args):
     try:
         label_image = io.imread(label_image_path)
         intensity_image = io.imread(intensity_image_path) if intensity_image_path else None
+        # make sure that the image is 8bit
+        if intensity_image.dtype != np.uint8:
+            intensity_image = (intensity_image / np.amax(intensity_image) * 255).astype(np.uint8)
 
         if intensity_image is not None and intensity_image.shape != label_image.shape:
             raise ValueError("Intensity image must have the same shape as the label image.")
