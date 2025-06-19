@@ -366,6 +366,12 @@ def merge_channels(parent_dir, channels, time_steps, is_3d, output_format):
             output_filename = os.path.join(output_dir, f"{core_basename}.tif")
             
             # Save the merged image
+            # Simple dimension metadata for Python format
+            metadata = {'axes': 'TZYXC' if is_timelapse and is_3d else 
+                               'TYXC' if is_timelapse else 
+                               'ZYXC' if is_3d else 'YXC'}
+            imwrite(output_filename, merged_img, metadata=metadata, compression='zlib')
+
             if output_format == 'fiji':
                 # Set ImageJ metadata
                 imagej_metadata = {'ImageJ': '1.53c'}
@@ -408,12 +414,7 @@ def merge_channels(parent_dir, channels, time_steps, is_3d, output_format):
                     })
                 
                 imwrite(output_filename, merged_img, imagej=True, metadata=imagej_metadata, compression='zlib')
-            else:
-                # Simple dimension metadata for Python format
-                metadata = {'axes': 'TZYXC' if is_timelapse and is_3d else 
-                                   'TYXC' if is_timelapse else 
-                                   'ZYXC' if is_3d else 'YXC'}
-                imwrite(output_filename, merged_img, metadata=metadata, compression='zlib')
+                
                 
         except Exception as e:
             print(f"Error processing {core}: {str(e)}")
