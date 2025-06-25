@@ -203,10 +203,14 @@ def label_inspection():
     print(wrapper.fill("You chose to inspect and edit label images using Napari. A popup will appear in a moment asking you to select the folder containing the label images. After inspecting/editing the labels, select File > CLose Window, not Exit!"))
     input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
     label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
+    second_label_suffix = input("\nOptional: Enter the suffix of a second set of label images in the same folder (e.g., _labels2.tif): ")
     intensity = input("\nAlso load original images? (y/n): ")
+    command_args = '--input ' + input_folder + ' --suffix ' + label_suffix + ' --intensity ' + intensity
+    if second_label_suffix.strip():
+        command_args += ' --second_suffix ' + second_label_suffix
     python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/label_inspection.py',
-                                    '--input ' + input_folder + ' --suffix ' + label_suffix + ' --intensity ' + intensity)
+                                    command_args)
     restart_program()
 
 
