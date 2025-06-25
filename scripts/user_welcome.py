@@ -585,12 +585,14 @@ def image_segmentation():
         gamma = input("\n Enter gamma correction value (brighten darker regions < 1.0 < suppress darker regions), or type Enter to not use it:  ")
         intensity_threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
         use_filters = input("\nUse gaussian blur? (yes/no): ")
+        normalize = input("\nNormalize variable intensity range between images using min-max scaling? (yes/no): ")
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_spots.py',
                                         '--input ' + input_folder + 
                                         ' --dim_order ' + dim_order + 
                                         ' --gamma ' + gamma + 
                                         ' --intensity_threshold ' + intensity_threshold + 
+                                        ' --normalize ' + normalize + 
                                         ' --use_filters ' + use_filters)
         restart_program()
 

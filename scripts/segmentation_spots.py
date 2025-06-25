@@ -17,6 +17,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     parser.add_argument("--gamma", type=float, default=1.0, help="Gamma value for gamma correction.")
+    parser.add_argument("--normalize", type=bool, default=True, help="Normalize using min-max scaling? (yes/no)")
     parser.add_argument("--use_filters", type=bool, default=True, help="Use filters for user-defined segmentation? (yes/no)")
     parser.add_argument("--intensity_threshold", type=float, default=None, help="Intensity threshold for image segmentation.")
     parser.add_argument("--dim_order", type=str, default="YX", help="Dimension order of the input images.)")
@@ -29,6 +30,7 @@ dim_order = args.dim_order
 SIZE_THRESHOLD = 100.0  # square pixels
 GAMMA = args.gamma
 use_filters = args.use_filters
+normalize = args.normalize
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -40,12 +42,21 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
     
+def normalize_to_uint8(image):
+    imin, imax = np.min(image), np.max(image)
+    if imax > imin:  # Avoid division by zero
+        norm_img = (image - imin) * 255.0 / (imax - imin)
+    else:
+        norm_img = np.zeros_like(image)
+    return norm_img.astype(np.uint8)
 
 
 def process_image(image_path, dim_order):
     """Process a single image and return labeled image."""
     try:
         image = imread(image_path)
+        if normalize:
+            image = normalize_to_uint8(image)
         intensity_threshold = None  # Initialize intensity_threshold with a default value
         print("\n")
         print("Check if image shape corresponds to the dim order that you have given:\n")
