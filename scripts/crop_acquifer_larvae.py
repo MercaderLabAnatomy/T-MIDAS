@@ -10,20 +10,96 @@ import pyclesperanto_prototype as cle
 
 
 """
-This script extracts elongated ROIs from Acquifer TIF files to crop them and save them as multi-color TIF files.
+This script extracts elongated ROIs from Acquifer TIF files and creates z-stacks 
+by grouping files from the same well, position, and channel.
 """
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Extract elongated ROIs from Acquifer TIF files and save them as multi-color TIF files.')
+    parser = argparse.ArgumentParser(description='Extract elongated ROIs from Acquifer TIF files and save them as multi-color z-stack TIF files.')
     parser.add_argument('--input', type=str, help='Path to the folder containing the TIF files.')
     parser.add_argument('--padding', type=int, default=50, help='Padding around the ROI (default: 50)')
     return parser.parse_args()
 
-def safe_divide(a, b, default=0):
-    return a / b if b != 0 else default
+def parse_acquifer_filename(filename):
+    """
+    Parse Acquifer filename to extract metadata.
+    Example: -A001--PO01--LO001--CO1--SL001--PX16250--PW0040--IN0020--TM235--X014398--Y011017--Z211182--T0000000000--WE00001.tif
+    """
+    pattern = r'^-([A-Z]\d+)--PO(\d+)--LO(\d+)--CO(\d+)--SL(\d+)'
+    match = re.match(pattern, filename)
+    if match:
+        return {
+            'well': match.group(1),      # A001
+            'position': match.group(2),   # 01
+            'location': match.group(3),   # 001
+            'channel': match.group(4),    # 1 (CO1 = channel 1)
+            'slice': match.group(5)       # 001 (SL001 = slice 1)
+        }
+    return None
+
+def group_files_by_stack(input_folder):
+    """
+    Group files by well, position, location, and channel to create z-stacks.
+    Each group will contain all z-slices for the same imaging position and channel.
+    """
+    files_grouped_by_stack = defaultdict(list)
+    
+    for filename in os.listdir(input_folder):
+        if filename.endswith('.tif'):
+            metadata = parse_acquifer_filename(filename)
+            if metadata:
+                # Create a key that uniquely identifies a z-stack
+                # (same well, position, location, channel but different slices)
+                stack_key = f"{metadata['well']}_PO{metadata['position']}_LO{metadata['location']}_CO{metadata['channel']}"
+                files_grouped_by_stack[stack_key].append({
+                    'filename': filename,
+                    'slice': int(metadata['slice']),
+                    'metadata': metadata
+                })
+    
+    # Sort files within each group by slice number
+    for stack_key in files_grouped_by_stack:
+        files_grouped_by_stack[stack_key].sort(key=lambda x: x['slice'])
+    
+    return files_grouped_by_stack
+
+def get_roi_from_brightfield(input_folder, stack_groups, padding):
+    """
+    Get ROI from the brightfield channel (CO1) for each well/position/location combination.
+    """
+    roi_dict = {}
+    
+    # Find all unique well/position/location combinations
+    locations = set()
+    for stack_key in stack_groups:
+        parts = stack_key.split('_')
+        location_key = f"{parts[0]}_{parts[1]}_{parts[2]}"  # well_position_location
+        locations.add(location_key)
+    
+    for location_key in locations:
+        # Look for CO1 (brightfield) stack for this location
+        co1_stack_key = f"{location_key}_CO1"
+        
+        if co1_stack_key in stack_groups:
+            # Use the middle slice of the CO1 stack to determine ROI
+            co1_files = stack_groups[co1_stack_key]
+            middle_idx = len(co1_files) // 2
+            middle_file = co1_files[middle_idx]['filename']
+            
+            # Load the middle slice and calculate ROI
+            with tf.TiffFile(os.path.join(input_folder, middle_file)) as tif:
+                co1_image = tif.asarray()
+            roi = get_roi(co1_image, padding)
+            roi_dict[location_key] = roi
+            print(f"Calculated ROI for {location_key}: {roi}")
+        else:
+            print(f"Warning: No CO1 (brightfield) stack found for {location_key}")
+    
+    return roi_dict
 
 def get_roi(image, padding):
+    """Calculate ROI from a single image."""
     if image is None or image.size == 0:
         return (0, 0, 0, 0)  # Return a default ROI if the image is None or empty
 
@@ -40,80 +116,98 @@ def get_roi(image, padding):
 
     # Get ROIs
     props = regionprops(labels, intensity_image=image)
+    if len(props) == 0:
+        # If no objects found, return the whole image
+        return (0, 0, image.shape[0], image.shape[1])
+    
     y0, x0, y1, x1 = props[0].bbox
     minr, minc = max(0, y0 - padding), max(0, x0 - padding)
     maxr, maxc = min(labels.shape[0], y1 + padding), min(labels.shape[1], x1 + padding)
     
     return (minr, minc, maxr - minr, maxc - minc)
 
-def group_files(input_folder):
-    pattern = r'^-([A-Z]\d+)--PO(\d+)' 
+def create_zstack(input_folder, file_list, roi):
     """
-    This pattern captures all files that correspond 
-    to the same well and PO (position) 
-    cf. https://www.acquifer.de/resources/metadata/
-
-    This means that all groups will be cropped based 
-    on the ROI (+padding) of the first CO1 (brightfield) 
-    file found in the group.
+    Create a z-stack from a list of files and crop using the provided ROI.
     """
-    files_grouped_by_well_and_position = defaultdict(list)
+    z_slices = []
+    y, x, h, w = roi
     
-    for filename in os.listdir(input_folder):
-        if filename.endswith('.tif'):
-            match = re.match(pattern, filename)
-            if match:
-                key = f"{match.group(1)}--PO{match.group(2)}"
-                files_grouped_by_well_and_position[key].append(filename)
+    for file_info in file_list:
+        filename = file_info['filename']
+        with tf.TiffFile(os.path.join(input_folder, filename)) as tif:
+            image = tif.asarray()
+        
+        # Crop the image
+        cropped_image = image[y:y+h, x:x+w]
+        
+        # Normalize to 16-bit
+        normalized_image = ((cropped_image - cropped_image.min()) / 
+                          (cropped_image.max() - cropped_image.min()) * 65535).astype(np.uint16)
+        
+        z_slices.append(normalized_image)
     
-    return files_grouped_by_well_and_position
+    # Stack all z-slices
+    z_stack = np.stack(z_slices, axis=0)
+    return z_stack
 
-def process_files(input_folder, output_dir, padding):
-    files_grouped_by_well_and_position = group_files(input_folder)
-    print(f"Found {len(files_grouped_by_well_and_position)} groups of files.")
-
-    for group_key, files in tqdm(files_grouped_by_well_and_position.items(), desc="Processing file groups"):
+def process_stacks(input_folder, output_dir, padding):
+    """Process all z-stacks."""
+    # Group files by stack
+    stack_groups = group_files_by_stack(input_folder)
+    print(f"Found {len(stack_groups)} z-stacks to process.")
+    
+    # Get ROIs from brightfield images
+    roi_dict = get_roi_from_brightfield(input_folder, stack_groups, padding)
+    
+    # Process each z-stack
+    for stack_key, file_list in tqdm(stack_groups.items(), desc="Processing z-stacks"):
         try:
-            # Find the CO1 file in the group
-            co1_file = next((f for f in files if '--CO1--' in f), None)
-            if not co1_file:
-                print(f"No CO1 file found for group {group_key}. Skipping.")
+            # Extract location key to get corresponding ROI
+            parts = stack_key.split('_')
+            location_key = f"{parts[0]}_{parts[1]}_{parts[2]}"  # well_position_location
+            
+            if location_key not in roi_dict:
+                print(f"Warning: No ROI found for {stack_key}. Skipping.")
                 continue
-
-            # Load CO1 image and get ROI
-            with tf.TiffFile(os.path.join(input_folder, co1_file)) as tif:
-                co1_image = tif.asarray()
-            roi = get_roi(co1_image, padding)
-
-            # Process all files in the group
-            for file in files:
-                with tf.TiffFile(os.path.join(input_folder, file)) as tif:
-                    channel_image = tif.asarray()
-                
-                # Crop and normalize
-                y, x, h, w = roi
-                cropped_image = channel_image[y:y+h, x:x+w]
-                normalized_image = ((cropped_image - cropped_image.min()) / (cropped_image.max() - cropped_image.min()) * 65535).astype(np.uint16)
-                
-                # Save cropped image
-                output_filename = f"{os.path.splitext(file)[0]}_cropped.tif"
-                output_path = os.path.join(output_dir, output_filename)
-                tf.imwrite(output_path, normalized_image, compression='zlib')
-                print(f"Saved: {output_filename}")
-
+            
+            roi = roi_dict[location_key]
+            
+            # Create z-stack
+            z_stack = create_zstack(input_folder, file_list, roi)
+            
+            # Generate output filename
+            # Format: well_position_location_channel_zstack.tif
+            output_filename = f"{stack_key}_cropped_zstack.tif"
+            output_path = os.path.join(output_dir, output_filename)
+            
+            # Save z-stack with ImageJ metadata
+            metadata = {
+                'ImageJ': '1.53c',
+                'images': z_stack.shape[0],
+                'slices': z_stack.shape[0],
+                'hyperstack': True,
+                'mode': 'grayscale',
+                'unit': 'pixel'
+            }
+            
+            tf.imwrite(output_path, z_stack, imagej=True, metadata=metadata, compression='zlib')
+            print(f"Saved z-stack: {output_filename} (shape: {z_stack.shape})")
+            
         except Exception as e:
-            print(f"Error processing group {group_key}: {str(e)}")
+            print(f"Error processing stack {stack_key}: {str(e)}")
 
 def main():
     args = parse_args()
     input_folder = args.input
     padding = args.padding
-    output_dir = os.path.join(input_folder, "processed_tifs")
+    output_dir = os.path.join(input_folder, "processed_zstacks")
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    process_files(input_folder, output_dir, padding)
+    process_stacks(input_folder, output_dir, padding)
+    print(f"\nProcessing complete. Z-stacks saved to: {output_dir}")
 
 if __name__ == "__main__":
     main()
