@@ -1,19 +1,22 @@
-from skimage.io import imread
 import os
+import sys
 import cv2
 import argparse
-import tifffile as tf
 import pyclesperanto_prototype as cle
 from tqdm import tqdm
 import numpy as np
 from skimage.measure import label
 import torch
 from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator
-import napari # Import napari
+import napari
 from skimage.transform import resize
 from skimage.measure import regionprops
 from skimage.transform import downscale_local_mean
-from tifffile import imwrite
+
+# Add tmidas to path
+sys.path.insert(0, '/opt/T-MIDAS')
+from tmidas.utils.io_utils import read_image, write_image
+from tmidas.utils.argparse_utils import create_parser
 
 
 
@@ -35,8 +38,7 @@ mask_generator = SamAutomaticMaskGenerator(mobile_sam)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Runs automatic mask generation on images with interactive label refinement and segmentation type choice.")
-    parser.add_argument("--input", type=str, required=True, help="Path to input images folder.")
+    parser = create_parser("Runs automatic mask generation on images with interactive label refinement and segmentation type choice.")
     return parser.parse_args()
 
 args = parse_args()
@@ -81,7 +83,7 @@ def fast_upscale_uint32_cv2(image, new_shape):
 
 def process_image(image_path):
     try:
-        image_original = imread(image_path)
+        image_original = read_image(image_path)
         # make sure that the image is 8bit
         if image_original.dtype != np.uint8:
             image_original = (image_original / np.amax(image_original) * 255).astype(np.uint8)
@@ -146,7 +148,7 @@ def process_image(image_path):
 
 def save_image(image, filename):
     image_uint32 = image.astype(np.uint32)
-    imwrite(filename, image_uint32, compression='zlib')
+    write_image(image_uint32, filename)
 
 
 for filename in tqdm(os.listdir(image_folder), total = len(os.listdir(image_folder)), desc="Processing images"):

@@ -3,6 +3,7 @@ import glob
 import numpy as np
 from skimage import io as skio
 from tifffile import imwrite
+import argparse
 
 def process_label_images_skimage_tiff(folder_path, selected_label_id, output_folder="processed_labels"):
     """
@@ -65,12 +66,10 @@ def process_label_images_skimage_tiff(folder_path, selected_label_id, output_fol
 
 
 if __name__ == "__main__":
-    folder_path = input("Enter the folder path containing label images: ")
-    while True:
-        try:
-            selected_label_id = int(input("Enter the label ID to keep (integer): "))
-            break
-        except ValueError:
-            print("Invalid input. Please enter an integer for the label ID.")
+    parser = argparse.ArgumentParser(description="Export specific labels from label images.")
+    parser.add_argument("--input", type=str, required=True, help="Path to the folder containing label images.")
+    parser.add_argument("--label_id", type=int, required=True, help="The label ID to keep in the images.")
+    parser.add_argument("--output", type=str, default="processed_labels", help="Folder to save processed images.")
+    args = parser.parse_args()
 
-    process_label_images_skimage_tiff(folder_path, selected_label_id)
+    process_label_images_skimage_tiff(args.input, args.label_id, args.output)
