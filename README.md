@@ -5,7 +5,7 @@
 ![T-MIDAS Logo](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/aada2d33-f5f7-4395-bf36-c0466b304d0d) Terminal
 # Tissue Microscopy Image Data Analysis Suite
 
-Latest news (03/2025): Check out the [T-MIDAS Napari plugin](https://github.com/macromeer/napari-tmidas)!
+Latest news (09/2025): Check out the [T-MIDAS Napari plugin](https://github.com/macromeer/napari-tmidas)!
 
 #### T-MIDAS was created with a focus on the reproducibility of batch image processing and quantification 
 - Batch processing pipelines for image format conversion, preprocessing, segmentation, ROI analysis
@@ -19,6 +19,8 @@ Latest news (03/2025): Check out the [T-MIDAS Napari plugin](https://github.com/
 
   
 T-MIDAS is built on established image processing libraries. All dependencies are listed [here](https://github.com/MercaderLabAnatomy/T-MIDAS/blob/main/scripts/install_dependencies.py). See [acknowledgements and citations](https://github.com/MercaderLabAnatomy/T-MIDAS?tab=readme-ov-file#acknowledgements-and-citations) for further information.
+
+T-MIDAS also provides a Python package (`tmidas`) for programmatic access to core utilities and processing functions. See the [API documentation](API_DOCUMENTATION.md) for details.
 
 ## Text-based User Interface
 ![image](https://github.com/MercaderLabAnatomy/T-MIDAS/assets/99955854/ef71315b-726d-4a2f-9546-d326aba513dd)
@@ -48,12 +50,12 @@ More detailed information is provided via text-based user interface.
     [13] Convert instance label images to binary
 
 [2] Image Segmentation
-    [1] Segment bright spots (2D or 3D, time series) 
-    [2] Segment blobs (2D or 3D, time series)
+    [1] Segment bright spots (2D or 3D, also time series) 
+    [2] Segment blobs (2D or 3D, also time series)
         [1] User-defined or automatic (Otsu) thresholding
         [2] Cellpose (cells or nuclei)
     [3] Semantic segmentation (2D/3D, Otsu or manual threshold)
-    [4] Human in-the-loop (instance or semantic) segmentation (2D; Segment Anything)
+    [4] Semi-automated segmentation (2D; Segment Anything)
     [5] Improve instance segmentation using CLAHE
 
 [3] Regions of Interest (ROI) Analysis
@@ -72,7 +74,7 @@ More detailed information is provided via text-based user interface.
     [1] Validate spot counts (2D)
     [2] Validate blobs (2D or 3D; global F1 score)
 
-[6] File compression
+[6] Postprocessing
     [1] Compress files using zstd
     [2] Decompress files using zstd 
 
