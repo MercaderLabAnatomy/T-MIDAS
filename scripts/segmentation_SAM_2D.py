@@ -101,7 +101,19 @@ def process_image(image_path):
                 image = np.repeat(image[:, :, np.newaxis], 3, axis=2)
             else:
                 downscaled = False
-                image = image[:, :, np.newaxis].repeat(3, axis=2)
+                image = image_original[:, :, np.newaxis].repeat(3, axis=2)
+        else:
+            # Handle color images (3D)
+            height, width = image_original.shape[:2]
+            size = height * width
+            if size > SIZE_LIMIT:
+                downscale_factor = calculate_downscale_factor(size)
+                image = cv2.resize(image_original, (int(width * downscale_factor), int(height * downscale_factor)), interpolation=cv2.INTER_AREA)
+                downscaled = True
+                print(f"Downscaled image to {image.shape}")
+            else:
+                downscaled = False
+                image = image_original
 
         # image_pre = cle.push(image)
         # #image_pre = cle.gaussian_blur(image_pre, None, 1.0, 1.0, 0.0)
