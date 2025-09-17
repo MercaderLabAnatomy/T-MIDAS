@@ -1,11 +1,16 @@
 import os
 import argparse
+import sys
 import pandas as pd
 from skimage import io
 import cupy as cp
 from cucim.skimage.measure import regionprops
 from tqdm import tqdm
 import numpy as np
+
+# Add tmidas to path
+sys.path.insert(0, '/opt/T-MIDAS')
+from tmidas.utils.argparse_utils import create_parser
 
 
 """
@@ -16,8 +21,7 @@ It uses the cucim library to speed up the process.
 """
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Get some regionprops of all objects in all tifs in a input_folder.")
-    parser.add_argument("--input", type=str, required=True, help="Path to input images.")
+    parser = create_parser("Get some regionprops of all objects in all tifs in a input_folder.")
     parser.add_argument("--label_pattern", type=str, default='_labels.tif', help="Pattern to identify label images.")
     # if intensity quantification, ask for the channel. Default is no intensity quantification
     parser.add_argument("--channel", type=int, default=-1, help="Channel to quantify intensity.")

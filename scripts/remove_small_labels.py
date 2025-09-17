@@ -1,55 +1,28 @@
 import os
 import argparse
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import numpy as np
-from skimage.io import imread
-from skimage import measure
-from tifffile import imwrite
 
-def load_image(image_path):
-    try:
-        return imread(image_path)
-    except Exception as e:
-        print(f"Error loading image {image_path}: {e}")
-        return None
-
-def save_image(image, filename):
-    try:
-        image_uint32 = image.astype(np.uint32)
-        imwrite(filename, image_uint32, compression='zlib')
-    except Exception as e:
-        print(f"Error saving image {filename}: {e}")
+# Add tmidas to path
+sys.path.insert(0, '/opt/T-MIDAS')
+from tmidas.utils.io_utils import read_image, write_image
+from tmidas.processing.segmentation import filter_small_labels
 
 def process_label_file(file_path, min_size, output_type):
     try:
-        label_image = load_image(file_path)
+        label_image = read_image(file_path)
         if label_image is None:
             return
 
-        # Create a temporary image where each connected component has a unique ID
-        temp_labels = measure.label(label_image > 0, connectivity=1)
-        
-        # Get properties of each object (connected component)
-        props = measure.regionprops(temp_labels, intensity_image=label_image)
-        
-        # Create an empty array to store the new label image
-        new_label_image = np.zeros_like(label_image, dtype=label_image.dtype)
-        
-        # Iterate over each object and decide whether to keep it
-        for i, prop in enumerate(props, start=1):
-            if prop.area > min_size:
-                if output_type == 'semantic':
-                    original_label_id = int(prop.intensity_mean)
-                    new_label_image[temp_labels == prop.label] = original_label_id
-                else:  # instance segmentation
-                    new_label_image[temp_labels == prop.label] = i
+        # Filter small labels using the utility function
+        new_label_image = filter_small_labels(label_image, min_size, output_type)
         
         # Save the edited label image
-        save_image(new_label_image, file_path)
+        write_image(new_label_image, file_path)
     except Exception as e:
         print(f"Error processing file {file_path}: {e}")
-
 
 def remove_small_labels(folder_path, label_suffix, min_size, output_type, max_workers=None):
     files = [f for f in os.listdir(folder_path) if f.endswith(label_suffix)]

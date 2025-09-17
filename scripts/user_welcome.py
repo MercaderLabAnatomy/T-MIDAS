@@ -426,7 +426,7 @@ def image_preprocessing():
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         label_suffix = input("\nEnter the suffix of the label images (e.g., _labels.tif): ")
         python_script_environment_setup('tmidas-env',
-                                        os.environ.get("TMIDAS_PATH")+'/scripts/convert_instance_to_binary.py',
+                                        os.environ.get("TMIDAS_PATH")+'/scripts/convert_instance_to_semantic.py',
                                         '--input ' + input_folder + ' --suffix ' + label_suffix)
         restart_program()
 

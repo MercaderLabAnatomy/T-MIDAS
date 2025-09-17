@@ -13,68 +13,21 @@ for TrackAstra if it doesn't exist.
 import argparse
 import os
 import sys
-import glob
-import re
 import subprocess
 import numpy as np
 from tqdm import tqdm
-from pathlib import Path
-from skimage.io import imread
-from tifffile import imwrite
+
+# Add tmidas to path
+sys.path.insert(0, '/opt/T-MIDAS')
+from tmidas.utils.env_utils import setup_trackastra_env
+from tmidas.utils.io_utils import read_image, write_image
+from tmidas.processing.tracking import get_image_mask_pairs, track_cells_with_trackastra, save_tracking_results
 
 # Model descriptions from TrackAstra repository
 MODEL_DESCRIPTIONS = {
     "general_2d": "For tracking fluorescent nuclei, bacteria (PhC), whole cells (BF, PhC, DIC), epithelial cells with fluorescent membrane, budding yeast cells (PhC), fluorescent particles, etc.",
     "ctc (2D,3D)": "For tracking Cell Tracking Challenge datasets. This is the successor of the winning model of the ISBI 2024 CTC generalizable linking challenge."
 }
-
-def get_image_mask_pairs(folder, label_suffix):
-    all_files = os.listdir(folder)
-    # Only consider .tif files that do NOT end with the label_suffix
-    raw_images = [f for f in all_files if f.lower().endswith('.tif') and not f.lower().endswith(label_suffix.lower())]
-    
-    pairs = []
-    for raw_file in raw_images:
-        # Remove .tif and add label_suffix
-        if raw_file.lower().endswith('.tif'):
-            base = raw_file[:-4]  # removes '.tif'
-        else:
-            base = os.path.splitext(raw_file)[0]
-        label_file = f"{base}{label_suffix}"
-        label_path = os.path.join(folder, label_file)
-        raw_path = os.path.join(folder, raw_file)
-        if os.path.exists(label_path):
-            pairs.append((raw_path, label_path))
-        else:
-            print(f"Warning: Label file not found for {raw_file} (expected {label_file})")
-    
-    print(f"Found {len(pairs)} image-mask pairs.")
-    return pairs
-
-
-
-
-def check_trackastra_env():
-    """Check if trackastra environment exists, create it if it doesn't."""
-    result = subprocess.run("mamba env list", shell=True, capture_output=True, text=True)
-    if "trackastra" not in result.stdout:
-        print("TrackAstra environment not found. Creating it now...")
-        
-        # Create commands to set up the environment
-        commands = [
-            "mamba create --name trackastra python=3.10 -y",
-            "mamba install -n trackastra -c conda-forge -c gurobi -c funkelab ilpy -y",
-            "mamba install -n trackastra -c conda-forge scikit-image numpy matplotlib tqdm tifffile -y",
-            "mamba run -n trackastra pip install trackastra[ilp]"
-        ]
-        
-        # Execute each command
-        for cmd in commands:
-            print(f"Executing: {cmd}")
-            subprocess.run(cmd, shell=True, check=True)
-        print("TrackAstra environment created successfully.")
-    else:
-        print("TrackAstra environment found.")
 
 def process_data(args):
     """
@@ -104,7 +57,7 @@ def process_data(args):
         return 1
     
     # Check if TrackAstra environment exists
-    check_trackastra_env()
+    setup_trackastra_env()
     
     # Process pairs sequentially in the trackastra environment
     print(f"Processing {len(pairs)} image-mask pairs sequentially...")
