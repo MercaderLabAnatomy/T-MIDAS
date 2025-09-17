@@ -116,6 +116,15 @@ def process_image(image_path):
             else:
                 downscaled = False
                 image = image_original
+            
+            # Ensure image has exactly 3 channels for SAM
+            if image.shape[2] == 1:
+                # Convert grayscale to RGB
+                image = np.repeat(image, 3, axis=2)
+            elif image.shape[2] > 3:
+                # Take only first 3 channels if more than 3
+                image = image[:, :, :3]
+            # If already 3 channels, use as is
 
         # image_pre = cle.push(image)
         # #image_pre = cle.gaussian_blur(image_pre, None, 1.0, 1.0, 0.0)
