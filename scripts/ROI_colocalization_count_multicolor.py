@@ -1,3 +1,47 @@
+"""
+ROI Colocalization Analysis for 2 or 3 Color Channels
+
+This script performs colocalization analysis between 2 or 3 channels:
+- Channel 1: ROI labels (required)
+- Channel 2: Object labels (required)
+- Channel 3: Object labels OR intensity image (optional)
+
+When using 3 channels:
+1. Label-based mode (--channel3_is_labels y): Count Channel 3 objects within Channel 2 and Channel 1
+2. Intensity-based mode (--channel3_is_labels n): Measure Channel 3 intensity statistics within regions
+
+Example Usage:
+
+# 2 channels (labels only)
+python ROI_colocalization_count_multicolor.py --input /data \
+    --channels CellMask DAPI \
+    --label_patterns "*_labels.tif" "*_labels.tif" \
+    --get_sizes y --size_method median
+
+# 3 channels (all labels)
+python ROI_colocalization_count_multicolor.py --input /data \
+    --channels CellMask DAPI EdU \
+    --label_patterns "*_labels.tif" "*_labels.tif" "*_labels.tif" \
+    --channel3_is_labels y \
+    --get_sizes y --size_method median
+
+# 3 channels (channel 3 as intensity)
+python ROI_colocalization_count_multicolor.py --input /data \
+    --channels CellMask DAPI GFP \
+    --label_patterns "*_labels.tif" "*_labels.tif" "*.tif" \
+    --channel3_is_labels n \
+    --get_sizes y
+
+# 3 channels with positive object counting (e.g., KI67+ nuclei)
+python ROI_colocalization_count_multicolor.py --input /data \
+    --channels GFP DAPI KI67 \
+    --label_patterns "*_labels.tif" "*_labels.tif" "*.tif" \
+    --channel3_is_labels n \
+    --count_positive y \
+    --threshold_method percentile \
+    --threshold_value 75.0
+"""
+
 import os
 from difflib import SequenceMatcher
 from collections import defaultdict
@@ -54,6 +98,16 @@ def parse_args():
                          help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--label_patterns', nargs='+', type=str, required=True,
                          help='Label pattern for each channel. Example: "*_labels.tif *_labels.tif *_labels.tif"')
+    parser.add_argument('--channel3_is_labels', type=str, default='y',
+                         help='Is channel 3 a label image? (y/n). If "n", will measure intensity statistics instead of counting objects. Only applies when using 3 channels.')
+    
+    # Threshold options for positive object counting
+    parser.add_argument('--count_positive', type=str, default='n',
+                         help='Count Channel 2 objects positive for Channel 3 signal? (y/n). Only applies when channel3_is_labels=n.')
+    parser.add_argument('--threshold_method', type=str, choices=['percentile', 'absolute'], default='percentile',
+                         help='Method for determining positive threshold: "percentile" or "absolute"')
+    parser.add_argument('--threshold_value', type=float, default=75.0,
+                         help='Threshold value. For percentile: 0-100 (e.g., 75 for 75th percentile). For absolute: intensity value.')
     
     # Analysis options
     parser.add_argument('--get_sizes', type=str, default='n', 
@@ -318,6 +372,116 @@ def calculate_coloc_size(image_c1, image_c2, label_id, mask_c2=None, image_c3=No
 
     return int(size)  # Ensure we return a Python integer
 
+def calculate_intensity_stats(intensity_image, mask):
+    """
+    Calculate intensity statistics for a masked region.
+    
+    Args:
+        intensity_image: Raw intensity image
+        mask: Boolean mask defining the region
+    
+    Returns:
+        dict: Dictionary with mean, median, std, max, min intensity
+    """
+    xp = cp if GPU_AVAILABLE else np
+    
+    # Get intensity values within the mask
+    intensity_values = intensity_image[mask]
+    
+    if len(intensity_values) == 0:
+        return {
+            'mean': 0.0,
+            'median': 0.0,
+            'std': 0.0,
+            'max': 0.0,
+            'min': 0.0
+        }
+    
+    stats = {
+        'mean': float(xp.mean(intensity_values)),
+        'median': float(xp.median(intensity_values)),
+        'std': float(xp.std(intensity_values)),
+        'max': float(xp.max(intensity_values)),
+        'min': float(xp.min(intensity_values))
+    }
+    
+    # Convert from GPU to CPU if needed
+    if GPU_AVAILABLE:
+        stats = {k: float(v.get()) if hasattr(v, 'get') else float(v) for k, v in stats.items()}
+    
+    return stats
+
+def count_positive_objects(image_c2, intensity_c3, mask_roi, threshold_method='percentile', threshold_value=75.0):
+    """
+    Count Channel 2 objects that are positive for Channel 3 signal.
+    
+    Args:
+        image_c2: Label image of Channel 2 (e.g., nuclei)
+        intensity_c3: Intensity image of Channel 3 (e.g., KI67)
+        mask_roi: Boolean mask for the ROI from Channel 1
+        threshold_method: 'percentile' or 'absolute'
+        threshold_value: Threshold value (0-100 for percentile, or absolute intensity)
+    
+    Returns:
+        dict: Dictionary with counts and threshold info
+    """
+    xp = cp if GPU_AVAILABLE else np
+    
+    # Get all unique Channel 2 objects in the ROI
+    c2_in_roi = image_c2 * mask_roi
+    c2_labels = xp.unique(c2_in_roi)
+    c2_labels = c2_labels[c2_labels != 0]  # Remove background
+    
+    if len(c2_labels) == 0:
+        return {
+            'total_c2_objects': 0,
+            'positive_c2_objects': 0,
+            'negative_c2_objects': 0,
+            'percent_positive': 0.0,
+            'threshold_used': 0.0
+        }
+    
+    # Calculate threshold
+    if threshold_method == 'percentile':
+        # Calculate threshold from all Channel 3 intensity values within ROI where Channel 2 exists
+        mask_c2_in_roi = (c2_in_roi > 0)
+        intensity_in_c2 = intensity_c3[mask_c2_in_roi]
+        if len(intensity_in_c2) > 0:
+            threshold = float(xp.percentile(intensity_in_c2, threshold_value))
+        else:
+            threshold = 0.0
+    else:  # absolute
+        threshold = threshold_value
+    
+    # Count positive objects
+    positive_count = 0
+    for label_id in c2_labels:
+        # Get mask for this specific Channel 2 object
+        mask_c2_obj = (image_c2 == label_id) & mask_roi
+        
+        # Get mean intensity of Channel 3 in this Channel 2 object
+        intensity_in_obj = intensity_c3[mask_c2_obj]
+        if len(intensity_in_obj) > 0:
+            mean_intensity = float(xp.mean(intensity_in_obj))
+            if mean_intensity >= threshold:
+                positive_count += 1
+    
+    total_count = int(len(c2_labels))
+    negative_count = total_count - positive_count
+    percent_positive = (positive_count / total_count * 100) if total_count > 0 else 0.0
+    
+    # Convert from GPU to CPU if needed
+    if GPU_AVAILABLE:
+        threshold = float(threshold.get()) if hasattr(threshold, 'get') else float(threshold)
+    
+    return {
+        'total_c2_objects': total_count,
+        'positive_c2_objects': positive_count,
+        'negative_c2_objects': negative_count,
+        'percent_positive': percent_positive,
+        'threshold_used': threshold
+    }
+
 def load_and_resize_images(file_lists, channels, image_index, no_resize):
     """Load and resize images for all channels."""
     try:
@@ -366,7 +530,7 @@ def load_and_resize_images(file_lists, channels, image_index, no_resize):
         print(f"Error loading images: {str(e)}")
         return None, False
 
-def process_single_roi(file_path, label_id, image_c1, image_c2, image_c3, channels, get_sizes, roi_sizes):
+def process_single_roi(file_path, label_id, image_c1, image_c2, image_c3, channels, get_sizes, roi_sizes, channel3_is_labels='y', image_c3_intensity=None, count_positive='n', threshold_method='percentile', threshold_value=75.0):
     """Process a single ROI for colocalization analysis."""
     xp = cp if GPU_AVAILABLE else np
     
@@ -388,23 +552,62 @@ def process_single_roi(file_path, label_id, image_c1, image_c2, image_c3, channe
     
     # Handle third channel if present
     if image_c3 is not None:
-        mask_c3 = image_c3 != 0
-        
-        # Calculate third channel statistics
-        c3_in_c2_in_c1_count = count_unique_nonzero(image_c3, mask_roi & mask_c2 & mask_c3)
-        c3_not_in_c2_but_in_c1_count = count_unique_nonzero(image_c3, mask_roi & ~mask_c2 & mask_c3)
-        
-        row.extend([c3_in_c2_in_c1_count, c3_not_in_c2_but_in_c1_count])
-        
-        # Add size information for third channel if requested
-        if get_sizes.lower() == 'y':
-            c3_in_c2_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id, mask_c2=True, image_c3=image_c3)
-            c3_not_in_c2_but_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id, mask_c2=False, image_c3=image_c3)
-            row.extend([c3_in_c2_in_c1_size, c3_not_in_c2_but_in_c1_size])
+        if channel3_is_labels.lower() == 'y':
+            # Original behavior: count objects in channel 3
+            mask_c3 = image_c3 != 0
+            
+            # Calculate third channel statistics
+            c3_in_c2_in_c1_count = count_unique_nonzero(image_c3, mask_roi & mask_c2 & mask_c3)
+            c3_not_in_c2_but_in_c1_count = count_unique_nonzero(image_c3, mask_roi & ~mask_c2 & mask_c3)
+            
+            row.extend([c3_in_c2_in_c1_count, c3_not_in_c2_but_in_c1_count])
+            
+            # Add size information for third channel if requested
+            if get_sizes.lower() == 'y':
+                c3_in_c2_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id, mask_c2=True, image_c3=image_c3)
+                c3_not_in_c2_but_in_c1_size = calculate_coloc_size(image_c1, image_c2, label_id, mask_c2=False, image_c3=image_c3)
+                row.extend([c3_in_c2_in_c1_size, c3_not_in_c2_but_in_c1_size])
+        else:
+            # New behavior: measure intensity statistics
+            # Use intensity image if provided, otherwise use image_c3
+            intensity_img = image_c3_intensity if image_c3_intensity is not None else image_c3
+            
+            # Calculate intensity where c2 is present in c1
+            mask_c2_in_c1 = mask_roi & mask_c2
+            stats_c2_in_c1 = calculate_intensity_stats(intensity_img, mask_c2_in_c1)
+            
+            # Calculate intensity where c2 is NOT present in c1
+            mask_not_c2_in_c1 = mask_roi & ~mask_c2
+            stats_not_c2_in_c1 = calculate_intensity_stats(intensity_img, mask_not_c2_in_c1)
+            
+            # Add intensity statistics to row
+            row.extend([
+                stats_c2_in_c1['mean'],
+                stats_c2_in_c1['median'],
+                stats_c2_in_c1['std'],
+                stats_c2_in_c1['max'],
+                stats_not_c2_in_c1['mean'],
+                stats_not_c2_in_c1['median'],
+                stats_not_c2_in_c1['std'],
+                stats_not_c2_in_c1['max']
+            ])
+            
+            # Count positive Channel 2 objects if requested
+            if count_positive.lower() == 'y':
+                positive_counts = count_positive_objects(
+                    image_c2, intensity_img, mask_roi,
+                    threshold_method, threshold_value
+                )
+                row.extend([
+                    positive_counts['positive_c2_objects'],
+                    positive_counts['negative_c2_objects'],
+                    positive_counts['percent_positive'],
+                    positive_counts['threshold_used']
+                ])
     
     return row
 
-def process_batch(batch_files, batch_start, file_lists, channels, get_sizes, no_resize, batch_num, total_batches):
+def process_batch(batch_files, batch_start, file_lists, channels, get_sizes, no_resize, batch_num, total_batches, channel3_is_labels='y', count_positive='n', threshold_method='percentile', threshold_value=75.0):
     """Process a batch of image files for colocalization analysis."""
     batch_rows = []
     xp = cp if GPU_AVAILABLE else np
@@ -422,6 +625,13 @@ def process_batch(batch_files, batch_start, file_lists, channels, get_sizes, no_
             image_c1, image_c2 = images[:2]
             image_c3 = images[2] if len(channels) == 3 else None
             
+            # Load intensity image for channel 3 if it's not labels
+            image_c3_intensity = None
+            if image_c3 is not None and channel3_is_labels.lower() == 'n':
+                # The image we loaded is already the intensity image
+                image_c3_intensity = image_c3
+                # No separate label image for channel 3
+            
             # Get unique label IDs in image_c1
             label_ids = get_nonzero_labels(image_c1)
             
@@ -434,7 +644,8 @@ def process_batch(batch_files, batch_start, file_lists, channels, get_sizes, no_
             for label_id in label_ids:
                 row = process_single_roi(
                     file_path, label_id, image_c1, image_c2, image_c3,
-                    channels, get_sizes, roi_sizes
+                    channels, get_sizes, roi_sizes, channel3_is_labels, image_c3_intensity,
+                    count_positive, threshold_method, threshold_value
                 )
                 batch_rows.append(row)
                 
@@ -448,7 +659,7 @@ def process_batch(batch_files, batch_start, file_lists, channels, get_sizes, no_
             
     return batch_rows
 
-def coloc_channels(file_lists, channels, get_sizes, size_method=None, num_workers=1, batch_size=10, no_resize=False):
+def coloc_channels(file_lists, channels, get_sizes, size_method=None, num_workers=1, batch_size=10, no_resize=False, channel3_is_labels='y', count_positive='n', threshold_method='percentile', threshold_value=75.0):
     """
     Calculate colocalization between channels for multiple images.
     
@@ -467,7 +678,8 @@ def coloc_channels(file_lists, channels, get_sizes, size_method=None, num_worker
         # Process each file in the batch
         batch_rows = process_batch(
             batch_files, batch_start, file_lists, channels, 
-            get_sizes, no_resize, batch_idx + 1, total_batches
+            get_sizes, no_resize, batch_idx + 1, total_batches, channel3_is_labels,
+            count_positive, threshold_method, threshold_value
         )
         
         csv_rows.extend(batch_rows)
@@ -486,9 +698,17 @@ def main():
         num_workers = args.num_workers
         batch_size = args.batch_size
         no_resize = args.no_resize
+        channel3_is_labels = args.channel3_is_labels if len(channels) == 3 else 'y'
+        count_positive = args.count_positive if len(channels) == 3 and channel3_is_labels.lower() == 'n' else 'n'
+        threshold_method = args.threshold_method
+        threshold_value = args.threshold_value
 
         print(f"Configuration: channels={channels}, get_sizes={get_sizes}, "
-              f"size_method={size_method}, num_workers={num_workers}, batch_size={batch_size}, no_resize={no_resize}")
+              f"size_method={size_method}, num_workers={num_workers}, batch_size={batch_size}, no_resize={no_resize}, "
+              f"channel3_is_labels={channel3_is_labels if len(channels) == 3 else 'N/A'}")
+        
+        if count_positive.lower() == 'y':
+            print(f"Positive counting enabled: {threshold_method} threshold = {threshold_value}")
 
         # Validate channel inputs
         if len(set(channels)) < len(channels):
@@ -512,7 +732,7 @@ def main():
 
         # Use context manager for memory operations
         with memory_manager():
-            csv_rows = coloc_channels(file_lists, channels, get_sizes, size_method, num_workers, batch_size, no_resize)
+            csv_rows = coloc_channels(file_lists, channels, get_sizes, size_method, num_workers, batch_size, no_resize, channel3_is_labels, count_positive, threshold_method, threshold_value)
 
         # Create the filename using the selected channels
         channel_string = '_'.join(channels)  # Concatenate channel names with underscores
@@ -523,11 +743,34 @@ def main():
         if get_sizes.lower() == 'y':
             header.extend([f'{channels[0]}_size', f'{channels[1]}_in_{channels[0]}_size'])
         if len(channels) == 3:
-            header.extend([f'{channels[2]}_in_{channels[1]}_in_{channels[0]}_count',
-                           f'{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}_count'])
-            if get_sizes.lower() == 'y':
-                header.extend([f'{channels[2]}_in_{channels[1]}_in_{channels[0]}_size',
-                               f'{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}_size'])
+            if channel3_is_labels.lower() == 'y':
+                # Label-based mode for channel 3
+                header.extend([f'{channels[2]}_in_{channels[1]}_in_{channels[0]}_count',
+                               f'{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}_count'])
+                if get_sizes.lower() == 'y':
+                    header.extend([f'{channels[2]}_in_{channels[1]}_in_{channels[0]}_size',
+                                   f'{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}_size'])
+            else:
+                # Intensity-based mode for channel 3
+                header.extend([
+                    f'{channels[2]}_in_{channels[1]}_in_{channels[0]}_mean',
+                    f'{channels[2]}_in_{channels[1]}_in_{channels[0]}_median',
+                    f'{channels[2]}_in_{channels[1]}_in_{channels[0]}_std',
+                    f'{channels[2]}_in_{channels[1]}_in_{channels[0]}_max',
+                    f'{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}_mean',
+                    f'{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}_median',
+                    f'{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}_std',
+                    f'{channels[2]}_not_in_{channels[1]}_but_in_{channels[0]}_max'
+                ])
+                
+                # Add positive counting columns if requested
+                if count_positive.lower() == 'y':
+                    header.extend([
+                        f'{channels[1]}_in_{channels[0]}_positive_for_{channels[2]}_count',
+                        f'{channels[1]}_in_{channels[0]}_negative_for_{channels[2]}_count',
+                        f'{channels[1]}_in_{channels[0]}_percent_positive_for_{channels[2]}',
+                        f'{channels[2]}_threshold_used'
+                    ])
 
         # Write to CSV
         with open(csv_file, 'w', newline='') as csvfile:

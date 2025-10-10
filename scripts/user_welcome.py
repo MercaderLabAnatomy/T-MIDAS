@@ -789,8 +789,8 @@ def ROI_analysis():
     print("[1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks")
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
-    print("[4] Colocalize ROI in 2 or 3 color channels (counts and sizes)")
-    print("[5] Get properties of objects within ROI (two channels)")
+    print("[4] Colocalize ROI in 2-3 channels (counts, intensities, positive cells)")
+    print("[5] Get regionprops within ROI (labels and/or intensities)")
     print("[6] Get basic ROI properties (single channel)")
     print("[7] Get ROI properties in semantic label images")
     print("[r] Return to main menu")
@@ -864,30 +864,67 @@ def ROI_analysis():
         os.system('clear')
         print("\n")
         print("------------------------------------------------")
-        print("You chose to count colocalizing ROI of different color channels. Optionally, you can get the size of the ROIs of all channels.")
+        print("Multi-channel ROI Colocalization & Analysis")
         print("------------------------------------------------")
         print("\n")
-        print(wrapper.fill("""Input data structure: A popup will appear in a moment asking you to select the parent folder containing subfolders for each color channel. Those should contain the segmentations (label images with suffix _labels.tif). You will be asked to enter the names of all color channel folders. Please enter them in the order in which you want to colocalize them. Example: FITC DAPI TRITC would mean you want to count DAPI in FITC and TRITC in DAPI and FITC. Then enter the suffix of the label images of each channel in the same order. Example: *_labels.tif *_labels.tif *_labels.tif. 
-                           """))
+        print(wrapper.fill("""This tool performs comprehensive multi-channel analysis:"""))
+        print("\n")
+        print(wrapper.fill("""• 2-channel mode: Count objects (e.g., nuclei) within ROIs"""))
+        print(wrapper.fill("""• 3-channel mode with labels: Count triple colocalization (e.g., EdU+ nuclei in cells)"""))
+        print(wrapper.fill("""• 3-channel mode with intensity: Measure fluorescence intensity + count positive objects (e.g., % KI67+ nuclei)"""))
+        print("\n")
+        print(wrapper.fill("""Channel 1 and 2 must be label images. For 3-channel analysis, Channel 3 can be either labels OR raw intensity. With intensity mode, you can optionally count positive objects using percentile or absolute thresholds."""))
         print("\n")
 
         input_folder = popup_input("\nEnter the path to the folder containing the label images: ")
         channels = input("\nEnter the names of your color channel subfolders in the abovementioned order (example: FITC DAPI TRITC): ")
-        label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif *_labels.tif): ")
-        #add_intensity = input("\nDo you want to quantify average intensity of the last channel in the ROI of the second last channel? (y/n): ")
-        # output_images = input("\nDo you want to save colocalization images? (y/n): ")
+        label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif *_labels.tif or *_labels.tif *_labels.tif *.tif): ")
+        
+        # Check if 3 channels are being used
+        num_channels = len(channels.split())
+        channel3_is_labels = 'y'
+        count_positive = 'n'
+        threshold_method = 'percentile'
+        threshold_value = '75.0'
+        
+        if num_channels == 3:
+            channel3_is_labels = input("\nIs Channel 3 a label image? (y/n). Enter 'n' to measure intensity statistics instead of counting objects: ")
+            
+            # If Channel 3 is intensity, offer positive counting
+            if channel3_is_labels.lower() == 'n':
+                count_positive = input("\nDo you want to count Channel 2 objects positive for Channel 3 signal? (y/n): ")
+                
+                if count_positive.lower() == 'y':
+                    threshold_method = input("\nThreshold method? Type 'percentile' or 'absolute': ")
+                    if threshold_method == 'percentile':
+                        threshold_value = input("\nEnter percentile value (0-100, e.g., 75 for 75th percentile): ")
+                    else:
+                        threshold_value = input("\nEnter absolute intensity threshold value: ")
+        
         get_size = input("\nDo you want to get the size of the ROI of all channels? (y/n): ")
         # only get size_method if get_size is true
         size_method = input("\nWhich size stats? Type median or sum: ") if get_size == "y" else ""
 
+        # Build command arguments
+        cmd_args = ('--input ' + input_folder +
+                   ' --channels ' + channels +
+                   ' --label_patterns ' + label_patterns +
+                   ' --get_sizes ' + get_size)
+        
+        if size_method:
+            cmd_args += ' --size_method ' + size_method
+        
+        if num_channels == 3:
+            cmd_args += ' --channel3_is_labels ' + channel3_is_labels
+            
+            if channel3_is_labels.lower() == 'n' and count_positive.lower() == 'y':
+                cmd_args += ' --count_positive ' + count_positive
+                cmd_args += ' --threshold_method ' + threshold_method
+                cmd_args += ' --threshold_value ' + threshold_value
+
         python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_count_multicolor.py',
-                                    '--input ' + input_folder +
-                                    ' --channels ' + channels +
-                                    ' --label_patterns ' + label_patterns +
-                                    # ' --output_images ' + output_images +
-                                    ' --get_size ' + get_size +
-                                    ' --size_method ' + size_method)
+                                    cmd_args)
                                     
                                     #' --add_intensity ' + add_intensity
                                     
@@ -900,21 +937,38 @@ def ROI_analysis():
         print("You chose to get properties of objects within ROI.")
         print("----------------------------------------------------")
         print("\n")
-        print(wrapper.fill('''A popup will appear in a moment asking you to select the parent folder containing subfolders for each color channel. Those should contain the segmentations (label images with suffix _labels.tif), as well as the intensity images. You will be asked to enter the names of the two color channel folders that you want to colocalize to obtain the properties of objects in the second channel within the ROI of the first channel. Please enter channel names in the corresponding order. Example: FITC DAPI would mean you want to obtain the regionprops of DAPI obects within FITC ROI. Then enter the suffix of the label images of each channel in the same order. Example: *_labels.tif *_labels.tif.'''))
+        print(wrapper.fill('''This tool measures properties within ROIs defined by Channel 1 labels. It supports two modes:'''))
+        print("\n")
+        print(wrapper.fill('''1. Label-based mode: Measures properties of Channel 2 labeled objects that overlap with Channel 1 ROIs (e.g., count nuclei within cell ROIs)'''))
+        print("\n")
+        print(wrapper.fill('''2. Intensity-based mode: Measures intensity statistics (mean, std, median, max, min) directly from Channel 2 intensity image within Channel 1 ROIs (e.g., measure fluorescence intensity within segmented cells)'''))
+        print("\n")
+        print(wrapper.fill('''A popup will appear asking you to select the parent folder containing subfolders for each color channel. Channel 1 should contain label images (ROI masks). Channel 2 can contain either label images or raw intensity images depending on your analysis needs.'''))
 
         input_folder = popup_input("\nEnter the path to the parent folder: ")
-        channels = input("\nEnter the names of the color channel subfolders in the abovementioned order (example: FITC DAPI): ")
-        label_patterns = input("\nEnter the label patterns (example: *_labels.tif *_labels.tif): ")
-        label_ids = input("\nEnter the label ids of the ROIs in the first channel (example: 1 2 3): ")
-        ROI_size = input("\nDo you want to get the size of the ROI? (y/n): ")
+        channels = input("\nEnter the names of the color channel subfolders (example: FITC DAPI): ")
+        channel1_pattern = input("\nEnter the label pattern for Channel 1 ROI masks (example: *_labels.tif): ")
+        channel2_pattern = input("\nEnter the file pattern for Channel 2 (example: *_labels.tif or *.tif): ")
+        channel2_is_labels = input("\nIs Channel 2 a label image? (y/n). Enter 'n' for intensity-only measurements: ")
+        label_ids = input("\nEnter the label ids of the ROIs in Channel 1 to analyze (example: 1 2 3), or press Enter to analyze all ROIs: ")
+        ROI_size = input("\nDo you want to include the size of the Channel 1 ROIs in the output? (y/n): ")
+        
+        # Build command arguments
+        cmd_args = ('--input ' + input_folder +
+                   ' --channels ' + channels +
+                   ' --channel1_pattern ' + channel1_pattern +
+                   ' --channel2_pattern ' + channel2_pattern +
+                   ' --channel2_is_labels ' + channel2_is_labels)
+        
+        # Only add label_ids if provided
+        if label_ids.strip():
+            cmd_args += ' --label_ids ' + label_ids
+        
+        cmd_args += ' --ROI_size ' + ROI_size
         
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/ROI_colocalization_regionprops.py',
-                                        '--input ' + input_folder +
-                                        ' --channels ' + channels +
-                                        ' --label_patterns ' + label_patterns +
-                                        ' --label_ids ' + label_ids +
-                                        ' --ROI_size ' + ROI_size)
+                                        cmd_args)
         restart_program()
 
 
