@@ -2,6 +2,8 @@
 Tracking utilities for T-MIDAS.
 """
 
+from __future__ import annotations
+
 import os
 from typing import Optional, Tuple, Any
 import numpy as np

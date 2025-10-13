@@ -2,6 +2,8 @@
 Common I/O utilities for T-MIDAS.
 """
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Optional, Any

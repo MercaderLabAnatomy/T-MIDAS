@@ -2,6 +2,8 @@
 Environment management utilities for T-MIDAS.
 """
 
+from __future__ import annotations
+
 import subprocess
 import sys
 from typing import Optional
