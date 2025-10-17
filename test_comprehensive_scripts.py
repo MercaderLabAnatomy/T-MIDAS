@@ -120,11 +120,11 @@ class TestSegmentationScripts:
         success = run_script_test("segmentation_semantic.py", args, self.test_dir)
         assert success, "segmentation_semantic script failed"
 
-    def test_segmentation_blobs(self):
-        """Test blob segmentation."""
+    def test_segmentation_instances(self):
+        """Test instance segmentation."""
         args = ["--input", self.test_dir, "--method", "otsu"]
-        success = run_script_test("segmentation_blobs.py", args, self.test_dir)
-        assert success, "segmentation_blobs script failed"
+        success = run_script_test("segmentation_instances.py", args, self.test_dir)
+        assert success, "segmentation_instances script failed"
 
     def test_segmentation_spots(self):
         """Test spot segmentation."""

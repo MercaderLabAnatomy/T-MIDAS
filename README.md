@@ -51,8 +51,8 @@ More detailed information is provided via text-based user interface.
 
 [2] Image Segmentation
     [1] Segment bright spots (2D or 3D, also time series) 
-    [2] Segment blobs (2D or 3D, also time series)
-        [1] User-defined or automatic (Otsu) thresholding
+    [2] Instance segmentation (2D or 3D, also time series)
+        [1] User-defined or automatic (Otsu) thresholding with configurable Gaussian blur and gamma correction
         [2] Cellpose (cells or nuclei)
     [3] Semantic segmentation (2D/3D, Otsu or manual threshold)
     [4] Semi-automated segmentation (2D; Segment Anything)

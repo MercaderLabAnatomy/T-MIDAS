@@ -10,10 +10,10 @@ from tqdm import tqdm
 import torch
 
 """
-Description: This script runs automatic mask generation on images.
+Description: This script runs automatic instance segmentation on images.
 
-The script reads images from the input folder, processes them using GPU-accelerated scikit-image filters, 
-and saves the masks in the same folder.
+The script reads images from the input folder, processes them using GPU-accelerated filters with 
+configurable Gaussian blur and gamma correction, and saves the instance masks in the same folder.
 
 """
 
@@ -28,13 +28,15 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
+    parser = argparse.ArgumentParser(description="Runs automatic instance segmentation on images.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     parser.add_argument("--exclude_small", type=float, default=250.0, help="Exclude small objects.")
     parser.add_argument("--exclude_large", type=float,nargs="?", default=None, help="Exclude large objects. Set to 0 or omit for no upper limit.")
     parser.add_argument("--dim_order", type=str, default="YX", help="Dimension order of the input images.")
     parser.add_argument("--threshold", type=int, default=None, help="Enter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use gauss-otsu thresholding.")
     parser.add_argument("--use_filters", type=str2bool, default=True, help="Use filters for user-defined segmentation? (yes/no)")
+    parser.add_argument("--sigma", type=float, default=1.0, help="Sigma value for Gaussian blur (default: 1.0).")
+    parser.add_argument("--gamma", type=float, default=1.0, help="Gamma correction value (< 1.0 brightens darker regions, > 1.0 suppresses them, default: 1.0 = no correction).")
     parser.add_argument("--split_sigma", type=float, default=0.0, help="Split objects by sigma?")
     return parser.parse_args()
 
@@ -42,8 +44,8 @@ args = parse_args()
 
 dim_order = args.dim_order
 threshold = args.threshold
-SIGMA = 1.0
-RADIUS = 10.0
+SIGMA = args.sigma
+GAMMA = args.gamma
 LOWER_THRESHOLD = args.exclude_small
 UPPER_THRESHOLD = args.exclude_large
 use_filters = args.use_filters
@@ -100,11 +102,19 @@ def calculate_downscale_factor(num_pixels, target_pixels=SIZE_LIMIT):
 def process_single_image(image, is_3d, threshold):
     """Process a single image slice and return labeled image."""
     downscaled = False  # Initialize downscaled to False by default
+    
+    # Apply gamma correction if specified
+    if GAMMA != 1.0:
+        # Normalize to 0-1 range, apply gamma, then scale back
+        image = image.astype(np.float32) / 255.0
+        image = np.power(image, GAMMA)
+        image = (image * 255.0).astype(np.uint8)
+        print(f"Applied gamma correction: {GAMMA}")
+    
     if threshold == 0:
         if is_3d:
             if use_filters:
                 image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0)
-                image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0)
                 image_to = cle.threshold_otsu(image_to)
             else:
                 image_to = cle.threshold_otsu(image)
@@ -121,8 +131,7 @@ def process_single_image(image, is_3d, threshold):
                 downscaled = False
 
             if use_filters:
-                image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
-                image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, 0.0)
+                image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0)
                 image_to = cle.threshold_otsu(image_to)
             else:
                 image_to = cle.threshold_otsu(image)
@@ -134,7 +143,6 @@ def process_single_image(image, is_3d, threshold):
         if is_3d:
             if use_filters:
                 image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0)
-                image_to = cle.top_hat_box(image_to, None, RADIUS, RADIUS, 0.0)
                 image_to = cle.greater_or_equal_constant(image_to, None, intensity_threshold)
             else:
                 image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)
@@ -155,8 +163,7 @@ def process_single_image(image, is_3d, threshold):
                 downscaled = False
 
             if use_filters:
-                image_to = cle.top_hat_box(image, None, RADIUS, RADIUS, 0.0)
-                image_to = cle.gaussian_blur(image_to, None, SIGMA, SIGMA, 0.0)
+                image_to = cle.gaussian_blur(image, None, SIGMA, SIGMA, 0.0)
                 image_to = cle.greater_or_equal_constant(image_to, None, intensity_threshold)
             else:
                 image_to = cle.greater_or_equal_constant(image, None, intensity_threshold)

@@ -142,7 +142,7 @@ def main():
         ("Segmentation", [
             ("Semantic Segmentation", "segmentation_semantic.py",
              ["--input", ".", "--threshold", "0"]),  # 0 = Otsu
-            ("Blob Segmentation", "segmentation_blobs.py",
+            ("Instance Segmentation", "segmentation_instances.py",
              ["--input", ".", "--threshold", "0"]),  # 0 = Otsu
             ("Spot Segmentation", "segmentation_spots.py",
              ["--input", "."]),

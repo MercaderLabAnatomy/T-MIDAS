@@ -568,7 +568,7 @@ def image_segmentation():
     os.system('clear')
     print("\nImage Segmentation: What would you like to do?\n")
     print("[1] Segment bright spots (2D or 3D, also time series)")
-    print("[2] Segment blobs (2D or 3D, also time series)")
+    print("[2] Instance segmentation (2D or 3D, also time series)")
     # print("[3] Segment blobs (3D; requires dark background and good SNR)")
     print("[3] Semantic segmentation (2D/3D, Otsu or manual threshold)")
     print("[4] Semi-automated segmentation (2D; Segment Anything)")   
@@ -606,16 +606,16 @@ def image_segmentation():
     if choice == "2":
         os.system('clear')
         print("\n")
-        print("---------------------------------")
-        print("You chose to segment blobs in 2D.")
-        print("---------------------------------")
+        print("--------------------------------------")
+        print("You chose instance segmentation.")
+        print("--------------------------------------")
         print("\n")
         print(wrapper.fill('''A popup will appear in a moment asking you to select the folder containing the .tif images.'''))
         input_folder = popup_input("\nEnter the path to the folder containing the .tif images: ")
         print("\n")
         print(wrapper.fill("You can choose between two methods:"))
         print("\n")
-        print(wrapper.fill("[1] User-defined or automatic (Otsu) intensity thresholding."))
+        print(wrapper.fill("[1] User-defined or automatic (Otsu) intensity thresholding with configurable filters."))
         print("\n")
         print(wrapper.fill("[2] Cellpose's (generalist) cyto3 model."))
         print("\n")
@@ -623,21 +623,36 @@ def image_segmentation():
         if choice == "1":
             print("\nYou chose classical instance segmentation.")
             threshold = input("\nEnter an intensity threshold value within in the range 1-255 if you want to define it yourself or enter 0 to use automatic thresholding: ")
-            use_filters = input("\nUse filters for user-defined segmentation? (yes/no): ")
+            use_filters = input("\nUse Gaussian blur filter? (yes/no): ")
+            sigma = input("\nEnter sigma value for Gaussian blur (default 1.0, higher = more blur): ")
+            if not sigma.strip():
+                sigma = "1.0"
+            gamma = input("\nEnter gamma correction value (< 1.0 brightens darker regions, > 1.0 suppresses them, default 1.0 = no correction): ")
+            if not gamma.strip():
+                gamma = "1.0"
             exclude_small = input("\nLower size threshold to exclude small objects: ")
-            exclude_large = input("\nUpper size threshold to exclude large objects (optional): ")
+            exclude_large = input("\nUpper size threshold to exclude large objects (optional, press Enter to skip): ")
             split_sigma = input("\nSplit smoothed objects? Enter value for smoothing (0 = no splitting): ")
             dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
 
+            # Build command with proper handling of optional parameters
+            command_args = ('--input ' + input_folder + 
+                           ' --threshold ' + threshold +
+                           ' --use_filters ' + use_filters +
+                           ' --sigma ' + sigma +
+                           ' --gamma ' + gamma +
+                           ' --exclude_small ' + exclude_small)
+            
+            # Only add exclude_large if it's not empty
+            if exclude_large.strip():
+                command_args += ' --exclude_large ' + exclude_large
+            
+            command_args += (' --split_sigma ' + split_sigma +
+                            ' --dim_order ' + dim_order)
+
             python_script_environment_setup('tmidas-env', 
-                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs.py',
-                                            '--input ' + input_folder + 
-                                            ' --threshold ' + threshold +
-                                            ' --use_filters ' + use_filters +
-                                            ' --exclude_small ' + exclude_small + 
-                                            ' --exclude_large ' + exclude_large +
-                                            ' --split_sigma ' + split_sigma +
-                                            ' --dim_order ' + dim_order)
+                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances.py',
+                                            command_args)
             restart_program()
         if choice == "2":
             print("\nYou chose Cellpose's cyto3 model.")
@@ -653,7 +668,7 @@ def image_segmentation():
             dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
 
             python_script_environment_setup('tmidas-env', 
-                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_blobs_cyto3.py',
+                                            os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances_cyto3.py',
                                             '--input ' + input_folder +
                                             ' --model_type ' + model_type +
                                             ' --diameter ' + diameter +

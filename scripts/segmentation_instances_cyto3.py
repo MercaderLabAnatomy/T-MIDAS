@@ -17,7 +17,7 @@ The script reads images from the input folder, processes them using Cellpose 3, 
 use_GPU = core.use_gpu()
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Runs automatic mask generation on images.")
+    parser = argparse.ArgumentParser(description="Runs automatic instance segmentation on images using Cellpose.")
     parser.add_argument("--input", type=str, required=True, help="Path to input images.")
     parser.add_argument("--diameter", type=float, default=40.0, help="Diameter of objects.")
     parser.add_argument("--channels", type=int, nargs='+', default=[0,0], help="Channels to use.")
