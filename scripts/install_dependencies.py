@@ -80,24 +80,25 @@ cmd_prefix = f"{conda_executable} run -n {env_name} "
 # Initialize mamba
 def get_mamba_version(mamba_executable):
     try:
-        output = run_command(f"{mamba_executable} --version").strip()
-        # Typical output: "mamba 2.0.5" or "mamba 1.5.8"
-        version_str = output.split()[1]
+        output = subprocess.check_output([mamba_executable, "--version"], text=True).strip()
+        print(f"Detected mamba version string: {output}")
+        version_str = output.split()[1]  # e.g. "2.0.5"
         major_version = int(version_str.split('.')[0])
         return major_version
-    except Exception:
-        print("Could not determine mamba version.")
-        return 1  # Default fallback
+    except Exception as e:
+        print(f"Could not determine mamba version ({e}). Assuming legacy syntax.")
+        return 1  # fallback for unknown or old mamba
 
-# Detect version
+print("Initializing mamba...")
 mamba_major = get_mamba_version(mamba_executable)
 
-# Initialize mamba according to version
-print("Initializing mamba...")
 if mamba_major >= 2:
+    # Modern syntax
     run_command(cmd_prefix + f"{mamba_executable} shell init --shell bash")
 else:
+    # Legacy syntax
     run_command(cmd_prefix + f"{mamba_executable} init")
+
 
 
 # Install dependencies
