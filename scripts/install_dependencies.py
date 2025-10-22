@@ -2,6 +2,9 @@ import subprocess
 import sys
 import os
 import json
+import re
+
+
 try:
     from tqdm import tqdm
 except ImportError:
@@ -82,22 +85,25 @@ def get_mamba_version(mamba_executable):
     try:
         output = subprocess.check_output([mamba_executable, "--version"], text=True).strip()
         print(f"Detected mamba version string: {output}")
-        version_str = output.split()[1]  # e.g. "2.0.5"
+        # Extract the first occurrence of something like 2.1.1
+        match = re.search(r"(\d+\.\d+(\.\d+)?)", output)
+        if not match:
+            raise ValueError("version number not found")
+        version_str = match.group(1)
         major_version = int(version_str.split('.')[0])
         return major_version
     except Exception as e:
         print(f"Could not determine mamba version ({e}). Assuming legacy syntax.")
-        return 1  # fallback for unknown or old mamba
+        return 1  # fallback for unknown or old versions
 
 print("Initializing mamba...")
 mamba_major = get_mamba_version(mamba_executable)
 
 if mamba_major >= 2:
-    # Modern syntax
     run_command(cmd_prefix + f"{mamba_executable} shell init --shell bash")
 else:
-    # Legacy syntax
     run_command(cmd_prefix + f"{mamba_executable} init")
+
 
 
 
