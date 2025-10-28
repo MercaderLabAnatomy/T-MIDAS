@@ -223,8 +223,9 @@ def coloc_channels(file_lists, channels, parent_dir, label_ids, ROI_size, channe
             regionprops_df = pd.concat([regionprops_df, all_regionprops], ignore_index=True)
 
             
-    # Save the regionprops to a csv file
-    regionprops_df.to_csv(os.path.join(parent_dir, 'ROI_regionprops.csv'), index=False)
+    # Save the regionprops to a csv file with channel names in filename
+    output_filename = f'{channels[0]}_{channels[1]}_ROI_regionprops.csv'
+    regionprops_df.to_csv(os.path.join(parent_dir, output_filename), index=False)
 
 
 def main():
