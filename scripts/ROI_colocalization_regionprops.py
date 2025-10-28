@@ -82,12 +82,12 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_
             # Find the regionprop that matches the label_id (not using label_id as index)
             roi_prop = next((p for p in c1_regionprops if p.label == label_id), None)
             if roi_prop is not None:
-                df.loc[i, f'{channels[0]} Size'] = roi_prop.area
+                df.loc[i, f'{channels[0]} Size'] = roi_prop.area  # area = pixel/voxel count (2D/3D)
         else:
             pass
         df.loc[i, f'{channels[1]} label id'] = int(prop.label)
         try:
-            df.loc[i, 'Size'] = prop.area.get()
+            df.loc[i, 'Size'] = prop.area.get()  # area = pixel/voxel count (2D/3D)
         except ValueError:
             print(f"Skipping size for region {prop.label} due to numerical error.")
             df.loc[i, 'Size'] = np.nan
@@ -135,7 +135,7 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_
     return df
 
 
-def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id, channels, ROI_size='n', c1_regionprops=None):
+def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id, channels, ROI_size='n'):
     """
     Measure intensity statistics directly from intensity image within ROI mask.
     No object segmentation in channel 2 - just pure intensity measurements.
@@ -153,11 +153,10 @@ def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id,
     if len(intensity_values) > 0:
         df.loc[0, 'Filename'] = os.path.basename(file_path)
         df.loc[0, f'{channels[0]} label id'] = label_id
-        if ROI_size.lower() == 'y' and c1_regionprops is not None:
-            # Find the regionprop that matches the label_id (not using label_id as index)
-            roi_prop = next((prop for prop in c1_regionprops if prop.label == label_id), None)
-            if roi_prop is not None:
-                df.loc[0, f'{channels[0]} Size'] = roi_prop.area
+        if ROI_size.lower() == 'y':
+            # Calculate ROI size in pixels/voxels (works for both 2D and 3D)
+            roi_size = int(cp.sum(ROI_mask_gpu > 0).get())
+            df.loc[0, f'{channels[0]} Size'] = roi_size
         
         # Intensity measurements
         df.loc[0, 'MeanIntensity'] = float(cp.mean(intensity_values).get())
@@ -165,7 +164,6 @@ def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id,
         df.loc[0, 'StdIntensity'] = float(cp.std(intensity_values).get())
         df.loc[0, 'MaxIntensity'] = float(cp.max(intensity_values).get())
         df.loc[0, 'MinIntensity'] = float(cp.min(intensity_values).get())
-        df.loc[0, 'ROI_Area'] = int(cp.sum(ROI_mask_gpu > 0).get())
     
     return df
 
@@ -185,12 +183,10 @@ def coloc_channels(file_lists, channels, parent_dir, label_ids, ROI_size, channe
         image_c1 = imread(file_lists[channels[0]][file_paths.index(file_path)])
         image_c2 = imread(file_lists[channels[1]][file_paths.index(file_path)])
         
+        # Only compute c1_regionprops if needed (for label-based mode with ROI_size)
         c1_regionprops = None
-
-        if ROI_size.lower() == 'y':
+        if ROI_size.lower() == 'y' and channel2_is_labels.lower() == 'y':
             c1_regionprops = regionprops(image_c1)
-        else:
-            pass
 
         # Determine if we need to load separate intensity image
         if channel2_is_labels.lower() == 'y':
@@ -221,7 +217,7 @@ def coloc_channels(file_lists, channels, parent_dir, label_ids, ROI_size, channe
                 all_regionprops = get_regionprops(c2_in_c1, image_c2_intensities, file_path, label_id, channels, ROI_size, c1_regionprops)
             else:
                 # New behavior: measure intensity directly within ROI (no object segmentation needed)
-                all_regionprops = get_intensity_only_regionprops(ROI_mask, image_c2_intensities, file_path, label_id, channels, ROI_size, c1_regionprops)
+                all_regionprops = get_intensity_only_regionprops(ROI_mask, image_c2_intensities, file_path, label_id, channels, ROI_size)
             
             # Add the regionprops to the dataframe by concatenating
             regionprops_df = pd.concat([regionprops_df, all_regionprops], ignore_index=True)
