@@ -121,8 +121,8 @@ def python_script_environment_setup(env_name, script_name, input_parameters=None
     print("\n")
     print(f"\nRunning chosen pipeline with the following parameters: \n{input_parameters}")
     print("\n")
-    subprocess.run(["mamba", "run", "-n", "napari-tmidas", "napari"],
-               capture_output=False, text=True, cwd="/mnt/")
+    subprocess.run(f"mamba run --live-stream -n {env_name} python {script_name} {input_parameters}",
+               capture_output=False, text=True, cwd="/mnt/", shell=True)
 
     print("\nDone.")
     logging(env_name, script_name, input_parameters, user_name)
