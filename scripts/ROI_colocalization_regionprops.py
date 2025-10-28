@@ -87,10 +87,10 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_
             pass
         df.loc[i, f'{channels[1]} label id'] = int(prop.label)
         try:
-            df.loc[i, 'Size'] = prop.area.get()  # area = pixel/voxel count (2D/3D)
+            df.loc[i, f'{channels[1]} Size'] = prop.area.get()  # area = pixel/voxel count (2D/3D)
         except ValueError:
             print(f"Skipping size for region {prop.label} due to numerical error.")
-            df.loc[i, 'Size'] = np.nan
+            df.loc[i, f'{channels[1]} Size'] = np.nan
         # try:
         #     df.loc[i, 'Perimeter'] = prop.perimeter.get()
         # except ValueError:
@@ -102,35 +102,35 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_
         #     print(f"Skipping eccentricity for region {prop.label} due to numerical error.")
         #     df.loc[i, 'Eccentricity'] = np.nan
         try:
-            df.loc[i, 'MajorAxisLength'] = prop.major_axis_length
+            df.loc[i, f'{channels[1]} MajorAxisLength'] = prop.major_axis_length
         except ValueError:
             print(f"Skipping major axis length for region {prop.label} due to numerical error.")
-            df.loc[i, 'MajorAxisLength'] = np.nan
+            df.loc[i, f'{channels[1]} MajorAxisLength'] = np.nan
         try:
-            df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length
+            df.loc[i, f'{channels[1]} MinorAxisLength'] = prop.minor_axis_length
         except ValueError:
             print(f"Skipping minor axis length for region {prop.label} due to numerical error.")
-            df.loc[i, 'MinorAxisLength'] = np.nan
+            df.loc[i, f'{channels[1]} MinorAxisLength'] = np.nan
         try:
-            df.loc[i, 'MeanIntensity'] = prop.intensity_mean.get()
+            df.loc[i, f'{channels[1]} MeanIntensity'] = prop.intensity_mean.get()
         except ValueError:
             print(f"Skipping mean intensity for region {prop.label} due to numerical error.")
-            df.loc[i, 'MeanIntensity'] = np.nan
+            df.loc[i, f'{channels[1]} MeanIntensity'] = np.nan
         try:
-            df.loc[i, 'MedianIntensity'] = prop.median_intensity.get()
+            df.loc[i, f'{channels[1]} MedianIntensity'] = prop.median_intensity.get()
         except ValueError:
             print(f"Skipping median intensity for region {prop.label} due to numerical error.")
-            df.loc[i, 'MedianIntensity'] = np.nan
+            df.loc[i, f'{channels[1]} MedianIntensity'] = np.nan
         try:
-            df.loc[i, 'MaxIntensity'] = prop.intensity_max.get()
+            df.loc[i, f'{channels[1]} MaxIntensity'] = prop.intensity_max.get()
         except ValueError:
             print(f"Skipping max intensity for region {prop.label} due to numerical error.")
-            df.loc[i, 'MaxIntensity'] = np.nan
+            df.loc[i, f'{channels[1]} MaxIntensity'] = np.nan
         try:
-            df.loc[i, 'StdIntensity'] = prop.std_intensity.get()
+            df.loc[i, f'{channels[1]} StdIntensity'] = prop.std_intensity.get()
         except ValueError:
             print(f"Skipping std intensity for region {prop.label} due to numerical error.")
-            df.loc[i, 'StdIntensity'] = np.nan
+            df.loc[i, f'{channels[1]} StdIntensity'] = np.nan
 
     return df
 
@@ -159,11 +159,11 @@ def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id,
             df.loc[0, f'{channels[0]} Size'] = roi_size
         
         # Intensity measurements
-        df.loc[0, 'MeanIntensity'] = float(cp.mean(intensity_values).get())
-        df.loc[0, 'MedianIntensity'] = float(cp.median(intensity_values).get())
-        df.loc[0, 'StdIntensity'] = float(cp.std(intensity_values).get())
-        df.loc[0, 'MaxIntensity'] = float(cp.max(intensity_values).get())
-        df.loc[0, 'MinIntensity'] = float(cp.min(intensity_values).get())
+        df.loc[0, f'{channels[1]} MeanIntensity'] = float(cp.mean(intensity_values).get())
+        df.loc[0, f'{channels[1]} MedianIntensity'] = float(cp.median(intensity_values).get())
+        df.loc[0, f'{channels[1]} StdIntensity'] = float(cp.std(intensity_values).get())
+        df.loc[0, f'{channels[1]} MaxIntensity'] = float(cp.max(intensity_values).get())
+        df.loc[0, f'{channels[1]} MinIntensity'] = float(cp.min(intensity_values).get())
     
     return df
 
