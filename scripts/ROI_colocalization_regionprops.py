@@ -79,7 +79,10 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_
         df.loc[i, 'Filename'] = os.path.basename(file_path)
         df.loc[i, f'{channels[0]} label id'] = label_id
         if ROI_size.lower() == 'y':
-            df.loc[i, f'{channels[0]} Size'] = c1_regionprops[label_id-1].area
+            # Find the regionprop that matches the label_id (not using label_id as index)
+            roi_prop = next((p for p in c1_regionprops if p.label == label_id), None)
+            if roi_prop is not None:
+                df.loc[i, f'{channels[0]} Size'] = roi_prop.area
         else:
             pass
         df.loc[i, f'{channels[1]} label id'] = int(prop.label)
@@ -151,7 +154,10 @@ def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id,
         df.loc[0, 'Filename'] = os.path.basename(file_path)
         df.loc[0, f'{channels[0]} label id'] = label_id
         if ROI_size.lower() == 'y' and c1_regionprops is not None:
-            df.loc[0, f'{channels[0]} Size'] = c1_regionprops[label_id-1].area
+            # Find the regionprop that matches the label_id (not using label_id as index)
+            roi_prop = next((prop for prop in c1_regionprops if prop.label == label_id), None)
+            if roi_prop is not None:
+                df.loc[0, f'{channels[0]} Size'] = roi_prop.area
         
         # Intensity measurements
         df.loc[0, 'MeanIntensity'] = float(cp.mean(intensity_values).get())

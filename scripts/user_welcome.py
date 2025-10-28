@@ -251,13 +251,15 @@ def image_preprocessing():
         intersectfiles = input("\nEnter suffix of images to be intersected: ")
         output_tag = input("\nEnter the suffix of the output images: ")
         save_as_label = input("\nSave the intersected regions as label images? (y/n): ")
+        command_args = '--input ' + input_folder + \
+                      ' --maskfiles ' + maskfiles + \
+                      ' --intersectfiles ' + intersectfiles + \
+                      ' --output_tag ' + output_tag
+        if save_as_label.lower() == 'y':
+            command_args += ' --save_as_label'
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/intersection.py',
-                                        '--input ' + input_folder + 
-                                        ' --maskfiles ' + maskfiles + 
-                                        ' --intersectfiles ' + intersectfiles +
-                                        ' --output_tag ' + output_tag +
-                                        ' --save_as_label ' + save_as_label)
+                                        command_args)
         restart_program()
     if choice == "4":
         os.system('clear')
@@ -804,7 +806,7 @@ def ROI_analysis():
     print("[1] Heart slices: Add 100um boundary zone to [intact+injured] ventricle masks")
     print("[2] Count spots within ROI (2D)")
     print("[3] Count blobs within ROI (3D)")
-    print("[4] Colocalize ROI in 2-3 channels (counts, intensities, positive cells)")
+    print("[4] Colocalize ROI in 3 channels (counts, intensities, positive cells)")
     print("[5] Get regionprops within ROI (labels and/or intensities)")
     print("[6] Get basic ROI properties (single channel)")
     print("[7] Get ROI properties in semantic label images")
