@@ -40,6 +40,17 @@ python ROI_colocalization_count_multicolor.py --input /data \
     --count_positive y \
     --threshold_method percentile \
     --threshold_value 75.0
+
+# Using wildcards for varying label suffixes (e.g., _labels1, _labels23, _labels5)
+python ROI_colocalization_count_multicolor.py --input /data \
+    --channels ROI Nuclei Markers \
+    --label_patterns "*_labels[0-9]*.tif" "*_labels[0-9]*.tif" "*.tif" \
+    --channel3_is_labels n
+
+# Match files with single digit suffix only
+python ROI_colocalization_count_multicolor.py --input /data \
+    --channels C1 C2 C3 \
+    --label_patterns "*_labels?.tif" "*_nuclei.tif" "*.tif"
 """
 
 import os
@@ -97,7 +108,10 @@ def parse_args():
     parser.add_argument('--channels', nargs='+', type=str, required=True, 
                          help='Folder names of all color channels. Example: "TRITC DAPI FITC"')
     parser.add_argument('--label_patterns', nargs='+', type=str, required=True,
-                         help='Label pattern for each channel. Example: "*_labels.tif *_labels.tif *_labels.tif"')
+                         help='Glob pattern for each channel. Supports wildcards: * (any chars), ? (one char), [seq] (char in seq). '
+                              'Examples: "*_labels.tif" matches any prefix with _labels.tif; '
+                              '"*_labels[0-9]*.tif" matches _labels1, _labels23, etc.; '
+                              '"*_labels?.tif" matches single digit like _labels5.tif')
     parser.add_argument('--channel3_is_labels', type=str, default='y',
                          help='Is channel 3 a label image? (y/n). If "n", will measure intensity statistics instead of counting objects. Only applies when using 3 channels.')
     
@@ -298,8 +312,12 @@ def count_unique_nonzero(array, mask):
     
     # Remove 0 from count if present
     if count > 0:
-        if GPU_AVAILABLE and 0 in unique_vals.get() or not GPU_AVAILABLE and 0 in unique_vals:
-            count -= 1
+        if GPU_AVAILABLE:
+            if 0 in unique_vals.get():
+                count -= 1
+        else:
+            if 0 in unique_vals:
+                count -= 1
             
     return count
 
@@ -607,8 +625,110 @@ def process_single_roi(file_path, label_id, image_c1, image_c2, image_c3, channe
     
     return row
 
+def load_matched_images(matched_file_dict, channels, no_resize):
+    """Load images for matched files across channels."""
+    try:
+        # First load all images to get their shapes
+        images = []
+        shapes = []
+        
+        for channel in channels:
+            path = matched_file_dict[channel]
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"Image file not found: {path}")
+                
+            img = io.imread(path)
+            images.append(img)
+            shapes.append(img.shape)
+        
+        # Check if all shapes are the same
+        shapes_equal = all(shape == shapes[0] for shape in shapes)
+        
+        if not shapes_equal:
+            if no_resize:
+                raise ValueError("Images have different shapes and --no_resize is enabled")
+            
+            # Resize all images to match the first one
+            target_shape = shapes[0]
+            print(f"Resizing images to {target_shape}")
+            
+            resized_images = []
+            for channel in channels:
+                path = matched_file_dict[channel]
+                img = load_image(path, target_shape)
+                resized_images.append(img)
+                
+            return resized_images, True
+        else:
+            # Load images with GPU support if available
+            loaded_images = []
+            for channel in channels:
+                path = matched_file_dict[channel]
+                img = load_image(path)
+                loaded_images.append(img)
+                
+            return loaded_images, False
+            
+    except Exception as e:
+        print(f"Error loading images: {str(e)}")
+        return None, False
+
+def process_batch_matched(batch_matched_files, channels, get_sizes, no_resize, batch_num, total_batches, channel3_is_labels='y', count_positive='n', threshold_method='percentile', threshold_value=75.0):
+    """Process a batch of matched image file sets for colocalization analysis."""
+    batch_rows = []
+    xp = cp if GPU_AVAILABLE else np
+    
+    for matched_dict in tqdm(batch_matched_files, desc=f"Processing batch {batch_num}/{total_batches}"):
+        try:
+            # Get the primary file path (from first channel) for naming
+            file_path = matched_dict[channels[0]]
+            
+            # Load and prepare images
+            images, resized = load_matched_images(matched_dict, channels, no_resize)
+            
+            if images is None:
+                print(f"Failed to load images for {os.path.basename(file_path)}")
+                continue
+                
+            image_c1, image_c2 = images[:2]
+            image_c3 = images[2] if len(channels) == 3 else None
+            
+            # Load intensity image for channel 3 if it's not labels
+            image_c3_intensity = None
+            if image_c3 is not None and channel3_is_labels.lower() == 'n':
+                # The image we loaded is already the intensity image
+                image_c3_intensity = image_c3
+                # No separate label image for channel 3
+            
+            # Get unique label IDs in image_c1
+            label_ids = get_nonzero_labels(image_c1)
+            
+            # Pre-calculate sizes for image_c1 if needed
+            roi_sizes = {}
+            if get_sizes.lower() == 'y':
+                roi_sizes = calculate_all_rois_size(image_c1)
+            
+            # Process each label
+            for label_id in label_ids:
+                row = process_single_roi(
+                    file_path, label_id, image_c1, image_c2, image_c3,
+                    channels, get_sizes, roi_sizes, channel3_is_labels, image_c3_intensity,
+                    count_positive, threshold_method, threshold_value
+                )
+                batch_rows.append(row)
+                
+            # Clean up GPU memory after each file
+            if GPU_AVAILABLE:
+                cp.get_default_memory_pool().free_all_blocks()
+                
+        except Exception as e:
+            print(f"Error processing matched files: {str(e)}")
+            traceback.print_exc()
+            
+    return batch_rows
+
 def process_batch(batch_files, batch_start, file_lists, channels, get_sizes, no_resize, batch_num, total_batches, channel3_is_labels='y', count_positive='n', threshold_method='percentile', threshold_value=75.0):
-    """Process a batch of image files for colocalization analysis."""
+    """Process a batch of image files for colocalization analysis (deprecated - kept for compatibility)."""
     batch_rows = []
     xp = cp if GPU_AVAILABLE else np
     
@@ -659,6 +779,50 @@ def process_batch(batch_files, batch_start, file_lists, channels, get_sizes, no_
             
     return batch_rows
 
+def match_files_across_channels(file_lists, channels):
+    """
+    Match files across channels based on common substrings.
+    
+    Returns:
+        list: List of dictionaries, each containing matched file paths for all channels
+    """
+    # Get basenames for the first channel
+    first_channel = channels[0]
+    matched_files = []
+    
+    for file_c1 in file_lists[first_channel]:
+        basename_c1 = os.path.basename(file_c1)
+        
+        # Try to find matching files in other channels
+        match_dict = {first_channel: file_c1}
+        matched = True
+        
+        for channel in channels[1:]:
+            best_match = None
+            best_match_len = 0
+            
+            # Find the best matching file based on common substring
+            for file_cn in file_lists[channel]:
+                basename_cn = os.path.basename(file_cn)
+                common = longest_common_substring(basename_c1, basename_cn)
+                
+                # Require a minimum common substring length
+                if len(common) > best_match_len and len(common) >= 10:
+                    best_match = file_cn
+                    best_match_len = len(common)
+            
+            if best_match is None:
+                print(f"Warning: No match found for {basename_c1} in channel {channel}")
+                matched = False
+                break
+            
+            match_dict[channel] = best_match
+        
+        if matched:
+            matched_files.append(match_dict)
+    
+    return matched_files
+
 def coloc_channels(file_lists, channels, get_sizes, size_method=None, num_workers=1, batch_size=10, no_resize=False, channel3_is_labels='y', count_positive='n', threshold_method='percentile', threshold_value=75.0):
     """
     Calculate colocalization between channels for multiple images.
@@ -667,17 +831,22 @@ def coloc_channels(file_lists, channels, get_sizes, size_method=None, num_worker
         list: List of CSV rows
     """
     csv_rows = []
-    file_paths = file_lists[channels[0]]
-    total_batches = (len(file_paths) - 1) // batch_size + 1
+    
+    # Match files across channels by common substring
+    print("Matching files across channels...")
+    matched_files = match_files_across_channels(file_lists, channels)
+    print(f"Successfully matched {len(matched_files)} file sets")
+    
+    total_batches = (len(matched_files) - 1) // batch_size + 1
     
     # Process in batches
-    for batch_idx, batch_start in enumerate(range(0, len(file_paths), batch_size)):
-        batch_end = min(batch_start + batch_size, len(file_paths))
-        batch_files = file_paths[batch_start:batch_end]
+    for batch_idx, batch_start in enumerate(range(0, len(matched_files), batch_size)):
+        batch_end = min(batch_start + batch_size, len(matched_files))
+        batch_matched_files = matched_files[batch_start:batch_end]
         
-        # Process each file in the batch
-        batch_rows = process_batch(
-            batch_files, batch_start, file_lists, channels, 
+        # Process each matched file set in the batch
+        batch_rows = process_batch_matched(
+            batch_matched_files, channels, 
             get_sizes, no_resize, batch_idx + 1, total_batches, channel3_is_labels,
             count_positive, threshold_method, threshold_value
         )

@@ -72,6 +72,16 @@ def std_intensity(label_img, intensity_img):
 
 def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_size='n',c1_regionprops=None):
     df = pd.DataFrame()
+    
+    # Check if shapes match
+    if label_img.shape != intensity_img.shape:
+        raise ValueError(
+            f"Shape mismatch in {os.path.basename(file_path)}:\n"
+            f"  Channel 2 label image shape: {label_img.shape}\n"
+            f"  Channel 2 intensity image shape: {intensity_img.shape}\n"
+            f"Both images must have the same dimensions. Please ensure your images are properly aligned."
+        )
+    
     label_img = cp.asarray(label_img)
     intensity_img = cp.asarray(intensity_img)
     props = regionprops(label_img, intensity_img, extra_properties=[median_intensity, std_intensity])
@@ -135,12 +145,21 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_
     return df
 
 
-def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id, channels, ROI_size='n'):
+def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id, channels, ROI_size):
     """
     Measure intensity statistics directly from intensity image within ROI mask.
     No object segmentation in channel 2 - just pure intensity measurements.
     """
     df = pd.DataFrame()
+    
+    # Check if shapes match
+    if ROI_mask.shape != intensity_img.shape:
+        raise ValueError(
+            f"Shape mismatch in {os.path.basename(file_path)}:\n"
+            f"  Channel 1 ROI mask shape: {ROI_mask.shape}\n"
+            f"  Channel 2 intensity image shape: {intensity_img.shape}\n"
+            f"Both images must have the same dimensions. Please ensure your images are properly aligned."
+        )
     
     # Create a binary mask for the ROI
     ROI_mask_gpu = cp.asarray(ROI_mask)
