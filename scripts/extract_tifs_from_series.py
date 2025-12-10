@@ -156,7 +156,7 @@ def init_logger():
                                 rootLoggerName)
 
     logLevel = jb.get_static_field("ch/qos/logback/classic/Level",
-                                   "WARN",
+                                   "ERROR",
                                    "Lch/qos/logback/classic/Level;")
 
     jb.call(rootLogger,
