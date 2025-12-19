@@ -179,6 +179,8 @@ def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
                 
                 print(f"\nProcessing: {os.path.basename(file_path)}")
                 print(f"  Shape: {shape}")
+                print(f"  Original dtype: {img.dtype}")
+                print(f"  Value range: [{np.min(img)}, {np.max(img)}]")
                 print(f"  Structure: {'Time-lapse' if is_timelapse else 'Static'}{f' ({time_steps} steps)' if is_timelapse else ''}, {'3D' if is_3d else '2D'}")
                 
                 # Find channel axis
@@ -204,6 +206,8 @@ def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
                 
                 # Split and save channels
                 base = os.path.splitext(os.path.basename(file_path))[0]
+                original_dtype = img.dtype
+                
                 for ch in range(num_channels):
                     # Extract this channel's data
                     channel_img = np.take(img, ch, axis=channel_axis)
@@ -211,6 +215,41 @@ def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
                     # Process axes order for the output
                     channel_img, output_axes = get_output_axes_and_transpose(
                         channel_img, axes_without_channel, output_format)
+                    
+                    # Determine appropriate output dtype
+                    # TIFF supports: uint8, uint16, uint32, float32, float64
+                    if channel_img.dtype == np.uint8:
+                        output_dtype = np.uint8
+                    elif channel_img.dtype == np.uint16:
+                        output_dtype = np.uint16
+                    elif channel_img.dtype in [np.uint32, np.int32, np.int64]:
+                        # Check the actual value range to determine best dtype
+                        min_val = np.min(channel_img)
+                        max_val = np.max(channel_img)
+                        
+                        if min_val < 0:
+                            # Has negative values - need to convert to float or shift
+                            print(f"    Warning: Channel {ch} has negative values [{min_val}, {max_val}], converting to float32...")
+                            output_dtype = np.float32
+                        elif max_val <= 255:
+                            output_dtype = np.uint8
+                        elif max_val <= 65535:
+                            output_dtype = np.uint16
+                        else:
+                            output_dtype = np.uint32
+                    elif np.issubdtype(channel_img.dtype, np.floating):
+                        # For float types, keep as float32 or float64
+                        if channel_img.dtype == np.float64:
+                            output_dtype = np.float64
+                        else:
+                            output_dtype = np.float32
+                    else:
+                        # Default fallback
+                        output_dtype = np.uint16
+                    
+                    # Convert to output dtype
+                    if channel_img.dtype != output_dtype:
+                        channel_img = channel_img.astype(output_dtype)
                     
                     # Setup metadata based on output format
                     imagej_compatible = (output_format == 'fiji')
@@ -261,14 +300,23 @@ def split_channels(file_list, output_dir, time_steps, is_3d, output_format):
                     # Create the output filename
                     output_filename = os.path.join(output_dir, f"C{ch}-{base}.tif")
                     
-                    # Save the channel image
-                    imwrite(
-                        output_filename,
-                        channel_img,
-                        imagej=imagej_compatible,
-                        metadata=imagej_metadata if imagej_compatible else {'axes': output_axes},
-                        compression='zlib'
-                    )
+                    # Save the channel image with appropriate parameters
+                    if imagej_compatible:
+                        imwrite(
+                            output_filename,
+                            channel_img,
+                            imagej=True,
+                            metadata=imagej_metadata,
+                            compression='zlib'
+                        )
+                    else:
+                        # For Python format, use simple TIFF without ImageJ metadata
+                        imwrite(
+                            output_filename,
+                            channel_img,
+                            compression='zlib',
+                            photometric='minisblack'
+                        )
                     
                 print(f"  Saved {num_channels} channels")
                     

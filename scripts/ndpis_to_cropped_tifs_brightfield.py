@@ -129,12 +129,13 @@ def get_rois(slide, output_filename):
 
         # Upscale labels to full slide resolution
         labels_upscaled = np.zeros(slide.dimensions[::-1], dtype=np.uint32)
+        scaling_factor_int = int(scaling_factor)
         for y in range(labels.shape[0]):
             for x in range(labels.shape[1]):
                 if labels[y, x] > 0:
                     start_y = int(y * scaling_factor)
                     start_x = int(x * scaling_factor)
-                    labels_upscaled[start_y:start_y+scaling_factor, start_x:start_x+scaling_factor] = labels[y, x]
+                    labels_upscaled[start_y:start_y+scaling_factor_int, start_x:start_x+scaling_factor_int] = labels[y, x]
 
         props = regionprops(labels_upscaled)
         rois = []
