@@ -21,6 +21,9 @@ and saves the ROIs as grayscale TIF files based on the color channel order in th
 The output TIF files are saved in a folder named "tif_files" in the same directory as the input NDPI files.
 """
 
+# Set environment variable for better memory management
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
+
 model_type = "vit_t"
 sam_checkpoint = "/opt/T-MIDAS/models/mobile_sam.pt"
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -68,13 +71,29 @@ def get_largest_label_id(label_image):
 def get_rois(template_ndpi_file, output_filename):
     try:
         slide = openslide.OpenSlide(os.path.join(input_folder, template_ndpi_file))
-        scaling_factor = 30
+        
+        # Adaptive scaling: target 1536 pixels on longest side for good balance between memory and accuracy
+        TARGET_MAX_DIMENSION = 1536
+        max_dimension = max(slide.dimensions)
+        scaling_factor = max_dimension / TARGET_MAX_DIMENSION
+        print(f"Slide dimensions: {slide.dimensions}, scaling factor: {scaling_factor:.1f}")
+        
         slide_dims_downscaled = (slide.dimensions[0] / scaling_factor, slide.dimensions[1] / scaling_factor)
         
         thumbnail = slide.get_thumbnail(slide_dims_downscaled)
         thumbnail.save(output_filename + "_thumbnail.png")
         thumbnail_array = np.array(thumbnail)
         snapshot = thumbnail_array.copy()
+        
+        # Create contrast-enhanced version for visualization
+        contrast_enhanced = thumbnail_array.copy()
+        for c in range(3):  # Process each RGB channel
+            channel = contrast_enhanced[:, :, c]
+            p2, p98 = np.percentile(channel, (2, 98))
+            contrast_enhanced[:, :, c] = np.clip((channel - p2) * 255 / (p98 - p2), 0, 255)
+        Image.fromarray(contrast_enhanced.astype(np.uint8)).save(output_filename + "_thumbnail_contrast.png")
+        print(f"Saved contrast-enhanced thumbnail: {output_filename}_thumbnail_contrast.png")
+        
         thumbnail_array = cle.push(thumbnail_array)
         thumbnail_array = cle.gaussian_blur(thumbnail_array, None, 2.0, 2.0, 0.0)
         thumbnail_array = cle.top_hat_box(thumbnail_array, None, 10.0, 10.0, 0)
@@ -83,7 +102,15 @@ def get_rois(template_ndpi_file, output_filename):
         labels = np.zeros(thumbnail_array.shape[:2], dtype=np.uint32)
         # print shape of thumbnail_array
         print(f"Thumbnail array shape: {thumbnail_array.shape}")
-        masks = mask_generator.generate(thumbnail_array)
+        
+        # Use no_grad context and clear cache to reduce memory usage
+        with torch.no_grad():
+            masks = mask_generator.generate(thumbnail_array)
+        
+        # Clear CUDA cache after inference
+        if device == "cuda":
+            torch.cuda.empty_cache()
+        
         for i, mask_data in enumerate(masks):
             mask = mask_data["segmentation"]
             labeled_mask = label(mask, return_num=False)
@@ -99,8 +126,12 @@ def get_rois(template_ndpi_file, output_filename):
         Image.fromarray(labels).save(output_filename + "_thumbnail_labels.png")
 
         # --- Napari Viewer for interactive label editing ---
+        # Apply CLAHE to snapshot for better visibility in Napari
+        from skimage.exposure import equalize_adapthist
+        snapshot_clahe = (equalize_adapthist(snapshot / 255.0, clip_limit=0.03) * 255).astype(np.uint8)
+        
         viewer = napari.Viewer()
-        viewer.add_image(snapshot, name='Thumbnail Image')
+        viewer.add_image(snapshot_clahe, name='Thumbnail Image (CLAHE)')
         labels_layer = viewer.add_labels(labels, name='Labels (Initial)')
         print("Napari viewer opened. Please refine the labels in the 'Labels (Initial)' layer using Napari's tools.")
         print("Once you are satisfied with the labels, close the Napari viewer window (not exit!).")
