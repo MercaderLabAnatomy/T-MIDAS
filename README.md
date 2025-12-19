@@ -85,10 +85,9 @@ More detailed information is provided via text-based user interface.
 [n] Start Napari (with useful plugins)
 </pre>
 
-## WIP
+## Roadmap
 
-- AI for ROI detection in brightfield and fluorescence images
-- Code stability
+- AI-assisted ROI detection for brightfield and fluorescence images
 
 ## Installation (Ubuntu)
 
