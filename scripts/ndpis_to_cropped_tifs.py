@@ -26,7 +26,20 @@ os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
 model_type = "vit_t"
 sam_checkpoint = "/opt/T-MIDAS/models/mobile_sam.pt"
-device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Try to use GPU, fallback to CPU if unavailable
+try:
+    if torch.cuda.is_available():
+        device = "cuda"
+        print(f"Using GPU for SAM inference")
+    else:
+        device = "cpu"
+        print(f"CUDA not available, using CPU for SAM inference")
+except Exception as e:
+    device = "cpu"
+    print(f"⚠️  GPU initialization failed: {e}")
+    print(f"Falling back to CPU for SAM inference - processing will be slower")
+
 mobile_sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
 mobile_sam.to(device=device)
 mobile_sam.eval()

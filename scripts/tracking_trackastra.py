@@ -82,9 +82,18 @@ try:
     from trackastra.model import Trackastra
     from trackastra.tracking import graph_to_ctc, graph_to_napari_tracks
 
-    # Set device
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f'Using device: {{device}}')
+    # Set device with fallback handling
+    try:
+        if torch.cuda.is_available():
+            device = 'cuda'
+            print(f'Using GPU for tracking')
+        else:
+            device = 'cpu'
+            print(f'CUDA not available, using CPU for tracking')
+    except Exception as e:
+        device = 'cpu'
+        print(f'\u26a0\ufe0f  GPU initialization failed: {{e}}')
+        print(f'Falling back to CPU for tracking - processing will be slower')
     
     # Load a single image-mask pair
     print('Loading image and mask...')

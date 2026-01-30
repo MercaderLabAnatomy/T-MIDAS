@@ -60,9 +60,18 @@ def track_cells_with_trackastra(img: np.ndarray, mask: np.ndarray, model_name: s
         import torch
         from trackastra.model import Trackastra
 
-        # Set device
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        print(f'Using device: {device}')
+        # Set device with fallback handling
+        try:
+            if torch.cuda.is_available():
+                device = 'cuda'
+                print(f'Using GPU for tracking')
+            else:
+                device = 'cpu'
+                print(f'CUDA not available, using CPU for tracking')
+        except Exception as e:
+            device = 'cpu'
+            print(f'⚠️  GPU initialization failed: {e}')
+            print(f'Falling back to CPU for tracking - processing will be slower')
         
         # Load the model
         print(f'Loading TrackAstra model: {model_name}')

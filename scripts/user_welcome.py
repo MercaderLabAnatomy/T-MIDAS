@@ -60,14 +60,30 @@ def get_no_threads():
     return subprocess.check_output("lscpu | grep -E '^CPU\(s\):'", 
                                    shell=True).decode('utf-8').strip().replace(" ", "").replace("CPU(s):", "")
 
+def check_gpu_available():
+    """Check if GPU is available and drivers are working."""
+    try:
+        subprocess.check_output("nvidia-smi", shell=True, stderr=subprocess.DEVNULL)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
 def get_model_name_GPU():
-    return subprocess.check_output("nvidia-smi --query-gpu=gpu_name --format=csv,noheader", 
-                                             shell=True).decode('utf-8').strip()
+    """Get GPU model name, returns None if GPU is unavailable."""
+    try:
+        return subprocess.check_output("nvidia-smi --query-gpu=gpu_name --format=csv,noheader", 
+                                       shell=True, stderr=subprocess.DEVNULL).decode('utf-8').strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
 
 def get_available_VRAM():
-    available_RAM_GPU = subprocess.check_output("nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits", 
-                                                shell=True).decode('utf-8').strip()
-    return str(round(int(available_RAM_GPU) / 1024, 2)) + " GB"
+    """Get available VRAM, returns None if GPU is unavailable."""
+    try:
+        available_RAM_GPU = subprocess.check_output("nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits", 
+                                                    shell=True, stderr=subprocess.DEVNULL).decode('utf-8').strip()
+        return str(round(int(available_RAM_GPU) / 1024, 2)) + " GB"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
 
 
 def welcome_message():
@@ -80,8 +96,19 @@ def welcome_message():
     print(f" Welcome to the Tissue Microscopy Image Data Analysis Suite! \n")
     print(f" This machine with the name {get_hostname()} has\n") 
     print(f"- a {get_model_name_CPU()} CPU with {get_no_threads()} threads, and\n")
-    print(f"- a {get_model_name_GPU()} GPU. \n") 
-    print(f" Currently, {get_available_RAM()} RAM and {get_available_VRAM()} VRAM are available. \n")
+    
+    # Check GPU availability
+    gpu_available = check_gpu_available()
+    if gpu_available:
+        gpu_name = get_model_name_GPU()
+        vram = get_available_VRAM()
+        print(f"- a {gpu_name} GPU. \n") 
+        print(f" Currently, {get_available_RAM()} RAM and {vram} VRAM are available. \n")
+    else:
+        print(f"- no GPU detected (driver issue or GPU not available). \n")
+        print(f" Currently, {get_available_RAM()} RAM is available. \n")
+        print("\n ⚠️  WARNING: GPU not available - all pipelines will run with CPU-based processing.")
+        print("    This may result in slower performance for deep learning models.\n")
 
 
     # first ask user whether they want to use T-MIDAS (Enter), access the terminal (x), or start fiji (f)

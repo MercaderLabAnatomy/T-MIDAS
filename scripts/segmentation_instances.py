@@ -197,7 +197,12 @@ def main():
         if not filename.endswith(".tif"):
             continue
         labeled_image = process_image(os.path.join(image_folder, filename), dim_order, threshold)
-        torch.cuda.empty_cache()
+        # Clear GPU cache if CUDA is available
+        try:
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:
+            pass  # Silently skip if GPU is not available
         if labeled_image is not None:
             output_path = os.path.join(image_folder, f"{filename[:-4]}_labels.tif")
             save_image(labeled_image, output_path)
