@@ -46,13 +46,13 @@ def process_image(input_file, input_folder, model, channels, diameter, flow_thre
         labeled_time_points = np.zeros(img.shape, dtype=np.uint32)
         for t in tqdm(range(img.shape[0]), desc="Processing time points"):
             img_t = img[t]
-            mask, _, _, _ = model.eval(img_t, diameter=diameter, flow_threshold=flow_threshold, 
-                                       channels=channels, niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
+            mask, _, _ = model.eval(img_t, diameter=diameter, flow_threshold=flow_threshold, 
+                                    channels=channels, niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
             labeled_time_points[t] = mask
         result = labeled_time_points
     else:
-        result, _, _, _ = model.eval(img, diameter=diameter, flow_threshold=flow_threshold, 
-                                     channels=channels, niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
+        result, _, _ = model.eval(img, diameter=diameter, flow_threshold=flow_threshold, 
+                                  channels=channels, niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
     
     output_file = os.path.join(input_folder, input_file.replace(".tif", "_labels.tif"))
     imwrite(output_file, result.astype(np.uint32), compression='zlib')
@@ -77,7 +77,7 @@ def main():
     dim_order = args.dim_order
     
     flow_threshold = 0.4
-    model = models.Cellpose(gpu=use_GPU, model_type=args.model_type)
+    model = models.CellposeModel(gpu=use_GPU, model_type=args.model_type)
     
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
     

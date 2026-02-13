@@ -119,6 +119,8 @@ To start the text-based user interface in your terminal, change directory to the
 python ./scripts/user_welcome.py
 ```
 
+**Note:** T-MIDAS terminal uses the faster Cellpose v3 for optimal segmentation performance.
+
 ## Acknowledgements and Citations
 
 This project relies on several open-source libraries and tools. We would like to acknowledge and thank the creators of these projects:

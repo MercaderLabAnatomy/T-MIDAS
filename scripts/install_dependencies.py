@@ -132,6 +132,6 @@ print("Installing napari...")
 run_command(cmd_prefix + "python -m pip install napari[all]")
 
 print("Installing cellpose...")
-run_command(cmd_prefix + "python -m pip install cellpose")
+run_command(cmd_prefix + "python -m pip install 'cellpose>=3.0.0,<4.0.0'")
 
 print("All dependencies installed successfully.")
