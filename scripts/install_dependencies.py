@@ -68,14 +68,23 @@ env_name = "tmidas-env"
 print("Initializing conda...")
 run_command(f"{conda_executable} init bash")
 
-# Create the environment
-print(f"Creating environment {env_name}...")
-run_command(f"{conda_executable} create -n {env_name} python=3.9 -y")
+# Check if environment already exists
+env_list = run_command(f"{conda_executable} env list --json").strip()
+existing_envs = json.loads(env_list)['envs']
+env_exists = any(path.endswith(env_name) for path in existing_envs)
 
-# Get the path to the created environment
-env_path = run_command(f"{conda_executable} env list --json").strip()
-env_path = json.loads(env_path)['envs']
-env_path = [path for path in env_path if path.endswith(env_name)][0]
+if env_exists:
+    print(f"Environment {env_name} already exists. Updating packages...")
+    env_path = [path for path in existing_envs if path.endswith(env_name)][0]
+else:
+    # Create the environment
+    print(f"Creating environment {env_name}...")
+    run_command(f"{conda_executable} create -n {env_name} python=3.9 -y")
+    
+    # Get the path to the created environment
+    env_path = run_command(f"{conda_executable} env list --json").strip()
+    env_path = json.loads(env_path)['envs']
+    env_path = [path for path in env_path if path.endswith(env_name)][0]
 
 # Set up the command prefix to run in the activated environment
 cmd_prefix = f"{conda_executable} run -n {env_name} "
