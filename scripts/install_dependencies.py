@@ -117,9 +117,15 @@ else:
 
 
 # Install dependencies
-dependencies = [
-    'numpy', 'scikit-image', 'tifffile', 'Pillow',
-    'pandas', 'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
+# These packages should be installed via conda for binary compatibility
+conda_dependencies = [
+    'numpy', 'scikit-image', 'tifffile', 'imagecodecs', 'pillow',
+    'pandas', 'scipy', 'openslide', 'ocl-icd-system', 'cupy'
+]
+
+# These can be safely installed via pip
+pip_dependencies = [
+    'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
     'openslide-python', 'glob2', 'pytest', 'cucim', 'aicspylibczi', 'torch',
     'torchvision', 'timm', 'python-javabridge', 'python-bioformats', 'devbio-napari','siphash24'
 ]
@@ -127,20 +133,21 @@ dependencies = [
 print("Upgrading pip and setuptools...")
 run_command(cmd_prefix + "python -m pip install -U setuptools pip")
 
-print("Installing conda packages...")
-run_command(cmd_prefix + f"{conda_executable} install openslide ocl-icd-system cupy -y")
+print("Installing conda packages (for binary compatibility)...")
+conda_deps_str = ' '.join(conda_dependencies)
+run_command(cmd_prefix + f"{conda_executable} install -c conda-forge {conda_deps_str} -y")
 
 print("Installing MobileSAM...")
-run_command(cmd_prefix + "pip install git+https://github.com/ChaoningZhang/MobileSAM.git")
+run_command(cmd_prefix + "pip install --no-user git+https://github.com/ChaoningZhang/MobileSAM.git")
 
 print("Installing pip packages...")
-for dependency in tqdm(dependencies, desc="Installing dependencies"):
-    run_command(cmd_prefix + f"pip install {dependency}")
+for dependency in tqdm(pip_dependencies, desc="Installing dependencies"):
+    run_command(cmd_prefix + f"pip install --no-user {dependency}")
 
 print("Installing napari...")
-run_command(cmd_prefix + "python -m pip install napari[all]")
+run_command(cmd_prefix + "python -m pip install --no-user napari[all]")
 
 print("Installing cellpose...")
-run_command(cmd_prefix + "python -m pip install 'cellpose>=3.0.0,<4.0.0'")
+run_command(cmd_prefix + "python -m pip install --no-user 'cellpose>=3.0.0,<4.0.0'")
 
 print("All dependencies installed successfully.")
