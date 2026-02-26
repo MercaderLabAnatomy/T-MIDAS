@@ -337,6 +337,9 @@ def image_preprocessing():
         object_type = input("\nChoose between nuclei (n) or cytoplasm (c): ")
         dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
         num_channels = input("\nEnter the number of color channels (default=1): ")
+        # Use default value if user just presses Enter
+        if not num_channels.strip():
+            num_channels = "1"
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/restore_cellpose.py',
                                         '--input ' + input_folder + 
@@ -416,6 +419,9 @@ def image_preprocessing():
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the Acquifer images: ")
         padding = input("\nEnter the padding in pixels (default: 20): ")
+        # Use default value if user just presses Enter
+        if not padding.strip():
+            padding = "20"
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/crop_acquifer_larvae.py',
                                         '--input ' + input_folder + ' --padding ' + padding)
@@ -517,6 +523,9 @@ def file_conversion():
               ''')
         input_folder = popup_input("\nEnter the path to the folder containing the brightfield .czi(s) files: ")
         scale_factor = input("\nEnter the scale factor (0.5 = half the size (default)): ")
+        # Use default value if user just presses Enter
+        if not scale_factor.strip():
+            scale_factor = "0.5"
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/czi_to_tif_brightfield.py',
                                         '--input ' + input_folder + 
@@ -549,6 +558,9 @@ def crop_images():
               A popup will appear in a moment asking you to select the folder containing ndpi(s) files.''')
         input_folder = popup_input("\nEnter the path to the folder containing ndpi(s) files: ")
         padding = input("\nEnter the padding in pixels (default: 100): ")
+        # Use default value if user just presses Enter
+        if not padding.strip():
+            padding = "100"
         CROPPING_TEMPLATE_CHANNEL_NAME = input('''
                                                Enter the channel name 
                                                that represents the cropping template 
@@ -566,6 +578,9 @@ def crop_images():
               A popup will appear in a moment asking you to select the folder containing ndpi files.''')
         input_folder = popup_input("\nEnter the path to the folder containing the .ndpi files: ")
         padding = input("\nEnter the padding in pixels (default: 10): ")
+        # Use default value if user just presses Enter
+        if not padding.strip():
+            padding = "10"
         python_script_environment_setup('tmidas-env', 
                                         os.environ.get("TMIDAS_PATH")+'/scripts/ndpis_to_cropped_tifs_brightfield.py',
                                         '--input ' + input_folder +
@@ -1231,6 +1246,9 @@ def zstd_compression():
     file_extension = input("\nEnter the file extension to compress (e.g., tif): ")
     remove_source = input("\nRemove source files after compression? (y/n): ")
     compression_level = input("\nEnter the compression level (1-22, default: 19): ")
+    # Use default value if user just presses Enter
+    if not compression_level.strip():
+        compression_level = "19"
     python_script_environment_setup('tmidas-env', 
                                     os.environ.get("TMIDAS_PATH")+'/scripts/zstd_compression.py',
                                     '--input_folder ' + input_folder + ' --file_extension ' + 
