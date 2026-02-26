@@ -25,9 +25,13 @@ def parse_args():
     parser.add_argument("--model_type", type=str, default='cyto3',
                     choices=['cyto', 'cyto2', 'cyto3', 'nuclei'],
                     help="Model type: 'cyto'/'cyto2'/'cyto3' for cells, 'nuclei' for nuclei")
+    parser.add_argument("--flow_threshold", type=float, default=0.4, 
+                    help="Flow threshold (default: 0.4). Maximum allowed error of flows for each mask.")
+    parser.add_argument("--cellprob_threshold", type=float, default=0.0,
+                    help="Cell probability threshold (default: 0.0). Increase to find fewer and larger cells.")
     return parser.parse_args()
 
-def process_image(input_file, input_folder, model, channels, diameter, flow_threshold, dim_order):
+def process_image(input_file, input_folder, model, channels, diameter, flow_threshold, cellprob_threshold, dim_order):
     img = imread(os.path.join(input_folder, input_file))
     
     print("\nCheck if image shape corresponds to the dim order that you have given:")
@@ -47,12 +51,14 @@ def process_image(input_file, input_folder, model, channels, diameter, flow_thre
         for t in tqdm(range(img.shape[0]), desc="Processing time points"):
             img_t = img[t]
             mask, _, _ = model.eval(img_t, diameter=diameter, flow_threshold=flow_threshold, 
-                                    channels=channels, niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
+                                    cellprob_threshold=cellprob_threshold, channels=channels, 
+                                    niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
             labeled_time_points[t] = mask
         result = labeled_time_points
     else:
         result, _, _ = model.eval(img, diameter=diameter, flow_threshold=flow_threshold, 
-                                  channels=channels, niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
+                                  cellprob_threshold=cellprob_threshold, channels=channels, 
+                                  niter=2000, z_axis=0 if is_3d else None, do_3D=is_3d)
     
     output_file = os.path.join(input_folder, input_file.replace(".tif", "_labels.tif"))
     imwrite(output_file, result.astype(np.uint32), compression='zlib')
@@ -75,8 +81,9 @@ def main():
     input_folder = args.input
     diameter = args.diameter
     dim_order = args.dim_order
+    flow_threshold = args.flow_threshold
+    cellprob_threshold = args.cellprob_threshold
     
-    flow_threshold = 0.4
     model = models.CellposeModel(gpu=use_GPU, model_type=args.model_type)
     
     input_files = [f for f in os.listdir(input_folder) if f.endswith('.tif') and not f.endswith('_labels.tif')]
@@ -85,7 +92,7 @@ def main():
         if check_image_size(input_file, input_folder):
             print(f"Skipping {input_file} as it exceeds the maximum size of 4,000,000 pixels squared.")
             continue
-        process_image(input_file, input_folder, model, channels, diameter, flow_threshold, dim_order)
+        process_image(input_file, input_folder, model, channels, diameter, flow_threshold, cellprob_threshold, dim_order)
 
 if __name__ == "__main__":
     main()

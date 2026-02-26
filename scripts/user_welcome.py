@@ -696,6 +696,11 @@ def image_segmentation():
             model_type = input("\nChoose between nuclei or cyto: ")
             channels = input("\nEnter the channels to use (example for grayscale: 0 0):")
             dim_order = input("\nEnter the dimension order of the images (example: TZYX): ")
+            print("\n")
+            print(wrapper.fill("Optional: You can adjust advanced Cellpose parameters. Flow threshold controls the maximum allowed error of flows for each mask (default: 0.4). Cell probability threshold filters cells based on probability (default: 0.0 - increase to find fewer and larger cells). Press Enter to use defaults."))
+            print("\n")
+            flow_threshold = input("\nEnter flow threshold (default: 0.4): ") or "0.4"
+            cellprob_threshold = input("\nEnter cell probability threshold (default: 0.0): ") or "0.0"
 
             python_script_environment_setup('tmidas-env', 
                                             os.environ.get("TMIDAS_PATH")+'/scripts/segmentation_instances_cyto3.py',
@@ -703,7 +708,9 @@ def image_segmentation():
                                             ' --model_type ' + model_type +
                                             ' --diameter ' + diameter +
                                             ' --channels ' + channels +
-                                            ' --dim_order ' + dim_order)
+                                            ' --dim_order ' + dim_order +
+                                            ' --flow_threshold ' + flow_threshold +
+                                            ' --cellprob_threshold ' + cellprob_threshold)
             restart_program()
 
     
