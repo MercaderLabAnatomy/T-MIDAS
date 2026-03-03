@@ -1,6 +1,6 @@
 import os
 import argparse
-import cupy as cp
+import numpy as np
 from skimage.io import imread
 import pandas as pd
 from sklearn.metrics import f1_score
@@ -57,7 +57,7 @@ results = []
 for i in tqdm(range(len(predictions)), total=len(predictions), desc="Processing images"):
     prediction = imread(predictions[i])
     ground_truth = imread(ground_truths[i])
-    f1 = f1_score(cp.ravel(ground_truth), cp.ravel(prediction), average='micro') 
+    f1 = f1_score(np.ravel(ground_truth), np.ravel(prediction), average='micro')
 
     filename = os.path.basename(predictions[i])[:-11]
 

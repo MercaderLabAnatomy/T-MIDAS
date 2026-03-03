@@ -5,8 +5,14 @@ from skimage.io import imread
 import pandas as pd
 from tqdm import tqdm
 import sys
-from cucim.skimage.measure import regionprops as regionprops_gpu
-import cupy as cp
+try:
+    from cucim.skimage.measure import regionprops as regionprops_gpu
+    import cupy as cp
+    GPU_AVAILABLE = cp.cuda.is_available()
+except ImportError:
+    regionprops_gpu = None
+    import numpy as cp
+    GPU_AVAILABLE = False
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Validate segmentation results against manual segmentation results.')
@@ -77,7 +83,7 @@ def main():
         sys.exit(1)
 
     results = []
-    use_gpu = cp.cuda.is_available()
+    use_gpu = GPU_AVAILABLE
 
     for gt_file, pred_file in tqdm(zip(ground_truths, predictions), total=len(ground_truths), desc="Processing images"):
         result = validate_segmentation(gt_file, pred_file, use_gpu)

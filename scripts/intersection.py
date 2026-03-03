@@ -1,8 +1,14 @@
 import os
 from tifffile import imread, imwrite
 import argparse
-import cupy as cp
 from tqdm import tqdm
+
+try:
+    import cupy as cp
+    GPU_AVAILABLE = cp.cuda.is_available()
+except ImportError:
+    import numpy as cp
+    GPU_AVAILABLE = False
 
 """
 Description: This script creates a new image by intersecting two images. 
@@ -43,7 +49,7 @@ for idx, filename in enumerate(tqdm(filenames, total=len(filenames), desc="Proce
     mask = os.path.join(args.input, filename + args.maskfiles)
     original = os.path.join(args.input, filename + args.intersectfiles)
     
-    if cp.cuda.is_available():
+    if GPU_AVAILABLE:
         result = intersection_gpu(mask, original)
         print('\nUsing GPU')
     else:

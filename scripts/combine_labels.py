@@ -2,8 +2,14 @@ import os
 import numpy as np
 from tifffile import imread, imwrite
 import argparse
-import cupy as cp
-import cupyx.scipy.ndimage as cpndi
+try:
+    import cupy as cp
+    import cupyx.scipy.ndimage as cpndi
+    GPU_AVAILABLE = cp.cuda.is_available()
+except ImportError:
+    import numpy as cp
+    import scipy.ndimage as cpndi
+    GPU_AVAILABLE = False
 from tqdm import tqdm
 import pyclesperanto_prototype as cle
 
@@ -49,18 +55,27 @@ def merge_labels_gpu(label1, label2):
     
     return result.astype(np.uint32)  # Convert back to uint32
 
+def merge_labels_cpu(label1, label2):
+    label1_img = imread(label1).astype(np.float32)
+    label2_img = imread(label2).astype(np.float32)
+    label1_cle = cle.push(label1_img)
+    label2_cle = cle.push(label2_img)
+    result_cle = cle.create_like(label1_cle)
+    cle.combine_labels(label1_cle, label2_cle, result_cle)
+    return cle.pull(result_cle).astype(np.uint32)
+
 
 
 for idx, filename in enumerate(tqdm(filenames, total=len(filenames), desc="Processing images")):
     label1 = os.path.join(args.input, filename + args.label1_tag)
     label2 = os.path.join(args.input, filename + args.label2_tag)
     
-    if cp.cuda.is_available():
+    if GPU_AVAILABLE:
         result = merge_labels_gpu(label1, label2)
         print('\nUsing GPU')
     else:
-        print('\nGPU not available. This script requires GPU.')
-        break
+        result = merge_labels_cpu(label1, label2)
+        print('\nUsing CPU')
     
     imwrite(os.path.join(args.input, filename + args.output_tag), 
             result, compression='zlib')

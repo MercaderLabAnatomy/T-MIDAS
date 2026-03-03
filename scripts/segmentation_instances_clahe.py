@@ -1,13 +1,25 @@
 import os
 import glob
+import numpy as np
 import tifffile as tf
 import argparse
 from skimage import exposure
-import cupy as cp
-from cucim.skimage import morphology
-from cucim.skimage.filters import gaussian
-from cucim.skimage.filters.thresholding import threshold_otsu
-from cucim.skimage.measure import label
+try:
+    import cupy as cp
+    from cucim.skimage import morphology
+    from cucim.skimage.filters import gaussian
+    from cucim.skimage.filters.thresholding import threshold_otsu
+    from cucim.skimage.measure import label
+    GPU_AVAILABLE = cp.cuda.is_available()
+except ImportError:
+    import numpy as cp
+    from skimage import morphology
+    from skimage.filters import gaussian
+    from skimage.filters import threshold_otsu
+    from skimage.measure import label
+    GPU_AVAILABLE = False
+
+to_numpy = cp.asnumpy if GPU_AVAILABLE else np.asarray
 import pyclesperanto_prototype as cle
 from tqdm import tqdm
 
@@ -70,7 +82,7 @@ def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma
     mask = cp.asarray(tf.imread(mask))
     image = cp.asarray(tf.imread(image))
     image[mask == 0] = 0    
-    image_clahe = exposure.equalize_adapthist(cp.asnumpy(image), kernel_size=kernel_size, clip_limit=clip_limit, nbins=nbins)
+    image_clahe = exposure.equalize_adapthist(to_numpy(image), kernel_size=kernel_size, clip_limit=clip_limit, nbins=nbins)
     image_gol = gaussian(cp.asarray(image_clahe), sigma=outline_sigma, preserve_range=True)
     threshold = threshold_otsu(image_gol)
     binary = image_gol >= threshold
@@ -79,7 +91,7 @@ def intersect_clahe_go(mask,image, kernel_size, clip_limit, nbins, outline_sigma
     label_image = cle.push(cp.asarray(label_image))
     label_image = cle.exclude_small_labels(label_image, None, LOWER_THRESHOLD)
     label_image = cle.exclude_large_labels(label_image, None, UPPER_THRESHOLD)
-    label_image = cp.asnumpy(label_image)
+    label_image = to_numpy(label_image)
     return label_image
 
 for idx, (mask_file, intensity_file) in enumerate(tqdm(zip(mask_files, intensity_files), 

@@ -3,8 +3,14 @@ import glob
 import argparse
 import numpy as np
 import pandas as pd
-import cupy as cp
-from cucim.skimage.measure import regionprops
+try:
+    import cupy as cp
+    from cucim.skimage.measure import regionprops
+    GPU_AVAILABLE = cp.cuda.is_available()
+except ImportError:
+    import numpy as cp
+    from skimage.measure import regionprops
+    GPU_AVAILABLE = False
 from skimage.io import imread
 from tqdm import tqdm
 
@@ -97,7 +103,7 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_
             pass
         df.loc[i, f'{channels[1]} label id'] = int(prop.label)
         try:
-            df.loc[i, f'{channels[1]} Size'] = prop.area.get()  # area = pixel/voxel count (2D/3D)
+            df.loc[i, f'{channels[1]} Size'] = float(prop.area)  # area = pixel/voxel count (2D/3D)
         except ValueError:
             print(f"Skipping size for region {prop.label} due to numerical error.")
             df.loc[i, f'{channels[1]} Size'] = np.nan
@@ -122,22 +128,22 @@ def get_regionprops(label_img, intensity_img, file_path, label_id,channels, ROI_
             print(f"Skipping minor axis length for region {prop.label} due to numerical error.")
             df.loc[i, f'{channels[1]} MinorAxisLength'] = np.nan
         try:
-            df.loc[i, f'{channels[1]} MeanIntensity'] = prop.intensity_mean.get()
+            df.loc[i, f'{channels[1]} MeanIntensity'] = float(prop.intensity_mean)
         except ValueError:
             print(f"Skipping mean intensity for region {prop.label} due to numerical error.")
             df.loc[i, f'{channels[1]} MeanIntensity'] = np.nan
         try:
-            df.loc[i, f'{channels[1]} MedianIntensity'] = prop.median_intensity.get()
+            df.loc[i, f'{channels[1]} MedianIntensity'] = float(prop.median_intensity)
         except ValueError:
             print(f"Skipping median intensity for region {prop.label} due to numerical error.")
             df.loc[i, f'{channels[1]} MedianIntensity'] = np.nan
         try:
-            df.loc[i, f'{channels[1]} MaxIntensity'] = prop.intensity_max.get()
+            df.loc[i, f'{channels[1]} MaxIntensity'] = float(prop.intensity_max)
         except ValueError:
             print(f"Skipping max intensity for region {prop.label} due to numerical error.")
             df.loc[i, f'{channels[1]} MaxIntensity'] = np.nan
         try:
-            df.loc[i, f'{channels[1]} StdIntensity'] = prop.std_intensity.get()
+            df.loc[i, f'{channels[1]} StdIntensity'] = float(prop.std_intensity)
         except ValueError:
             print(f"Skipping std intensity for region {prop.label} due to numerical error.")
             df.loc[i, f'{channels[1]} StdIntensity'] = np.nan
@@ -174,15 +180,15 @@ def get_intensity_only_regionprops(ROI_mask, intensity_img, file_path, label_id,
         df.loc[0, f'{channels[0]} label id'] = label_id
         if ROI_size.lower() == 'y':
             # Calculate ROI size in pixels/voxels (works for both 2D and 3D)
-            roi_size = int(cp.sum(ROI_mask_gpu > 0).get())
+            roi_size = int(cp.sum(ROI_mask_gpu > 0))
             df.loc[0, f'{channels[0]} Size'] = roi_size
         
         # Intensity measurements
-        df.loc[0, f'{channels[1]} MeanIntensity'] = float(cp.mean(intensity_values).get())
-        df.loc[0, f'{channels[1]} MedianIntensity'] = float(cp.median(intensity_values).get())
-        df.loc[0, f'{channels[1]} StdIntensity'] = float(cp.std(intensity_values).get())
-        df.loc[0, f'{channels[1]} MaxIntensity'] = float(cp.max(intensity_values).get())
-        df.loc[0, f'{channels[1]} MinIntensity'] = float(cp.min(intensity_values).get())
+        df.loc[0, f'{channels[1]} MeanIntensity'] = float(cp.mean(intensity_values))
+        df.loc[0, f'{channels[1]} MedianIntensity'] = float(cp.median(intensity_values))
+        df.loc[0, f'{channels[1]} StdIntensity'] = float(cp.std(intensity_values))
+        df.loc[0, f'{channels[1]} MaxIntensity'] = float(cp.max(intensity_values))
+        df.loc[0, f'{channels[1]} MinIntensity'] = float(cp.min(intensity_values))
     
     return df
 

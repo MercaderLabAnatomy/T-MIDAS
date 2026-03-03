@@ -3,8 +3,14 @@ import argparse
 import sys
 import pandas as pd
 from skimage import io
-import cupy as cp
-from cucim.skimage.measure import regionprops
+try:
+    import cupy as cp
+    from cucim.skimage.measure import regionprops
+    GPU_AVAILABLE = cp.cuda.is_available()
+except ImportError:
+    import numpy as cp
+    from skimage.measure import regionprops
+    GPU_AVAILABLE = False
 from tqdm import tqdm
 import numpy as np
 
@@ -93,9 +99,9 @@ def get_regionprops(label_img_path, intensity_img_path=None):
         for i, prop in enumerate(props):
             df.loc[i, 'Filename'] = os.path.basename(label_img_path)
             df.loc[i, 'Labels_ID'] = int(prop.label) 
-            df.loc[i, 'Area'] = prop.area.get() * area_scale
+            df.loc[i, 'Area'] = float(prop.area) * area_scale
             df.loc[i, 'Area_Unit'] = area_unit
-            #df.loc[i, 'Perimeter'] = prop.perimeter.get()
+            #df.loc[i, 'Perimeter'] = float(prop.perimeter)
             
             # Check if the image is 3D and skip eccentricity
             if label_img.ndim == 3:
@@ -107,17 +113,17 @@ def get_regionprops(label_img_path, intensity_img_path=None):
             df.loc[i, 'MajorAxisLength_Unit'] = length_unit
             df.loc[i, 'MinorAxisLength'] = prop.minor_axis_length * length_scale
             df.loc[i, 'MinorAxisLength_Unit'] = length_unit
-            df.loc[i, 'MeanIntensity'] =  prop.intensity_mean.get()
-            df.loc[i, 'MaxIntensity'] =  prop.intensity_max.get()
+            df.loc[i, 'MeanIntensity'] = float(prop.intensity_mean)
+            df.loc[i, 'MaxIntensity'] = float(prop.intensity_max)
     
     else:
         props = regionprops(label_img)
         for i, prop in enumerate(props):
             df.loc[i, 'Filename'] = os.path.basename(label_img_path)
             df.loc[i, 'Labels_ID'] = int(prop.label) 
-            df.loc[i, 'Area'] = prop.area.get() * area_scale
+            df.loc[i, 'Area'] = float(prop.area) * area_scale
             df.loc[i, 'Area_Unit'] = area_unit
-            #df.loc[i, 'Perimeter'] = prop.perimeter.get()
+            #df.loc[i, 'Perimeter'] = float(prop.perimeter)
             
             # Check if the image is 3D and skip eccentricity
             if label_img.ndim == 3:
