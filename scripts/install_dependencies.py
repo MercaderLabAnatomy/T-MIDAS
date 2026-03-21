@@ -120,14 +120,14 @@ else:
 # These packages should be installed via conda for binary compatibility
 conda_dependencies = [
     'numpy', 'scikit-image', 'tifffile', 'imagecodecs', 'pillow',
-    'pandas', 'scipy', 'openslide', 'ocl-icd-system', 'cupy'
+    'pandas', 'scipy', 'openslide', 'ocl-icd-system', 'cupy','javabridge'
 ]
 
 # These can be safely installed via pip
 pip_dependencies = [
     'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
     'openslide-python', 'glob2', 'pytest', 'cucim', 'aicspylibczi', 'torch',
-    'torchvision', 'timm', 'python-javabridge', 'python-bioformats', 'devbio-napari','siphash24'
+    'torchvision', 'timm','tqdm', 'python-javabridge', 'python-bioformats', 'devbio-napari','siphash24'
 ]
 
 print("Upgrading pip and setuptools...")
