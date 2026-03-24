@@ -119,7 +119,7 @@ else:
 # Install dependencies
 # These packages should be installed via conda for binary compatibility
 conda_dependencies = [
-    'numpy', 'scikit-image', 'tifffile', 'imagecodecs', 'pillow',
+    'numpy<2', 'scikit-image', 'tifffile', 'imagecodecs', 'pillow',
     'pandas', 'scipy', 'openslide', 'ocl-icd-system', 'cupy','javabridge'
 ]
 
@@ -127,7 +127,7 @@ conda_dependencies = [
 pip_dependencies = [
     'aicsimageio', 'opencv-python', 'readlif', 'SimpleITK',
     'openslide-python', 'glob2', 'pytest', 'cucim', 'aicspylibczi', 'torch',
-    'torchvision', 'timm','tqdm', 'python-javabridge', 'python-bioformats', 'devbio-napari','siphash24'
+    'torchvision', 'timm','tqdm', 'devbio-napari','siphash24'
 ]
 
 print("Upgrading pip and setuptools...")
@@ -139,6 +139,9 @@ run_command(cmd_prefix + f"{conda_executable} install -c conda-forge {conda_deps
 
 print("Installing MobileSAM...")
 run_command(cmd_prefix + "pip install --no-user git+https://github.com/ChaoningZhang/MobileSAM.git")
+
+print("Installing python-bioformats without dependencies (keep conda javabridge for ABI compatibility)...")
+run_command(cmd_prefix + "pip install --no-user --no-deps python-bioformats")
 
 print("Installing pip packages...")
 for dependency in tqdm(pip_dependencies, desc="Installing dependencies"):
